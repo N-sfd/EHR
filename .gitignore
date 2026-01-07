@@ -48,3 +48,12 @@ target/
 # Angular cache
 frontend/.angular/
 .angular/
+
+# Java / Maven
+backend/target/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.iml
