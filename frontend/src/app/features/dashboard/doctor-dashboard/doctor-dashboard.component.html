@@ -1,0 +1,89 @@
+<div class="doctor-dashboard">
+  <h2 class="page-title">Doctor Dashboard</h2>
+
+  <!-- Top Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-calendar-check"></i>
+      </div>
+      <div class="stat-content">
+        <p class="stat-label">Total Appointments</p>
+        <h3 class="stat-value">{{ totalAppointments }}</h3>
+        <div class="stat-deltas">
+          <span class="stat-delta positive">+95%</span>
+          <span class="stat-delta positive">+21%</span>
+        </div>
+        <span class="stat-timeframe">in last 7 Days</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-video"></i>
+      </div>
+      <div class="stat-content">
+        <p class="stat-label">Online Consultations</p>
+        <h3 class="stat-value">{{ onlineConsultations }}</h3>
+        <div class="stat-deltas">
+          <span class="stat-delta negative">-15%</span>
+          <span class="stat-delta positive">+21%</span>
+        </div>
+        <span class="stat-timeframe">in last 7 Days</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-times-circle"></i>
+      </div>
+      <div class="stat-content">
+        <p class="stat-label">Cancelled Appointments</p>
+        <h3 class="stat-value">{{ cancelledAppointments }}</h3>
+        <div class="stat-deltas">
+          <span class="stat-delta positive">+45%</span>
+          <span class="stat-delta positive">+31%</span>
+        </div>
+        <span class="stat-timeframe">in last 7 Days</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upcoming Appointment -->
+  <div class="card">
+    <div class="card-header">
+      <h4>Upcoming Appointments</h4>
+      <select class="period-select" [(ngModel)]="appointmentStatsPeriod" aria-label="Select appointment period">
+        <option>Today</option>
+        <option>This Week</option>
+        <option>This Month</option>
+      </select>
+    </div>
+    <div class="card-body">
+      <div class="upcoming-appointment">
+        <img [src]="upcomingAppointment.patientImg" 
+             [alt]="upcomingAppointment.patient || 'Patient avatar'" 
+             class="patient-avatar" 
+             title="{{ upcomingAppointment.patient || 'Patient avatar' }}"
+             role="img">
+        <div class="appointment-details">
+          <h5>{{ upcomingAppointment.patient }}</h5>
+          <p class="appointment-id">{{ upcomingAppointment.id }}</p>
+          <p class="appointment-type">{{ upcomingAppointment.type }}</p>
+          <p class="appointment-date">{{ upcomingAppointment.date }}</p>
+          <p class="appointment-time">{{ upcomingAppointment.time }}</p>
+          <div class="appointment-meta">
+            <span><strong>Department:</strong> {{ upcomingAppointment.department }}</span>
+            <span><strong>Type:</strong> {{ upcomingAppointment.appointmentType }}</span>
+          </div>
+          <div class="appointment-actions">
+            <button class="btn btn-primary">Start Appointment</button>
+            <button class="btn btn-outline">Chat Now</button>
+            <button class="btn btn-outline">Video Consultation</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

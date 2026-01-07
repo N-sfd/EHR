@@ -1,0 +1,10 @@
+<div class="epic-card" [class.no-padding]="!padding">
+  <div class="card-header" *ngIf="title || subtitle">
+    <h3 class="card-title" *ngIf="title">{{ title }}</h3>
+    <p class="card-subtitle" *ngIf="subtitle">{{ subtitle }}</p>
+  </div>
+  <div class="card-content" [class.no-header]="!title && !subtitle">
+    <ng-content></ng-content>
+  </div>
+</div>
+

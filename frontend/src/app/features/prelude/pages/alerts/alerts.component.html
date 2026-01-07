@@ -1,0 +1,27 @@
+<div class="alerts-page">
+  <app-card title="Patient Alerts">
+    <div class="alerts-list" *ngIf="!isLoading && alerts.length > 0">
+      <div class="alert-item" *ngFor="let alert of alerts" [class]="'severity-' + alert.severity">
+        <div class="alert-icon">
+          <i [class]="getSeverityIcon(alert.severity)"></i>
+        </div>
+        <div class="alert-content">
+          <div class="alert-message">{{ alert.message }}</div>
+          <div class="alert-meta">
+            <app-badge [variant]="alert.severity === 'critical' ? 'danger' : alert.severity === 'warning' ? 'warning' : 'info'">
+              {{ alert.category }}
+            </app-badge>
+            <span class="alert-date">{{ alert.date | date:'shortDate' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="empty-state" *ngIf="!isLoading && alerts.length === 0">
+      <p>No alerts for this patient.</p>
+    </div>
+    <div class="loading-state" *ngIf="isLoading">
+      <p>Loading alerts...</p>
+    </div>
+  </app-card>
+</div>
+

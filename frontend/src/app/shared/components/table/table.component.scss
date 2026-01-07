@@ -1,0 +1,79 @@
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.epic-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  font-size: 13px;
+
+  thead {
+    background: var(--primary-teal);
+    color: white;
+
+    th {
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 600;
+      white-space: nowrap;
+      border-bottom: 2px solid var(--primary-dark);
+
+      &.sortable {
+        cursor: pointer;
+        user-select: none;
+
+        &:hover {
+          background: var(--primary-dark);
+        }
+
+        i {
+          margin-left: 6px;
+          opacity: 0.7;
+        }
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid var(--border);
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &.striped:nth-child(even) {
+        background: rgba(0, 79, 79, 0.02);
+      }
+
+      &.hoverable:hover {
+        background: rgba(0, 79, 79, 0.05);
+      }
+    }
+
+    td {
+      padding: 10px 12px;
+      color: var(--text-navy);
+    }
+
+    .empty-message {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+      font-style: italic;
+    }
+  }
+}
+
+.table-loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--muted);
+
+  i {
+    margin-right: 8px;
+  }
+}
+

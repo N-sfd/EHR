@@ -1,0 +1,17 @@
+<div class="main-wrapper">
+  <app-sidebar [isOpen]="isSidebarOpen"></app-sidebar>
+  <div class="page-wrapper" [class.toggle-sidebar]="!isSidebarOpen">
+    <app-header (toggleSidebar)="isSidebarOpen = !isSidebarOpen"></app-header>
+    <div class="content">
+      <div class="page-header">
+        <div class="row">
+          <div class="col-sm-12">
+            <router-outlet></router-outlet>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+

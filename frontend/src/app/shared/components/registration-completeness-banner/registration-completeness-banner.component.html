@@ -1,0 +1,32 @@
+<div class="completeness-banner" *ngIf="completeness && (hasBlockers() || hasWarnings())">
+  <div class="banner-content" [class.critical]="hasBlockers()" [class.warning]="hasWarnings()">
+    <div class="banner-icon">
+      <i class="fas" [ngClass]="hasBlockers() ? 'fa-exclamation-triangle' : 'fa-exclamation-circle'"></i>
+    </div>
+    <div class="banner-text">
+      <div class="banner-title">
+        <strong *ngIf="hasBlockers()">Registration incomplete — action required</strong>
+        <strong *ngIf="hasWarnings()">Registration has warnings</strong>
+      </div>
+      <div class="banner-subtitle">
+        {{ completeness.completenessPct }}% complete
+      </div>
+      <div class="missing-list" *ngIf="completeness.missing.length > 0">
+        <span 
+          class="missing-item" 
+          *ngFor="let item of completeness.missing"
+          [class.critical]="item.severity === 'CRITICAL'"
+        >
+          <span class="section-tag">{{ item.section }}</span>
+          {{ item.label }}
+        </span>
+      </div>
+    </div>
+    <div class="banner-actions" *ngIf="canEdit()">
+      <button class="btn-update" (click)="onUpdateClick()">
+        <i class="fas fa-edit"></i> Update Patient
+      </button>
+    </div>
+  </div>
+</div>
+

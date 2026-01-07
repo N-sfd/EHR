@@ -1,0 +1,280 @@
+<div class="departments-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">
+        <i class="fas fa-briefcase"></i>
+        Department
+        <span class="total-count">Total Department : {{ getTotalDepartments() }}</span>
+      </h1>
+      <div class="header-actions">
+        <div class="export-menu">
+          <button class="btn btn-outline">
+            <i class="fas fa-download"></i> Export
+          </button>
+          <div class="export-dropdown">
+            <a href="javascript:void(0)">Download as PDF</a>
+            <a href="javascript:void(0)">Download as Excel</a>
+          </div>
+        </div>
+        <button class="btn btn-primary" (click)="openAddModal()">
+          <i class="fas fa-plus"></i> Add New Department
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section" *ngIf="showFilters">
+    <div class="filters-content">
+      <h4>Filter</h4>
+      <div class="filter-row">
+        <div class="filter-group">
+          <label for="departmentFilter">Department</label>
+          <select id="departmentFilter" class="form-control" [(ngModel)]="departmentFilter" (change)="applyFilters()" title="Department">
+            <option value="">Reset</option>
+            <option *ngFor="let dept of availableDepartments" [value]="dept">{{ dept }}</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Date</label>
+          <select class="form-control" [(ngModel)]="dateFilter" (change)="applyFilters()" title="Date">
+            <option value="all">All</option>
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Status</label>
+          <select class="form-control" [(ngModel)]="statusFilter" (change)="applyFilters()" aria-label="Status">
+            <option value="all">Reset</option>
+            <option value="ACTIVE">Active</option>
+            <option value="INACTIVE">Inactive</option>
+          </select>
+        </div>
+        <div class="filter-actions">
+          <button class="btn btn-outline" (click)="clearFilters()">Clear All</button>
+          <button class="btn btn-primary" (click)="toggleFilters()">Close Filter</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filter Toggle -->
+  <div class="search-filter-bar">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input type="text" placeholder="Search departments..." [(ngModel)]="searchTerm" (input)="onSearchChange()">
+    </div>
+    <div class="filter-sort-actions">
+      <button class="btn btn-outline" (click)="toggleFilters()">
+        <i class="fas fa-filter"></i> Filters
+      </button>
+      <div class="sort-menu">
+        <label>Sort By :</label>
+        <select class="form-control" [(ngModel)]="sortBy" (change)="applyFilters()" title="Sort By">
+          <option value="Recent">Recent</option>
+          <option value="Oldest">Oldest</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading && departments.length === 0">
+    <div class="spinner"></div>
+    <p>Loading departments...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-state" *ngIf="errorMessage">
+    <i class="fas fa-exclamation-circle"></i>
+    <p>{{ errorMessage }}</p>
+    <button class="btn btn-outline" (click)="loadDepartments()">Retry</button>
+  </div>
+
+  <!-- Departments Table -->
+  <div class="departments-table-container" *ngIf="!isLoading || departments.length > 0">
+    <table class="departments-table">
+      <thead>
+        <tr>
+          <th>Department</th>
+          <th>Code</th>
+          <th>Type</th>
+          <th>Created Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let department of filteredDepartments">
+          <td>
+            <span class="department-name">{{ department.name }}</span>
+          </td>
+          <td>{{ getDepartmentCode(department) }}</td>
+          <td>{{ getDepartmentType(department) }}</td>
+          <td>{{ formatDate(department.createdAt) }}</td>
+          <td>
+            <span class="status-badge" [class.active]="department.status === 'ACTIVE'" 
+                  [class.inactive]="department.status === 'INACTIVE'">
+              {{ department.status === 'ACTIVE' ? 'Active' : (department.status === 'INACTIVE' ? 'Inactive' : 'Active') }}
+            </span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-icon view-btn" title="View">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button class="btn-icon edit-btn" (click)="openEditModal(department)" title="Edit">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-icon delete-btn" (click)="openDeleteModal(department)" title="Delete">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="filteredDepartments.length === 0 && !isLoading">
+      <i class="fas fa-briefcase"></i>
+      <h4>No departments found</h4>
+      <p>Try adjusting your search or add a new department.</p>
+      <button class="btn btn-primary" (click)="openAddModal()">Add New Department</button>
+    </div>
+  </div>
+
+  <!-- Add Department Modal -->
+  <div class="modal-overlay" *ngIf="showAddModal" (click)="closeModals()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Add New Department</h2>
+        <button class="close-btn" (click)="closeModals()" title="Close">
+          <span class="sr-only">Close</span>
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body modal-body-scrollable">
+        <div class="alert alert-error" *ngIf="errorMessage">
+          <i class="fas fa-exclamation-circle"></i>
+          {{ errorMessage }}
+        </div>
+        <form (ngSubmit)="saveDepartment(); $event.preventDefault()" #departmentForm="ngForm" (submit)="$event.preventDefault()">
+          <div class="form-group form-group-spaced">
+            <label class="form-label-required">Department Name <span class="required">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="formData.name" 
+                   name="name" required #nameInput="ngModel"
+                   [class.is-invalid]="nameInput.invalid && nameInput.touched"
+                   (blur)="nameInput.control.markAsTouched()"
+                   placeholder="Enter department name (e.g., Cardiology, OPD)"
+                   autofocus>
+            <div class="invalid-feedback" *ngIf="nameInput.invalid && nameInput.touched">
+              Department name is required.
+            </div>
+          </div>
+          <div class="form-group form-group-spaced">
+            <label>Description</label>
+            <textarea class="form-control" rows="4" [(ngModel)]="formData.description" 
+                      name="description" placeholder="Optional description"></textarea>
+          </div>
+          <div class="form-group form-group-spaced">
+            <label>Status</label>
+            <select class="form-control" [(ngModel)]="formData.status" name="status" title="Status">
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" (click)="closeModals()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="isLoading || !formData.name?.trim() || departmentForm.invalid">
+              <span *ngIf="isLoading">Adding...</span>
+              <span *ngIf="!isLoading">Add Department</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Department Modal -->
+  <div class="modal-overlay" *ngIf="showEditModal" (click)="closeModals()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Edit Department</h2>
+        <button class="close-btn" (click)="closeModals()" title="Close">
+          <span class="sr-only">Close</span>
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+          <div class="alert alert-error" *ngIf="errorMessage">
+          <i class="fas fa-exclamation-circle"></i>
+          {{ errorMessage }}
+        </div>
+        <form (ngSubmit)="saveDepartment(); $event.preventDefault()" #editDepartmentForm="ngForm" (submit)="$event.preventDefault()">
+          <div class="form-group form-group-spaced">
+            <label class="form-label-required">Department Name <span class="required">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="formData.name" 
+                   name="name" required #nameInputEdit="ngModel"
+                   [class.is-invalid]="nameInputEdit.invalid && nameInputEdit.touched"
+                   (blur)="nameInputEdit.control.markAsTouched()"
+                   placeholder="Enter department name (e.g., Cardiology, OPD)">
+            <div class="invalid-feedback" *ngIf="nameInputEdit.invalid && nameInputEdit.touched">
+              Department name is required.
+            </div>
+          </div>
+          <div class="form-group form-group-spaced">
+            <label>Description</label>
+            <textarea class="form-control" rows="4" [(ngModel)]="formData.description" 
+                      name="description" placeholder="Optional description"></textarea>
+          </div>
+          <div class="form-group form-group-spaced form-group-status">
+            <label>Status</label>
+            <select class="form-control" [(ngModel)]="formData.status" name="status" title="Status">
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" (click)="closeModals()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="isLoading || !formData.name?.trim() || editDepartmentForm.invalid">
+              <span *ngIf="isLoading">Saving...</span>
+              <span *ngIf="!isLoading">Save Changes</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showDeleteModal" (click)="closeModals()">
+    <div class="modal-content delete-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Delete Confirmation</h2>
+        <button class="close-btn" (click)="closeModals()" title="Close">
+          <span class="sr-only">Close</span>
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure want to delete?</p>
+        <div class="alert alert-error" *ngIf="errorMessage" style="margin-top: 16px; margin-bottom: 16px;">
+          <i class="fas fa-exclamation-circle"></i>
+          {{ errorMessage }}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeModals()">Cancel</button>
+          <button type="button" class="btn btn-danger" (click)="deleteDepartment()" [disabled]="isLoading">
+            <span *ngIf="isLoading">Deleting...</span>
+            <span *ngIf="!isLoading">Yes, Delete</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

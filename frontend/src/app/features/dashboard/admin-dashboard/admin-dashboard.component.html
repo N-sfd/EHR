@@ -1,0 +1,27 @@
+<div class="home-dashboard">
+  <div class="modules-grid">
+    <div 
+      class="module-card" 
+      *ngFor="let module of managementModules"
+      (click)="navigateToModule(module.route)"
+    >
+      <div class="module-icon">
+        <i class="fas" [ngClass]="module.icon"></i>
+      </div>
+      <div class="module-content">
+        <h3 class="module-title">{{ module.title }}</h3>
+        <p class="module-description">{{ module.description }}</p>
+        <div class="module-buttons">
+          <button 
+            class="module-btn" 
+            *ngFor="let btn of module.buttons; let i = index"
+            (click)="navigateToFeature(module, btn); $event.stopPropagation()"
+            [class.active]="i === 0 && (module.title === 'Doctors Management' || module.title === 'Staff Management')"
+          >
+            {{ btn }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

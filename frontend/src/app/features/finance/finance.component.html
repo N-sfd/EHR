@@ -1,0 +1,196 @@
+<div class="finance-page">
+  <div class="page-header">
+    <h3 class="page-title">Finance & Accounts</h3>
+    <p class="text-muted">Manage budget, billing, and expenses</p>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tabs-nav">
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'budget'"
+      (click)="setActiveTab('budget')">
+      <i class="fas fa-chart-pie"></i> Budget Overview
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'alerts'"
+      (click)="setActiveTab('alerts')">
+      <i class="fas fa-bell"></i> Billing Alerts
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'expenses'"
+      (click)="setActiveTab('expenses')">
+      <i class="fas fa-receipt"></i> Expense Tracker
+    </button>
+  </div>
+
+  <!-- Budget Overview Tab -->
+  <div class="tab-content" *ngIf="activeTab === 'budget'">
+    <div class="budget-container">
+      <div class="budget-summary">
+        <h4>Total Budget</h4>
+        <p class="total-amount">{{ formatCurrency(totalBudget) }}</p>
+      </div>
+      
+      <div class="pie-chart-container">
+        <div class="pie-chart">
+          <svg viewBox="0 0 200 200" class="pie-svg">
+            <circle cx="100" cy="100" r="80" fill="none" stroke="#fffaf0" stroke-width="40" />
+            <g *ngFor="let item of budgetData; let i = index">
+              <circle 
+                cx="100" 
+                cy="100" 
+                r="80" 
+                fill="none" 
+                [attr.stroke]="item.color"
+                stroke-width="40"
+                [attr.stroke-dasharray]="getCircumference()"
+                [attr.stroke-dashoffset]="getOffset(i)"
+                transform="rotate(-90 100 100)"
+                class="pie-segment" />
+            </g>
+          </svg>
+          <div class="pie-center">
+            <span class="pie-total">{{ formatCurrency(totalBudget) }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="budget-legend">
+        <div class="legend-item" *ngFor="let item of budgetData">
+          <div class="legend-color" [style.background-color]="item.color"></div>
+          <div class="legend-info">
+            <span class="legend-label">{{ item.category }}</span>
+            <span class="legend-amount">{{ formatCurrency(item.amount) }} ({{ item.percentage }}%)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Billing Alerts Tab -->
+  <div class="tab-content" *ngIf="activeTab === 'alerts'">
+    <div class="filters-section">
+      <select class="form-select" [(ngModel)]="alertFilter" (change)="applyAlertFilter()">
+        <option value="all">All Alerts</option>
+        <option value="overdue">Overdue Invoices</option>
+        <option value="insurance">Insurance Flags</option>
+      </select>
+    </div>
+
+    <div class="alerts-list">
+      <div 
+        class="alert-card" 
+        *ngFor="let alert of filteredAlerts"
+        [ngClass]="getPriorityClass(alert.priority)">
+        <div class="alert-icon">
+          <i class="fas" [ngClass]="alert.type === 'overdue' ? 'fa-exclamation-triangle' : 'fa-shield-alt'"></i>
+        </div>
+        <div class="alert-content">
+          <h4>{{ alert.title }}</h4>
+          <p>{{ alert.description }}</p>
+          <div class="alert-meta">
+            <span class="alert-date">{{ formatDate(alert.date) }}</span>
+            <span class="alert-amount" *ngIf="alert.amount">{{ formatCurrency(alert.amount) }}</span>
+          </div>
+        </div>
+        <div class="alert-priority" [ngClass]="getPriorityClass(alert.priority)">
+          {{ alert.priority }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Expense Tracker Tab -->
+  <div class="tab-content" *ngIf="activeTab === 'expenses'">
+    <div class="filters-section">
+      <div class="search-bar">
+        <i class="fas fa-magnifying-glass search-icon"></i>
+        <input 
+          type="text" 
+          placeholder="Search" 
+          [(ngModel)]="expenseSearchTerm"
+          (input)="applyExpenseFilters()">
+      </div>
+      <select class="form-select" [(ngModel)]="expenseCategoryFilter" (change)="applyExpenseFilters()">
+        <option value="all">All Categories</option>
+        <option *ngFor="let cat of categories.slice(1)" [value]="cat">{{ cat }}</option>
+      </select>
+      <select class="form-select" [(ngModel)]="expenseStatusFilter" (change)="applyExpenseFilters()">
+        <option value="all">All Status</option>
+        <option *ngFor="let status of statuses.slice(1)" [value]="status">{{ status }}</option>
+      </select>
+    </div>
+
+    <div class="expense-table-container">
+      <table class="expense-table">
+        <thead>
+          <tr>
+            <th (click)="onSort('date')" class="sortable">
+              Date <i class="fas" [ngClass]="getSortIcon('date')"></i>
+            </th>
+            <th (click)="onSort('category')" class="sortable">
+              Category <i class="fas" [ngClass]="getSortIcon('category')"></i>
+            </th>
+            <th>Description</th>
+            <th (click)="onSort('vendor')" class="sortable">
+              Vendor <i class="fas" [ngClass]="getSortIcon('vendor')"></i>
+            </th>
+            <th (click)="onSort('amount')" class="sortable">
+              Amount <i class="fas" [ngClass]="getSortIcon('amount')"></i>
+            </th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let expense of filteredExpenses">
+            <td>{{ formatDate(expense.date) }}</td>
+            <td>{{ expense.category }}</td>
+            <td>
+              <span *ngIf="editingExpenseId !== expense.id">{{ expense.description }}</span>
+              <input 
+                *ngIf="editingExpenseId === expense.id" 
+                type="text" 
+                [(ngModel)]="expense.description"
+                class="inline-edit">
+            </td>
+            <td>{{ expense.vendor }}</td>
+            <td>
+              <span *ngIf="editingExpenseId !== expense.id">{{ formatCurrency(expense.amount) }}</span>
+              <input 
+                *ngIf="editingExpenseId === expense.id" 
+                type="number" 
+                [(ngModel)]="expense.amount"
+                class="inline-edit">
+            </td>
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(expense.status)">
+                {{ expense.status }}
+              </span>
+            </td>
+            <td>
+              <button 
+                *ngIf="editingExpenseId !== expense.id"
+                class="btn-icon" 
+                (click)="startEdit(expense)">
+                <i class="fas fa-edit"></i>
+              </button>
+              <div *ngIf="editingExpenseId === expense.id" class="edit-actions">
+                <button class="btn-icon save" (click)="saveEdit(expense)">
+                  <i class="fas fa-check"></i>
+                </button>
+                <button class="btn-icon cancel" (click)="cancelEdit()">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+

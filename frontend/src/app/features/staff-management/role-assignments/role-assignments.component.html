@@ -1,0 +1,268 @@
+<div class="role-assignments">
+  <div class="assignments-header">
+    <div>
+      <h2>Role Assignments</h2>
+      <p>Link staff members to roles and departments</p>
+    </div>
+    <div class="header-actions">
+      <div class="view-toggle">
+        <button 
+          class="btn-toggle" 
+          [class.active]="viewMode === 'staff'"
+          (click)="switchViewMode('staff')">
+          Staff View
+        </button>
+        <button 
+          class="btn-toggle" 
+          [class.active]="viewMode === 'role'"
+          (click)="switchViewMode('role')">
+          Role View
+        </button>
+      </div>
+      <button 
+        class="btn btn-primary" 
+        (click)="openBulkAssignModal()"
+        [disabled]="selectedStaffIds.size === 0">
+        <i class="fas fa-users"></i> Bulk Assign ({{ selectedStaffIds.size }})
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="alert alert-success" *ngIf="successMessage">
+    <i class="fas fa-check-circle"></i> {{ successMessage }}
+  </div>
+  <div class="alert alert-error" *ngIf="errorMessage">
+    <i class="fas fa-exclamation-circle"></i> {{ errorMessage }}
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <div class="search-bar">
+      <i class="fas fa-search"></i>
+      <input 
+        type="text" 
+        placeholder="Search staff..." 
+        [(ngModel)]="searchTerm"
+        (input)="onSearchChange()">
+    </div>
+    
+    <select class="filter-select" [(ngModel)]="roleFilter" (change)="onFilterChange()">
+      <option value="all">All Roles</option>
+      <option *ngFor="let role of roles" [value]="role.roleId || role.id">
+        {{ role.name }}
+      </option>
+    </select>
+    
+    <select class="filter-select" [(ngModel)]="departmentFilter" (change)="onFilterChange()">
+      <option value="all">All Departments</option>
+      <option *ngFor="let dept of departments" [value]="dept.departmentId || dept.id">
+        {{ dept.name }}
+      </option>
+    </select>
+    
+    <select class="filter-select" [(ngModel)]="statusFilter" (change)="onFilterChange()">
+      <option value="all">All Status</option>
+      <option value="ACTIVE">Active</option>
+      <option value="INACTIVE">Inactive</option>
+    </select>
+  </div>
+
+  <!-- Staff View -->
+  <div class="assignments-table" *ngIf="viewMode === 'staff'">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="width: 40px;">
+            <input 
+              type="checkbox" 
+              [checked]="selectedStaffIds.size === filteredAssignments.length && filteredAssignments.length > 0"
+              (change)="selectedStaffIds.size === filteredAssignments.length ? deselectAll() : selectAll()">
+          </th>
+          <th>Staff</th>
+          <th>Department</th>
+          <th>Role(s)</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let assignment of filteredAssignments">
+          <td>
+            <input 
+              type="checkbox" 
+              [checked]="assignment.staff.id && selectedStaffIds.has(assignment.staff.id)"
+              (change)="toggleStaffSelection(assignment.staff.id)">
+          </td>
+          <td>
+            <div class="staff-cell">
+              <img 
+                [src]="getStaffImage(assignment.staff)" 
+                [alt]="assignment.staff.firstName"
+                class="staff-avatar">
+              <div>
+                <div class="staff-name">{{ assignment.staff.firstName }} {{ assignment.staff.lastName }}</div>
+                <div class="staff-email">{{ assignment.staff.emailAddress || assignment.staff.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span *ngIf="getDepartmentName(assignment)">{{ getDepartmentName(assignment) }}</span>
+            <span *ngIf="!getDepartmentName(assignment)" class="text-muted">—</span>
+          </td>
+          <td>
+            <div class="roles-list">
+              <span 
+                *ngFor="let role of assignment.roles" 
+                class="role-badge">
+                {{ role.name }}
+              </span>
+              <span *ngIf="assignment.roles.length === 0 && assignment.staff.isDoctor" class="role-badge doctor-role">
+                Doctor
+              </span>
+              <span *ngIf="assignment.roles.length === 0 && !assignment.staff.isDoctor" class="text-muted">—</span>
+            </div>
+          </td>
+          <td>
+            <span class="badge" [ngClass]="assignment.status.toLowerCase()">
+              {{ assignment.status }}
+            </span>
+          </td>
+          <td>
+            <button class="btn-icon" (click)="openAssignModal(assignment.staff)" title="Edit Assignments">
+              <i class="fas fa-edit"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <div class="empty-state" *ngIf="filteredAssignments.length === 0">
+      <i class="fas fa-users"></i>
+      <p>No staff found matching the filters</p>
+    </div>
+  </div>
+
+  <!-- Role View -->
+  <div class="role-view" *ngIf="viewMode === 'role'">
+    <div class="role-sidebar">
+      <h3>Roles</h3>
+      <div class="role-list">
+        <div 
+          *ngFor="let role of roles" 
+          class="role-item"
+          [class.active]="selectedRoleView?.roleId === role.roleId || selectedRoleView?.id === role.id"
+          (click)="selectRoleView(role)">
+          {{ role.name }}
+          <span class="count">({{ getStaffsWithRole(role).length }})</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="role-details" *ngIf="selectedRoleView">
+      <h3>{{ selectedRoleView.name }} - Assigned Staff</h3>
+      <div class="staff-grid">
+        <div 
+          *ngFor="let assignment of getStaffsWithRole(selectedRoleView)" 
+          class="staff-card">
+          <img 
+            [src]="getStaffImage(assignment.staff)" 
+            [alt]="assignment.staff.firstName"
+            class="staff-avatar">
+          <div class="staff-info">
+            <div class="staff-name">{{ assignment.staff.firstName }} {{ assignment.staff.lastName }}</div>
+            <div class="staff-meta">
+              <span>{{ assignment.department?.name || 'N/A' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="empty-state" *ngIf="getStaffsWithRole(selectedRoleView).length === 0">
+        <p>No staff assigned to this role</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assignment Modal -->
+  <div class="modal-overlay" *ngIf="showAssignModal" (click)="closeAssignModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Assign Roles & Department</h3>
+        <button class="btn-close" (click)="closeAssignModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body" *ngIf="selectedStaff">
+        <div class="staff-info-header">
+          <img [src]="getStaffImage(selectedStaff)" class="staff-avatar-large">
+          <div>
+            <h4>{{ selectedStaff.firstName }} {{ selectedStaff.lastName }}</h4>
+            <p>{{ selectedStaff.emailAddress || selectedStaff.email }}</p>
+          </div>
+        </div>
+        
+        <div class="form-section">
+          <label>Roles *</label>
+          <div class="checkbox-list">
+            <label *ngFor="let role of roles" class="checkbox-item">
+              <input 
+                type="checkbox"
+                [checked]="selectedRoles.has(role.roleId || role.id!)"
+                (change)="toggleRole(role.roleId || role.id)">
+              <span>{{ role.name }}</span>
+            </label>
+          </div>
+        </div>
+        
+        <div class="form-section">
+          <label>Department</label>
+          <select [(ngModel)]="selectedDepartment" class="form-select">
+            <option [value]="null">Select Department</option>
+            <option *ngFor="let dept of departments" [value]="dept.departmentId || dept.id">
+              {{ dept.name }}
+            </option>
+          </select>
+        </div>
+        
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeAssignModal()" [disabled]="isLoading">Cancel</button>
+        <button class="btn btn-primary" (click)="saveAssignment()" [disabled]="isLoading || selectedRoles.size === 0">
+          <span *ngIf="isLoading">Saving...</span>
+          <span *ngIf="!isLoading">Save</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Assign Modal -->
+  <div class="modal-overlay" *ngIf="showBulkAssignModal" (click)="closeBulkAssignModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Bulk Assign Role</h3>
+        <button class="btn-close" (click)="closeBulkAssignModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Assign a role to <strong>{{ selectedStaffIds.size }}</strong> selected staff members:</p>
+        <div class="form-section">
+          <label>Role *</label>
+          <select [(ngModel)]="bulkRoleId" class="form-select">
+            <option [value]="null">Select Role</option>
+            <option *ngFor="let role of roles" [value]="role.roleId || role.id">
+              {{ role.name }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeBulkAssignModal()">Cancel</button>
+        <button class="btn btn-primary" (click)="saveBulkAssignment()" [disabled]="!bulkRoleId">
+          Assign to {{ selectedStaffIds.size }} Staff
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+

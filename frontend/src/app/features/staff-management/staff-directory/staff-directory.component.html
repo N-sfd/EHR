@@ -1,0 +1,158 @@
+<div class="staff-directory">
+  <!-- Header with Add Button -->
+  <div class="directory-header">
+    <div class="search-filters">
+      <div class="search-bar">
+        <i class="fas fa-search"></i>
+        <input 
+          type="text" 
+          placeholder="Search by name, email, phone, or ID..." 
+          [(ngModel)]="searchTerm"
+          (input)="onSearchChange()">
+      </div>
+      
+      <select class="filter-select" [(ngModel)]="departmentFilter" (change)="onFilterChange()">
+        <option value="all">All Departments</option>
+        <option *ngFor="let dept of departments" [value]="dept.departmentId || dept.id">
+          {{ dept.name }}
+        </option>
+      </select>
+      
+      <select class="filter-select" [(ngModel)]="designationFilter" (change)="onFilterChange()">
+        <option value="all">All Designations</option>
+        <option *ngFor="let des of designations" [value]="des.designationId || des.id">
+          {{ des.title }}
+        </option>
+      </select>
+      
+      <select class="filter-select" [(ngModel)]="statusFilter" (change)="onFilterChange()">
+        <option value="all">All Status</option>
+        <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+      </select>
+      
+      <select class="filter-select" [(ngModel)]="employmentTypeFilter" (change)="onFilterChange()">
+        <option value="all">All Employment Types</option>
+        <option *ngFor="let type of employmentTypes" [value]="type">{{ type }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="alert alert-success" *ngIf="successMessage">
+    <i class="fas fa-check-circle"></i>
+    {{ successMessage }}
+  </div>
+  <div class="alert alert-error" *ngIf="errorMessage">
+    <i class="fas fa-exclamation-circle"></i>
+    {{ errorMessage }}
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading staff...</p>
+  </div>
+
+  <!-- Staff Table -->
+  <div class="table-container" *ngIf="!isLoading && !errorMessage">
+    <table class="staff-table">
+      <thead>
+        <tr>
+          <th>Staff</th>
+          <th>Department</th>
+          <th>Designation</th>
+          <th>Employment Type</th>
+          <th>Joining Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let staff of paginatedStaffs">
+          <td>
+            <div class="staff-cell">
+              <img 
+                [src]="getStaffImage(staff)" 
+                [alt]="staff.firstName + ' ' + staff.lastName"
+                (error)="onImageError($event, staff)"
+                class="staff-avatar">
+              <div class="staff-info">
+                <div class="staff-name">{{ staff.firstName }} {{ staff.lastName }}</div>
+                <div class="staff-meta">
+                  <span class="staff-id">#{{ getStaffId(staff) }}</span>
+                  <span class="staff-email">{{ staff.emailAddress || staff.email || 'N/A' }}</span>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td>{{ getDepartmentName(staff) }}</td>
+          <td>{{ getDesignationName(staff) }}</td>
+          <td>{{ staff.employmentType || 'FULL_TIME' }}</td>
+          <td>{{ staff.hireDate || 'N/A' }}</td>
+          <td>
+            <span class="badge" [ngClass]="getStatusClass(getStatusBadge(staff))">
+              {{ getStatusBadge(staff) }}
+            </span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button 
+                type="button"
+                class="btn-icon view" 
+                (click)="viewProfile(staff); $event.stopPropagation()" 
+                title="View Profile">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button 
+                type="button"
+                class="btn-icon edit" 
+                (click)="editStaff(staff); $event.stopPropagation()" 
+                title="Edit">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button 
+                type="button"
+                class="btn-icon delete" 
+                (click)="deleteStaff(staff); $event.stopPropagation()" 
+                title="Delete">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="filteredStaffs.length === 0">
+      <i class="fas fa-users"></i>
+      <h3>No staff found</h3>
+      <p>Try adjusting your search or filters</p>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="filteredStaffs.length > 0">
+      <button class="btn-pagination" [disabled]="currentPage === 1" (click)="previousPage()">
+        <i class="fas fa-chevron-left"></i> Previous
+      </button>
+      <div class="page-numbers">
+        <button 
+          *ngFor="let page of [].constructor(totalPages); let i = index"
+          class="page-number"
+          [class.active]="currentPage === i + 1"
+          (click)="goToPage(i + 1)">
+          {{ i + 1 }}
+        </button>
+      </div>
+      <button class="btn-pagination" [disabled]="currentPage === totalPages" (click)="nextPage()">
+        Next <i class="fas fa-chevron-right"></i>
+      </button>
+      <span class="page-info">
+        Showing {{ (currentPage - 1) * itemsPerPage + 1 }} - 
+        {{ Math.min(currentPage * itemsPerPage, filteredStaffs.length) }} 
+        of {{ filteredStaffs.length }}
+      </span>
+    </div>
+  </div>
+</div>
+

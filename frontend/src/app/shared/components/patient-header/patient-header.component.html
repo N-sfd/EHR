@@ -1,0 +1,46 @@
+<div class="patient-header" *ngIf="patient || patientModel">
+  <div class="header-content">
+    <div class="header-title">
+      <h1 class="page-title">Patient Demographics</h1>
+    </div>
+    <div class="patient-summary">
+      <div class="summary-item">
+        <span class="summary-label">Name:</span>
+        <span class="summary-value">{{ getPatientFirstName() }} {{ getPatientLastName() }}</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">MRN:</span>
+        <span class="summary-value">{{ getPatientMRN() }}</span>
+      </div>
+      <div class="summary-item" *ngIf="getPatientDOB()">
+        <span class="summary-label">DOB:</span>
+        <span class="summary-value">{{ formatDate(getPatientDOB()) }}</span>
+      </div>
+      <div class="summary-item" *ngIf="getPatientDOB()">
+        <span class="summary-label">Age:</span>
+        <span class="summary-value">{{ calculateAge(getPatientDOB()) }} years</span>
+      </div>
+      <div class="summary-item" *ngIf="getPatientSex()">
+        <span class="summary-label">Sex:</span>
+        <span class="summary-value">{{ getPatientSex() }}</span>
+      </div>
+      <!-- Registration Completeness Progress Bar -->
+      <div class="summary-item completeness-item" *ngIf="patientModel && completeness">
+        <span class="summary-label">Completeness:</span>
+        <div class="completeness-progress" [title]="getTooltipText()">
+          <div class="progress-bar-container">
+            <div 
+              class="progress-bar-fill" 
+              [style.width.%]="completeness.completenessPct"
+              [class.progress-critical]="completeness.blockers.length > 0"
+              [class.progress-warning]="completeness.blockers.length === 0 && completeness.warnings.length > 0"
+              [class.progress-complete]="completeness.blockers.length === 0 && completeness.warnings.length === 0"
+            ></div>
+          </div>
+          <span class="progress-percentage">{{ completeness.completenessPct }}%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,187 @@
+/* Clinical Encounter Styles */
+.ambulatory-encounter {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.epic-header {
+  background: #0066cc;
+  color: white;
+  padding: 15px 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.epic-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.patient-banner {
+  display: flex;
+  gap: 20px;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+.patient-name {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.patient-info {
+  color: rgba(255,255,255,0.9);
+}
+
+/* Visit Navigator */
+.visit-navigator {
+  display: flex;
+  background: white;
+  border-bottom: 2px solid #0066cc;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-tab {
+  padding: 15px 25px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-tab:hover {
+  background: #f0f0f0;
+  color: #0066cc;
+}
+
+.nav-tab.active {
+  color: #0066cc;
+  border-bottom-color: #0066cc;
+  background: #e8f4f8;
+}
+
+/* Encounter Content */
+.encounter-content {
+  padding: 20px;
+}
+
+.tab-content {
+  background: white;
+  border-radius: 4px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Summary Grid */
+.epic-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.summary-section {
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 4px;
+  border-left: 4px solid #0066cc;
+}
+
+.summary-section h3 {
+  margin: 0 0 15px 0;
+  color: #0066cc;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-item label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+}
+
+.info-item span {
+  font-size: 14px;
+  color: #333;
+}
+
+.vitals-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+.vital-item {
+  text-align: center;
+  padding: 10px;
+  background: white;
+  border-radius: 4px;
+}
+
+.vital-item label {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.vital-item span {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0066cc;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #e8f4f8;
+  color: #0066cc;
+}
+
+.epic-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.epic-btn-secondary {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.3);
+}
+
+.epic-btn-secondary:hover {
+  background: rgba(255,255,255,0.3);
+}
+

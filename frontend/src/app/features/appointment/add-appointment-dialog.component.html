@@ -1,0 +1,46 @@
+<h2 mat-dialog-title>Add New Appointment</h2>
+
+<form [formGroup]="form" class="appointment-form">
+
+  <mat-dialog-content>
+
+    <mat-form-field appearance="outline" style="width:100%;">
+      <mat-label>Patient Name</mat-label>
+      <input matInput formControlName="patientName" required placeholder="Enter Patient Name">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" style="width:100%;">
+      <mat-label>Doctor</mat-label>
+      <mat-select formControlName="doctorId" required>
+        <mat-option value="1">Dr. John Smith</mat-option>
+        <mat-option value="2">Dr. Sarah Lee</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" style="width:100%;">
+      <mat-label>Appointment Date</mat-label>
+      <input matInput [matDatepicker]="picker" formControlName="appointmentDate" required placeholder="Select Appointment Date">
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" style="width:100%;">
+      <mat-label>Appointment Time</mat-label>
+      <input matInput type="time" formControlName="appointmentTime" required placeholder="Select Appointment Time">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" style="width:100%;">
+      <mat-label>Notes</mat-label>
+      <textarea matInput rows="3" formControlName="notes" placeholder="Enter Notes" ></textarea>
+    </mat-form-field>
+
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancel</button>
+    <button mat-raised-button color="primary" (click)="save()" [disabled]="form.invalid">
+      Save
+    </button>
+  </mat-dialog-actions>
+
+</form>

@@ -1,0 +1,33 @@
+<div class="prelude-shell">
+  <div class="shell-header">
+    <app-patient-header 
+      [patient]="getPatientHeaderData()" 
+      [patientModel]="patient || undefined"
+    ></app-patient-header>
+  </div>
+  
+  <div class="shell-content" *ngIf="!isLoading && !error">
+    <div class="shell-sidebar">
+      <app-prelude-sidebar [mrn]="mrn" [active]="getActiveRoute()"></app-prelude-sidebar>
+    </div>
+    <div class="shell-main">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading patient data...</p>
+  </div>
+
+  <div class="error-state" *ngIf="error && !isLoading">
+    <div class="error-message">
+      <i class="fas fa-exclamation-circle"></i>
+      <p>{{ error }}</p>
+      <button class="epic-btn epic-btn-primary" (click)="router.navigate(['/prelude/search'])">
+        Back to Search
+      </button>
+    </div>
+  </div>
+</div>
+

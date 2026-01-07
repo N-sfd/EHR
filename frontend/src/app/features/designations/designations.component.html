@@ -1,0 +1,236 @@
+<div class="designations-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">
+        <i class="fas fa-user-tie"></i>
+        Designation
+        <span class="total-count">Total Designation : {{ getTotalDesignations() }}</span>
+      </h1>
+      <div class="header-actions">
+        <button class="btn btn-primary" (click)="openAddModal()">
+          <i class="fas fa-plus"></i> Add New Designation
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filter Toggle -->
+  <div class="search-filter-bar">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input type="text" placeholder="Search designations..." [(ngModel)]="searchTerm" (input)="onSearchChange()">
+    </div>
+    <div class="filter-sort-actions">
+      <button class="btn btn-outline" (click)="toggleFilters()">
+        <i class="fas fa-filter"></i> Filters
+      </button>
+      <div class="sort-menu">
+        <label>Sort By :</label>
+        <select class="form-control" [(ngModel)]="sortBy" (change)="applyFilters()" aria-label="Sort By" title="Sort By">
+          <option value="Recent">Recent</option>
+          <option value="Oldest">Oldest</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading && designations.length === 0">
+    <div class="spinner"></div>
+    <p>Loading designations...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-state" *ngIf="errorMessage">
+    <i class="fas fa-exclamation-circle"></i>
+    <p>{{ errorMessage }}</p>
+    <button class="btn btn-outline" (click)="loadDesignations()">Retry</button>
+  </div>
+
+  <!-- Designations Table -->
+  <div class="designations-table-container" *ngIf="!isLoading || designations.length > 0">
+    <table class="designations-table">
+      <thead>
+        <tr>
+          <th>Designation</th>
+          <th>Code</th>
+          <th>Type</th>
+          <th>Created Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let des of filteredDesignations">
+          <td>{{ des.title }}</td>
+          <td>{{ getDesignationCode(des) }}</td>
+          <td>{{ getDesignationType(des) }}</td>
+          <td>{{ getFormattedDate(des.createdAt) }}</td>
+          <td>
+            <span class="status-badge" [class.active]="des.status === 'ACTIVE'" [class.inactive]="des.status === 'INACTIVE'">
+              {{ des.status || 'ACTIVE' }}
+            </span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-icon edit-btn" (click)="openEditModal(des)" title="Edit">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-icon delete-btn" (click)="openDeleteModal(des)" title="Delete">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="filteredDesignations.length === 0">
+          <td colspan="6" class="no-data">No designations found</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Add Designation Modal -->
+  <div class="modal-overlay" *ngIf="showAddModal" (click)="closeModals()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Add New Designation</h2>
+        <button class="close-btn" (click)="closeModals()" title="Close" aria-label="Close">
+          <span class="sr-only">Close</span>
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body modal-body-scrollable">
+        <div class="alert alert-error" *ngIf="errorMessage">
+          <i class="fas fa-exclamation-circle"></i>
+          {{ errorMessage }}
+        </div>
+        <form (ngSubmit)="saveDesignation(); $event.preventDefault()" #designationForm="ngForm" (submit)="$event.preventDefault()">
+          <div class="form-group form-group-spaced">
+            <label class="form-label-required">Designation Name <span class="required">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="formData.title" 
+                   name="title" required #titleInput="ngModel"
+                   [class.is-invalid]="titleInput.invalid && titleInput.touched"
+                   (blur)="titleInput.control.markAsTouched()"
+                   placeholder="Enter designation name (e.g., Nurse, Pharmacist)"
+                   autofocus>
+            <div class="invalid-feedback" *ngIf="titleInput.invalid && titleInput.touched">
+              Designation name is required.
+            </div>
+          </div>
+          <div class="form-group form-group-spaced">
+            <label class="form-label-required">Department <span class="required">*</span></label>
+            <select class="form-control" [(ngModel)]="formData.departmentId" name="departmentId" required #deptInput="ngModel"
+                    [class.is-invalid]="deptInput.invalid && deptInput.touched"
+                    (blur)="deptInput.control.markAsTouched()"
+                    aria-label="Select Department"
+                    title="Select Department">
+              <option value="">Select Department</option>
+              <option *ngFor="let dept of departments" [value]="dept.departmentId || dept.id">{{ dept.name }}</option>
+            </select>
+            <div class="invalid-feedback" *ngIf="deptInput.invalid && deptInput.touched">
+              Department is required.
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea class="form-control" [(ngModel)]="formData.description" name="description" rows="3" placeholder="Enter description"></textarea>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" (click)="closeModals()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="isLoading || !formData.title?.trim() || designationForm.invalid">
+              <span *ngIf="isLoading">Adding...</span>
+              <span *ngIf="!isLoading">Add Designation</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Designation Modal -->
+  <div class="modal-overlay" *ngIf="showEditModal" (click)="closeModals()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Edit Designation</h2>
+        <button class="close-btn" (click)="closeModals()" title="Close" aria-label="Close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body modal-body-scrollable">
+        <div class="alert alert-error" *ngIf="errorMessage">
+          <i class="fas fa-exclamation-circle"></i>
+          {{ errorMessage }}
+        </div>
+        <form (ngSubmit)="saveDesignation(); $event.preventDefault()" #editDesignationForm="ngForm" (submit)="$event.preventDefault()">
+          <div class="form-group form-group-spaced">
+            <label class="form-label-required">Designation Name <span class="required">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="formData.title" 
+                   name="title" required #titleInputEdit="ngModel"
+                   [class.is-invalid]="titleInputEdit.invalid && titleInputEdit.touched"
+                   (blur)="titleInputEdit.control.markAsTouched()"
+                   placeholder="Enter designation name">
+            <div class="invalid-feedback" *ngIf="titleInputEdit.invalid && titleInputEdit.touched">
+              Designation name is required.
+            </div>
+          </div>
+          <div class="form-group form-group-spaced">
+            <label class="form-label-required">Department <span class="required">*</span></label>
+            <select class="form-control" [(ngModel)]="formData.departmentId" name="departmentId" required #deptInputEdit="ngModel"
+                    [class.is-invalid]="deptInputEdit.invalid && deptInputEdit.touched"
+                    (blur)="deptInputEdit.control.markAsTouched()"
+                    aria-label="Select Department"
+                    title="Select Department">
+              <option value="">Select Department</option>
+              <option *ngFor="let dept of departments" [value]="dept.departmentId || dept.id">{{ dept.name }}</option>
+            </select>
+            <div class="invalid-feedback" *ngIf="deptInputEdit.invalid && deptInputEdit.touched">
+              Department is required.
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea class="form-control" [(ngModel)]="formData.description" name="description" rows="3" placeholder="Enter description"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select class="form-control" [(ngModel)]="formData.status" name="status" aria-label="Select Status" title="Select Status">
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" (click)="closeModals()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="isLoading || !formData.title?.trim() || editDesignationForm.invalid">
+              <span *ngIf="isLoading">Saving...</span>
+              <span *ngIf="!isLoading">Save Changes</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showDeleteModal" (click)="closeModals()">
+    <div class="modal-content delete-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Delete Confirmation</h2>
+        <button class="close-btn" (click)="closeModals()" title="Close" aria-label="Close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure want to delete?</p>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeModals()">Cancel</button>
+          <button type="button" class="btn btn-danger" (click)="deleteDesignation()" [disabled]="isLoading">
+            <span *ngIf="isLoading">Deleting...</span>
+            <span *ngIf="!isLoading">Yes, Delete</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

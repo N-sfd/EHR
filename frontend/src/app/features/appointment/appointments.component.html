@@ -1,0 +1,178 @@
+<div class="appointments-page">
+  <div class="page-header">
+    <div class="header-left">
+      <h2 class="page-title">Appointments</h2>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" (click)="router.navigate(['/admin/appointments/scheduler'])">
+        <i class="fas fa-calendar-plus"></i> Scheduler
+      </button>
+      <button class="btn btn-secondary" (click)="router.navigate(['/admin/appointments/new'])">
+        <i class="fas fa-plus"></i> New Appointment
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="filter-group">
+      <input 
+        type="text" 
+        class="form-control search-input" 
+        placeholder="Search appointments..." 
+        [(ngModel)]="searchTerm"
+        (input)="onSearchChange()"
+      />
+    </div>
+    <div class="filter-group">
+      <select class="form-control" [(ngModel)]="statusFilter" (change)="onFilterChange()">
+        <option value="all">All Status</option>
+        <option *ngFor="let status of statuses.slice(1)" [value]="status">{{ status }}</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <select class="form-control" [(ngModel)]="typeFilter" (change)="onFilterChange()">
+        <option value="all">All Types</option>
+        <option *ngFor="let type of types.slice(1)" [value]="type">{{ type }}</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <select class="form-control" [(ngModel)]="doctorFilter" (change)="onFilterChange()">
+        <option value="all">All Doctors</option>
+        <option *ngFor="let doctor of doctors" [value]="doctor.id">{{ doctor.firstName }} {{ doctor.lastName }}</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <select class="form-control" [(ngModel)]="departmentFilter" (change)="onFilterChange()">
+        <option value="all">All Departments</option>
+        <option *ngFor="let dept of departments" [value]="dept.id">{{ dept.name }}</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <input 
+        type="date" 
+        class="form-control" 
+        [(ngModel)]="dateFilter"
+        (change)="onFilterChange()"
+      />
+    </div>
+    <button class="btn btn-secondary" (click)="clearFilters()">Clear Filters</button>
+  </div>
+
+  <!-- Appointments Table -->
+  <div class="table-container">
+    <table class="appointments-table">
+      <thead>
+        <tr>
+          <th>Appointment ID</th>
+          <th>Patient</th>
+          <th>Doctor</th>
+          <th>Type</th>
+          <th>Date & Time</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="isLoading">
+          <td colspan="7" class="text-center">
+            <div class="spinner">Loading...</div>
+          </td>
+        </tr>
+        <tr *ngIf="!isLoading && filteredAppointments.length === 0">
+          <td colspan="7" class="text-center text-muted">
+            No appointments found
+          </td>
+        </tr>
+        <tr *ngFor="let appointment of filteredAppointments">
+          <td>
+            <a (click)="viewAppointment(appointment)" class="appointment-id-link">
+              {{ appointment.appointmentCode || 'AP' + appointment.id }}
+            </a>
+          </td>
+          <td>
+            <div class="patient-info">
+              <img 
+                [src]="getPatientImage(appointment)" 
+                [alt]="appointment.patientName || 'Patient'"
+                class="patient-avatar"
+                (error)="onImageError($event)"
+              />
+              <div>
+                <div class="patient-name">{{ appointment.patientName || getPatientNameFromId(appointment.patientId) }}</div>
+                <div class="patient-phone">{{ appointment.patientPhone || '' }}</div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="doctor-info">
+              <img 
+                [src]="getDoctorImage(appointment)" 
+                [alt]="appointment.doctorName || 'Doctor'"
+                class="doctor-avatar"
+                (error)="onImageError($event)"
+              />
+              <div>
+                <div class="doctor-name">{{ appointment.doctorName || getDoctorName(appointment.doctorId) }}</div>
+                <div class="doctor-specialization">{{ getDepartmentName(appointment.departmentId) }}</div>
+              </div>
+            </div>
+          </td>
+          <td class="text-center">
+            <span class="appointment-type-badge" [class.online]="appointment.appointmentType === 'Online'">
+              {{ appointment.appointmentType }}
+            </span>
+          </td>
+          <td>
+            <span *ngIf="appointment.date && appointment.time">
+              {{ formatDateTime(appointment.date, appointment.time) }}
+            </span>
+            <span *ngIf="!appointment.date || !appointment.time" class="text-muted">
+              Not scheduled
+            </span>
+          </td>
+          <td class="text-center">
+            <span class="status-badge" [ngClass]="getStatusClass(appointment.status)">
+              {{ appointment.status }}
+            </span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-icon" (click)="editAppointment(appointment)" title="Edit">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-icon" (click)="viewAppointment(appointment)" title="View">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button class="btn-icon btn-danger" (click)="confirmDelete(appointment)" title="Delete">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showDeleteModal" (click)="cancelDelete()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Delete Confirmation</h3>
+        <button class="btn-close" (click)="cancelDelete()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure want to delete?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cancelDelete()">Cancel</button>
+        <button class="btn btn-danger" (click)="deleteAppointment()" [disabled]="isLoading">
+          Yes, Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+

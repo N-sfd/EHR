@@ -1,0 +1,22 @@
+<div 
+  *ngIf="!isDismissed"
+  class="alert-banner"
+  [class.alert-success]="type === 'success'"
+  [class.alert-error]="type === 'error'"
+  [class.alert-warning]="type === 'warning'"
+  [class.alert-info]="type === 'info'"
+>
+  <div class="alert-content">
+    <i class="fas" [ngClass]="icon || defaultIcon"></i>
+    <span class="alert-message">{{ message }}</span>
+  </div>
+  <button 
+    *ngIf="dismissible" 
+    class="alert-dismiss" 
+    (click)="dismiss()"
+    aria-label="Dismiss"
+  >
+    <i class="fas fa-times"></i>
+  </button>
+</div>
+

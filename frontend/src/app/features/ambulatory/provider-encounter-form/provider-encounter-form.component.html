@@ -1,0 +1,146 @@
+<div class="provider-encounter-form">
+  <h2 class="section-title">Provider Encounter Documentation</h2>
+
+  <div *ngIf="errorMessage" class="alert alert-error">
+    <i class="fas fa-exclamation-circle"></i> {{ errorMessage }}
+  </div>
+
+  <form [formGroup]="encounterForm" (ngSubmit)="save()">
+    <!-- Assessment & Diagnosis -->
+    <div class="form-section">
+      <h3>Assessment & Diagnosis</h3>
+      <div class="form-group">
+        <label>Primary Diagnosis</label>
+        <input type="text" formControlName="primaryDiagnosis" class="form-control" placeholder="Enter primary diagnosis">
+      </div>
+      <div class="form-group">
+        <label>Diagnosis Codes (ICD-10, comma-separated)</label>
+        <input type="text" formControlName="diagnosisCodes" class="form-control" placeholder="E11.9, I10, etc.">
+      </div>
+      <div class="form-group">
+        <label>Diagnosis Descriptions</label>
+        <textarea formControlName="diagnosisDescriptions" rows="3" class="form-control" placeholder="Enter diagnosis descriptions"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Assessment</label>
+        <textarea formControlName="assessment" rows="4" class="form-control" placeholder="Enter assessment"></textarea>
+      </div>
+    </div>
+
+    <!-- SOAP Notes -->
+    <div class="form-section">
+      <h3>SOAP Notes</h3>
+      <div class="form-group">
+        <label>Subjective</label>
+        <textarea formControlName="subjective" rows="4" class="form-control" placeholder="Patient's description of symptoms"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Objective</label>
+        <textarea formControlName="objective" rows="4" class="form-control" placeholder="Observable findings, vitals, exam results"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Assessment</label>
+        <textarea formControlName="assessmentSoap" rows="4" class="form-control" placeholder="Clinical assessment and diagnosis"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Plan</label>
+        <textarea formControlName="planSoap" rows="4" class="form-control" placeholder="Treatment plan, medications, follow-up"></textarea>
+      </div>
+    </div>
+
+    <!-- Plan & Follow-up -->
+    <div class="form-section">
+      <h3>Plan & Follow-up</h3>
+      <div class="form-group">
+        <label>Plan</label>
+        <textarea formControlName="plan" rows="4" class="form-control" placeholder="Enter plan"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Follow-up Instructions</label>
+        <textarea formControlName="followUpInstructions" rows="3" class="form-control" placeholder="Enter follow-up instructions"></textarea>
+      </div>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" formControlName="followUpAppointmentNeeded">
+          Follow-up Appointment Needed
+        </label>
+        <input type="number" formControlName="followUpDays" placeholder="Days until follow-up" class="form-control" *ngIf="encounterForm.get('followUpAppointmentNeeded')?.value">
+      </div>
+    </div>
+
+    <!-- Orders Summary -->
+    <div class="form-section">
+      <h3>Orders Summary</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>
+            <input type="checkbox" [checked]="ordersFormArray.length > 0" disabled>
+            Orders Placed
+          </label>
+        </div>
+        <div class="form-group">
+          <label for="labOrdersCount">Lab Orders Count</label>
+          <input id="labOrdersCount" type="number" [value]="labOrdersCount" readonly class="form-control" aria-label="Lab Orders Count">
+        </div>
+        <div class="form-group">
+          <label for="imagingOrdersCount">Imaging Orders Count</label>
+          <input id="imagingOrdersCount" type="number" [value]="imagingOrdersCount" readonly class="form-control" aria-label="Imaging Orders Count">
+        </div>
+        <div class="form-group">
+          <label for="medicationOrdersCount">Medication Orders Count</label>
+          <input id="medicationOrdersCount" type="number" [value]="medicationOrdersCount" readonly class="form-control" aria-label="Medication Orders Count">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Orders</label>
+        <div formArrayName="orders">
+          <div *ngFor="let order of ordersFormArray.controls; let i = index" class="order-item">
+            <input type="text" [formControlName]="i" class="form-control" [id]="'order-' + i" [attr.aria-label]="'Order ' + (i + 1)" placeholder="Enter order">
+            <button type="button" class="btn-remove" (click)="removeOrder(i)" [attr.aria-label]="'Remove order ' + (i + 1)" title="Remove order">
+              <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+          </div>
+          <button type="button" class="btn-add" (click)="addOrder()" aria-label="Add new order" title="Add new order">
+            <i class="fas fa-plus" aria-hidden="true"></i> Add Order
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Diagnoses -->
+    <div class="form-section">
+      <h3>Diagnoses</h3>
+      <div formArrayName="diagnoses">
+        <div *ngFor="let diagnosis of diagnosesFormArray.controls; let i = index" class="diagnosis-item">
+          <input type="text" [formControlName]="i" class="form-control" [id]="'diagnosis-' + i" [attr.aria-label]="'Diagnosis ' + (i + 1)" placeholder="Enter diagnosis">
+          <button type="button" class="btn-remove" (click)="removeDiagnosis(i)" [attr.aria-label]="'Remove diagnosis ' + (i + 1)" title="Remove diagnosis">
+            <i class="fas fa-times" aria-hidden="true"></i>
+          </button>
+        </div>
+        <button type="button" class="btn-add" (click)="addDiagnosis()" aria-label="Add new diagnosis" title="Add new diagnosis">
+          <i class="fas fa-plus" aria-hidden="true"></i> Add Diagnosis
+        </button>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="form-section">
+      <h3>Additional Notes</h3>
+      <div class="form-group">
+        <label for="notes">Additional Notes</label>
+        <textarea id="notes" formControlName="notes" rows="4" class="form-control" placeholder="Enter additional notes"></textarea>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="form-actions">
+      <button type="submit" class="epic-btn epic-btn-primary" [disabled]="isLoading || encounterForm.invalid">
+        <i class="fas fa-save"></i> Save Encounter
+      </button>
+      <button type="button" class="epic-btn epic-btn-success" (click)="sign()" [disabled]="isLoading || encounterForm.invalid">
+        <i class="fas fa-signature"></i> Sign Encounter
+      </button>
+      <div class="error-message" *ngIf="errorMessage">{{ errorMessage }}</div>
+    </div>
+  </form>
+</div>

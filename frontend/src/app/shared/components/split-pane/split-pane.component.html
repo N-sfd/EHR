@@ -1,0 +1,38 @@
+<div 
+  class="split-pane-container" 
+  [class.horizontal]="orientation === 'horizontal'"
+  [class.vertical]="orientation === 'vertical'"
+  (mousemove)="onResize($event)"
+  (mouseup)="stopResize()"
+  (mouseleave)="stopResize()"
+>
+  <div 
+    class="split-pane-left" 
+    [style.width]="orientation === 'horizontal' ? currentLeftWidth : '100%'"
+    [style.height]="orientation === 'vertical' ? currentLeftWidth : '100%'"
+  >
+    <ng-container *ngIf="leftPaneTemplate">
+      <ng-container *ngTemplateOutlet="leftPaneTemplate"></ng-container>
+    </ng-container>
+    <ng-content select="[leftPane]"></ng-content>
+  </div>
+
+  <div 
+    *ngIf="resizable" 
+    class="split-pane-divider"
+    [class.resizing]="isResizing"
+    (mousedown)="startResize($event)"
+  ></div>
+
+  <div 
+    class="split-pane-right"
+    [style.width]="orientation === 'horizontal' ? 'calc(100% - ' + currentLeftWidth + ')' : '100%'"
+    [style.height]="orientation === 'vertical' ? 'calc(100% - ' + currentLeftWidth + ')' : '100%'"
+  >
+    <ng-container *ngIf="rightPaneTemplate">
+      <ng-container *ngTemplateOutlet="rightPaneTemplate"></ng-container>
+    </ng-container>
+    <ng-content select="[rightPane]"></ng-content>
+  </div>
+</div>
+

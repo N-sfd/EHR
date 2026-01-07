@@ -1,0 +1,231 @@
+<div class="drawer-overlay" *ngIf="isOpen" (click)="onClose()">
+  <div class="drawer" (click)="$event.stopPropagation()">
+    <div class="drawer-header">
+      <h2>Update Patient Information</h2>
+      <button class="close-btn" (click)="onClose()" title="Close">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="drawer-content" *ngIf="!isLoading">
+      <!-- Tabs -->
+      <div class="tabs">
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab === 'demographics'"
+          (click)="onTabChange('demographics')"
+        >
+          Demographics
+        </button>
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab === 'coverage'"
+          (click)="onTabChange('coverage')"
+        >
+          Coverage
+        </button>
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab === 'consent'"
+          (click)="onTabChange('consent')"
+        >
+          Consent
+        </button>
+      </div>
+
+      <!-- Error Message -->
+      <div class="error-banner" *ngIf="errorMessage">
+        <i class="fas fa-exclamation-circle"></i>
+        <span>{{ errorMessage }}</span>
+      </div>
+
+      <!-- Demographics Tab -->
+      <div class="tab-content" *ngIf="activeTab === 'demographics'">
+        <form [formGroup]="demographicsForm">
+          <div class="form-grid">
+            <div class="form-group" [class.has-error]="isFieldInvalid(demographicsForm, 'firstName')">
+              <label>First Name <span class="required">*</span></label>
+              <input type="text" formControlName="firstName" class="form-input" [readonly]="!canEdit" />
+              <div class="validation-message" *ngIf="isFieldInvalid(demographicsForm, 'firstName')">
+                First name is required
+              </div>
+            </div>
+
+            <div class="form-group" [class.has-error]="isFieldInvalid(demographicsForm, 'lastName')">
+              <label>Last Name <span class="required">*</span></label>
+              <input type="text" formControlName="lastName" class="form-input" [readonly]="!canEdit" />
+              <div class="validation-message" *ngIf="isFieldInvalid(demographicsForm, 'lastName')">
+                Last name is required
+              </div>
+            </div>
+
+            <div class="form-group" [class.has-error]="isFieldInvalid(demographicsForm, 'dateOfBirth')">
+              <label>Date of Birth <span class="required">*</span></label>
+              <input type="date" formControlName="dateOfBirth" class="form-input" [readonly]="!canEdit" />
+              <div class="validation-message" *ngIf="isFieldInvalid(demographicsForm, 'dateOfBirth')">
+                Date of birth is required
+              </div>
+            </div>
+
+            <div class="form-group" [class.has-error]="isFieldInvalid(demographicsForm, 'sex')">
+              <label>Birth Sex <span class="required">*</span></label>
+              <select formControlName="sex" class="form-input" [disabled]="!canEdit">
+                <option value="">Select...</option>
+                <option value="MALE">Male</option>
+                <option value="FEMALE">Female</option>
+                <option value="INTERSEX">Intersex</option>
+                <option value="UNKNOWN">Unknown</option>
+              </select>
+              <div class="validation-message" *ngIf="isFieldInvalid(demographicsForm, 'sex')">
+                Birth sex is required
+              </div>
+            </div>
+
+            <div class="form-group" [class.has-error]="isFieldInvalid(demographicsForm, 'phoneNumber')">
+              <label>Phone Number <span class="required">*</span></label>
+              <input type="tel" formControlName="phoneNumber" class="form-input" [readonly]="!canEdit" />
+              <div class="validation-message" *ngIf="isFieldInvalid(demographicsForm, 'phoneNumber')">
+                Phone number is required
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Email Address</label>
+              <input type="email" formControlName="emailAddress" class="form-input" [readonly]="!canEdit" />
+            </div>
+
+            <div class="form-group full-width" [class.has-error]="isFieldInvalid(demographicsForm, 'addressLine1')">
+              <label>Address Line 1 <span class="required">*</span></label>
+              <input type="text" formControlName="addressLine1" class="form-input" [readonly]="!canEdit" />
+              <div class="validation-message" *ngIf="isFieldInvalid(demographicsForm, 'addressLine1')">
+                Address is required
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label>Address Line 2</label>
+              <input type="text" formControlName="addressLine2" class="form-input" [readonly]="!canEdit" />
+            </div>
+
+            <div class="form-group" [class.has-error]="isFieldInvalid(demographicsForm, 'city')">
+              <label>City <span class="required">*</span></label>
+              <input type="text" formControlName="city" class="form-input" [readonly]="!canEdit" />
+              <div class="validation-message" *ngIf="isFieldInvalid(demographicsForm, 'city')">
+                City is required
+              </div>
+            </div>
+
+            <div class="form-group" [class.has-error]="isFieldInvalid(demographicsForm, 'state')">
+              <label>State <span class="required">*</span></label>
+              <input type="text" formControlName="state" class="form-input" [readonly]="!canEdit" />
+              <div class="validation-message" *ngIf="isFieldInvalid(demographicsForm, 'state')">
+                State is required
+              </div>
+            </div>
+
+            <div class="form-group" [class.has-error]="isFieldInvalid(demographicsForm, 'pincode')">
+              <label>ZIP Code <span class="required">*</span></label>
+              <input type="text" formControlName="pincode" class="form-input" [readonly]="!canEdit" />
+              <div class="validation-message" *ngIf="isFieldInvalid(demographicsForm, 'pincode')">
+                ZIP code is required
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Coverage Tab -->
+      <div class="tab-content" *ngIf="activeTab === 'coverage'">
+        <form [formGroup]="coverageForm">
+          <div class="form-grid">
+            <div class="form-group full-width" [class.has-error]="isFieldInvalid(coverageForm, 'payer')">
+              <label>Primary Insurance Payer <span class="required">*</span></label>
+              <input type="text" formControlName="payer" class="form-input" [readonly]="!canEdit" />
+              <div class="validation-message" *ngIf="isFieldInvalid(coverageForm, 'payer')">
+                Insurance payer is required
+              </div>
+            </div>
+
+            <div class="form-group full-width" [class.has-error]="isFieldInvalid(coverageForm, 'memberId')">
+              <label>Member ID <span class="required">*</span></label>
+              <input type="text" formControlName="memberId" class="form-input" [readonly]="!canEdit" />
+              <div class="validation-message" *ngIf="isFieldInvalid(coverageForm, 'memberId')">
+                Member ID is required
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label>Group Number</label>
+              <input type="text" formControlName="groupNumber" class="form-input" [readonly]="!canEdit" />
+            </div>
+
+            <div class="form-group" [class.has-error]="isFieldInvalid(coverageForm, 'eligibilityStatus')">
+              <label>Eligibility Status <span class="required">*</span></label>
+              <select formControlName="eligibilityStatus" class="form-input" [disabled]="!canEdit">
+                <option value="ACTIVE">Active</option>
+                <option value="NOT_VERIFIED">Not Verified</option>
+                <option value="EXPIRED">Expired</option>
+                <option value="INACTIVE">Inactive</option>
+              </select>
+              <div class="validation-message" *ngIf="isFieldInvalid(coverageForm, 'eligibilityStatus')">
+                Eligibility status is required
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Start Date</label>
+              <input type="date" formControlName="startDate" class="form-input" [readonly]="!canEdit" />
+            </div>
+
+            <div class="form-group">
+              <label>End Date</label>
+              <input type="date" formControlName="endDate" class="form-input" [readonly]="!canEdit" />
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Consent Tab -->
+      <div class="tab-content" *ngIf="activeTab === 'consent'">
+        <form [formGroup]="consentForm">
+          <div class="form-grid">
+            <div class="form-group full-width" [class.has-error]="isFieldInvalid(consentForm, 'consentSigned')">
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  formControlName="consentSigned" 
+                  [disabled]="!canEdit"
+                />
+                <span>Consent Signed <span class="required">*</span></span>
+              </label>
+              <div class="validation-message" *ngIf="isFieldInvalid(consentForm, 'consentSigned')">
+                Consent must be signed
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label>Consent Type</label>
+              <input type="text" formControlName="consentType" class="form-input" [readonly]="!canEdit" />
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="drawer-footer">
+      <button class="btn-secondary" (click)="onClose()" [disabled]="isSaving">
+        Cancel
+      </button>
+      <button 
+        class="btn-primary" 
+        (click)="onSave()" 
+        [disabled]="isSaving || !canEdit || (activeTab === 'demographics' && demographicsForm.invalid) || (activeTab === 'coverage' && coverageForm.invalid) || (activeTab === 'consent' && consentForm.invalid)"
+      >
+        <i class="fas fa-save" *ngIf="!isSaving"></i>
+        <i class="fas fa-spinner fa-spin" *ngIf="isSaving"></i>
+        {{ isSaving ? 'Saving...' : 'Save' }}
+      </button>
+    </div>
+  </div>
+</div>
+

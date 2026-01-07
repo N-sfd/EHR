@@ -1,0 +1,33 @@
+<div class="documents-page">
+  <app-card title="Documents">
+    <div class="documents-list" *ngIf="!isLoading && documents.length > 0">
+      <div class="document-item" *ngFor="let doc of documents">
+        <div class="document-icon">
+          <i class="fas fa-file-pdf" *ngIf="doc.type === 'PDF'"></i>
+          <i class="fas fa-file-image" *ngIf="doc.type === 'Image'"></i>
+          <i class="fas fa-file" *ngIf="doc.type !== 'PDF' && doc.type !== 'Image'"></i>
+        </div>
+        <div class="document-details">
+          <div class="document-name">{{ doc.name }}</div>
+          <div class="document-meta">
+            <span>{{ doc.type }}</span>
+            <span *ngIf="doc.size"> • {{ doc.size }}</span>
+            <span> • Uploaded {{ doc.uploadedDate | date:'shortDate' }}</span>
+          </div>
+        </div>
+        <div class="document-status">
+          <app-badge [variant]="getStatusBadgeClass(doc.status)">
+            {{ doc.status }}
+          </app-badge>
+        </div>
+      </div>
+    </div>
+    <div class="empty-state" *ngIf="!isLoading && documents.length === 0">
+      <p>No documents on file.</p>
+    </div>
+    <div class="loading-state" *ngIf="isLoading">
+      <p>Loading documents...</p>
+    </div>
+  </app-card>
+</div>
+

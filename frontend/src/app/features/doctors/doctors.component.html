@@ -1,0 +1,146 @@
+<!-- Page Header -->
+<div class="doctors-header">
+  <div class="header-top-row">
+    <h1 class="doctors-title">
+      <i class="fas fa-chevron-left chevron-icon" (click)="goBack()" style="cursor: pointer;"></i> Doctors
+    </h1>
+    <div class="header-right-section">
+      <div class="header-search">
+        <i class="fas fa-magnifying-glass search-icon"></i>
+        <input type="text" placeholder="Search Doctor" [(ngModel)]="searchTerm" (input)="applyFilters()">
+      </div>
+      <button class="btn btn-primary" routerLink="/admin/doctors/add" style="margin-left: 1rem;">
+        <i class="fas fa-plus"></i> Add Doctor
+      </button>
+    </div>
+  </div>
+  
+  <!-- Category Tabs -->
+  <div class="category-tabs">
+    <button 
+      class="category-tab" 
+      [class.active]="specializationFilter === 'all'"
+      (click)="specializationFilter = 'all'; applyFilters()">
+      ALL
+    </button>
+    <button 
+      class="category-tab" 
+      [class.active]="specializationFilter === 'Cardiology'"
+      (click)="specializationFilter = 'Cardiology'; applyFilters()">
+      CARDIOLOGY
+    </button>
+    <button 
+      class="category-tab" 
+      [class.active]="specializationFilter === 'Surgery'"
+      (click)="specializationFilter = 'Surgery'; applyFilters()">
+      SURGERY
+    </button>
+    <button 
+      class="category-tab" 
+      [class.active]="specializationFilter === 'Orthopedics'"
+      (click)="specializationFilter = 'Orthopedics'; applyFilters()">
+      ORTHOPEDIC
+    </button>
+    <button 
+      class="category-tab" 
+      [class.active]="specializationFilter === 'Oncology'"
+      (click)="specializationFilter = 'Oncology'; applyFilters()">
+      ONCOLOGY
+    </button>
+    <button 
+      class="category-tab" 
+      [class.active]="specializationFilter === 'Dermatology'"
+      (click)="specializationFilter = 'Dermatology'; applyFilters()">
+      DERMATOLOGY
+    </button>
+    <button 
+      class="category-tab" 
+      [class.active]="specializationFilter === 'Gynecology'"
+      (click)="specializationFilter = 'Gynecology'; applyFilters()">
+      GYNECOLOGY
+    </button>
+  </div>
+</div>
+
+<!-- Doctor Cards Grid -->
+<div class="doctors-grid" *ngIf="!isLoading && displayedDoctors.length > 0" [class.list-view]="viewMode === 'list'">
+  <div 
+    class="doctor-card" 
+    *ngFor="let doctor of displayedDoctors; let i = index"
+    [class.highlighted]="highlightedIndex === i"
+    [class.editing]="editingDoctorId === (doctor.id || doctor.doctorCode)"
+    (click)="viewDoctorProfile(doctor)">
+    
+    <!-- Action Menu (Edit/Delete) -->
+    <div class="card-actions" (click)="$event.stopPropagation()">
+      <button class="action-menu-btn" (click)="toggleActionMenu(doctor, $event)">
+        <i class="fas fa-ellipsis-v"></i>
+      </button>
+      <div class="action-menu" *ngIf="openActionMenuId === (doctor.id?.toString() || '')">
+        <button class="menu-item" (click)="startEdit(doctor)">
+          <i class="fas fa-edit"></i> Edit
+        </button>
+        <button class="menu-item delete" (click)="deleteDoctor(doctor)">
+          <i class="fas fa-trash"></i> Delete
+        </button>
+      </div>
+    </div>
+    
+    <!-- Rating -->
+    <div class="card-rating">
+      <i class="fas fa-star"></i>
+      <span>{{ getRating(doctor) }}</span>
+    </div>
+    
+    <!-- Profile Picture -->
+    <div class="doctor-avatar" (click)="viewDoctorProfile(doctor); $event.stopPropagation()">
+      <img [src]="getAvatar(doctor)" [alt]="doctor.firstName" (error)="onImageError($event, doctor)">
+    </div>
+    
+    <!-- View Mode -->
+    <div>
+      <!-- Doctor Name -->
+      <h3 class="doctor-name">
+        Dr. {{ doctor.firstName }} {{ doctor.lastName }}
+      </h3>
+      
+      <!-- Address -->
+      <p class="doctor-address">{{ getAddress(doctor) }}</p>
+      
+      <!-- Specialization Button -->
+      <button class="specialty-btn">{{ getSpecialization(doctor).toUpperCase() }}</button>
+      
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="action-btn availability-btn" (click)="viewAvailability(doctor); $event.stopPropagation()">
+          <i class="fas fa-calendar"></i>
+          Availability
+        </button>
+        <button class="action-btn call-btn" (click)="makeCall(doctor); $event.stopPropagation()">
+          <i class="fas fa-phone"></i>
+          Make a call
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Load More -->
+<div class="load-more-section" *ngIf="!isLoading && filteredDoctors.length > displayedCount">
+  <button class="btn btn-outline load-more-btn" (click)="loadMore()">
+    Load More
+  </button>
+</div>
+
+<!-- Empty State -->
+<div class="empty-state" *ngIf="!isLoading && filteredDoctors.length === 0">
+  <i class="fas fa-user-doctor"></i>
+  <h4>No doctors found</h4>
+  <p>Try adjusting filters or add a new doctor.</p>
+  <a routerLink="/admin/doctors/add" class="btn btn-primary">New Doctor</a>
+</div>
+
+<!-- Loading State -->
+<div class="loading-state" *ngIf="isLoading">
+  <div class="skeleton-card" *ngFor="let _ of loadingPlaceholders"></div>
+</div>

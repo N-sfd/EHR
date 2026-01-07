@@ -1,0 +1,601 @@
+.epic-scheduler {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 100px);
+  background: var(--secondary-beige);
+}
+
+/* Patient Search Banner */
+.patient-search-banner {
+  background: white;
+  padding: 20px;
+  border-bottom: 2px solid var(--primary-teal);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.search-container {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.patient-search-input {
+  flex: 1;
+  padding: 10px 15px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: 'Inter', sans-serif;
+}
+
+.patient-search-input:focus {
+  outline: none;
+  border-color: var(--primary-teal);
+  box-shadow: 0 0 0 2px rgba(0, 79, 79, 0.1);
+}
+
+.search-results {
+  margin-top: 15px;
+  background: var(--secondary-beige);
+  border-radius: 8px;
+  padding: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.result-item {
+  padding: 10px 15px;
+  background: white;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  transition: all 0.2s;
+  border: 1px solid var(--border);
+}
+
+.result-item:hover {
+  border-color: var(--primary-teal);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.result-item strong {
+  color: var(--primary-teal);
+  font-weight: 600;
+  min-width: 200px;
+}
+
+.result-item span {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Zone 1: Patient Header (Top Strip - Mandatory) */
+.patient-header {
+  background: var(--primary-teal);
+  color: white;
+  padding: 12px 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 10;
+}
+
+.patient-header-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.patient-name {
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.patient-name:hover {
+  opacity: 0.9;
+}
+
+.patient-info {
+  display: flex;
+  gap: 15px;
+  font-size: 14px;
+  color: rgba(255,255,255,0.9);
+}
+
+.patient-alerts {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.alert-badge {
+  background: rgba(255,255,255,0.2);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Zone 2 & 3: Main Layout */
+.scheduler-layout {
+  display: flex;
+  flex: 1;
+  gap: 0;
+  overflow: hidden;
+}
+
+/* Zone 2: Provider Schedule Grid (LEFT) */
+.provider-grid-section {
+  width: 60%;
+  background: white;
+  border-right: 2px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.grid-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.grid-header h3 {
+  margin: 0;
+  color: var(--primary-teal);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.date-navigation {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.date-input {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.btn-icon {
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--primary-teal);
+  transition: all 0.2s;
+}
+
+.btn-icon:hover {
+  background: rgba(0, 79, 79, 0.08);
+}
+
+.btn-secondary {
+  padding: 6px 12px;
+  background: var(--muted);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-secondary:hover {
+  background: #2a3a3a;
+}
+
+.provider-selection {
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.provider-selection h4 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: var(--text-navy);
+}
+
+.provider-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.provider-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.provider-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.schedule-grid-container {
+  flex: 1;
+  overflow: auto;
+  padding: 10px;
+}
+
+.grid-wrapper {
+  display: flex;
+  min-width: 100%;
+}
+
+.time-column {
+  min-width: 80px;
+  border-right: 2px solid var(--border);
+  position: sticky;
+  left: 0;
+  background: white;
+  z-index: 5;
+}
+
+.time-header {
+  padding: 10px;
+  background: rgba(0, 79, 79, 0.08);
+  color: var(--primary-teal);
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 6;
+}
+
+.time-slots {
+  display: flex;
+  flex-direction: column;
+}
+
+.time-label {
+  padding: 6px 8px;
+  border-bottom: 1px solid #eee;
+  font-size: 11px;
+  color: var(--muted);
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.providers-columns {
+  display: flex;
+  flex: 1;
+  overflow-x: auto;
+}
+
+.provider-column {
+  min-width: 180px;
+  border-right: 1px solid var(--border);
+  flex: 1;
+}
+
+.provider-header {
+  padding: 10px;
+  background: rgba(0, 79, 79, 0.08);
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 4;
+}
+
+.provider-name {
+  font-weight: 600;
+  color: var(--primary-teal);
+  font-size: 13px;
+}
+
+.provider-slots {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Time Slots - Color Coding */
+.time-slot {
+  min-height: 30px;
+  padding: 4px 6px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-size: 11px;
+}
+
+.time-slot:hover {
+  transform: scale(1.02);
+  z-index: 1;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.slot-available {
+  background: rgba(0, 79, 79, 0.08);
+  border-left: 3px solid var(--primary-teal);
+}
+
+.slot-booked {
+  background: #ffebee;
+  border-left: 3px solid #f44336;
+}
+
+.slot-overbook {
+  background: #fff9c4;
+  border-left: 3px solid #ffc107;
+}
+
+.slot-blocked {
+  background: #e8e8e8;
+  border-left: 3px solid #757575;
+  cursor: not-allowed;
+}
+
+.slot-time {
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+.slot-content {
+  font-size: 10px;
+}
+
+.patient-name-small {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.visit-type-small {
+  font-size: 9px;
+  color: var(--muted);
+}
+
+.slot-available-text {
+  font-size: 10px;
+  color: var(--primary-teal);
+  font-style: italic;
+}
+
+.legend {
+  display: flex;
+  gap: 15px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  background: rgba(0, 79, 79, 0.03);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+
+.legend-color.slot-available {
+  background: rgba(0, 79, 79, 0.08);
+  border-color: var(--primary-teal);
+}
+
+.legend-color.slot-booked {
+  background: #ffebee;
+  border-color: #f44336;
+}
+
+.legend-color.slot-overbook {
+  background: #fff9c4;
+  border-color: #ffc107;
+}
+
+.legend-color.slot-blocked {
+  background: #e8e8e8;
+  border-color: #757575;
+}
+
+/* Zone 3: Appointment Details Panel (RIGHT) */
+.appointment-details-section {
+  width: 40%;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.details-header {
+  padding: 15px 20px;
+  border-bottom: 2px solid var(--primary-teal);
+  background: rgba(0, 79, 79, 0.05);
+}
+
+.details-header h3 {
+  margin: 0;
+  color: var(--primary-teal);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.details-section {
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-title {
+  color: var(--primary-teal);
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 15px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--primary-teal);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-item label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.info-item span {
+  font-size: 14px;
+  color: var(--text-navy);
+}
+
+.eligibility-status {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-navy);
+}
+
+.required {
+  color: var(--danger-red);
+}
+
+.form-input {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary-teal);
+  box-shadow: 0 0 0 2px rgba(0, 79, 79, 0.1);
+}
+
+.form-group.has-error .form-input {
+  border-color: var(--danger-red);
+}
+
+textarea.form-input {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.validation-errors {
+  padding: 15px 20px;
+  background: #ffebee;
+  border-left: 4px solid var(--danger-red);
+  margin: 0 20px;
+}
+
+.error-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--danger-red);
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.error-item:last-child {
+  margin-bottom: 0;
+}
+
+.actions-section {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 2px solid var(--border);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-primary {
+  padding: 10px 20px;
+  background: var(--primary-teal);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-dark);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  padding: 10px 20px;
+  background: var(--muted);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.btn-secondary:hover {
+  background: #2a3a3a;
+}
+

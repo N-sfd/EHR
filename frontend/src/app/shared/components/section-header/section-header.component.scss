@@ -1,0 +1,53 @@
+.section-header {
+  margin-bottom: 20px;
+  cursor: default;
+
+  &.collapsible {
+    cursor: pointer;
+
+    &:hover {
+      .section-title {
+        color: #0b5b5b;
+      }
+    }
+  }
+
+  .section-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .section-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .section-icon {
+      font-size: 14px;
+      color: #0b5b5b;
+    }
+  }
+
+  .collapse-icon {
+    font-size: 12px;
+    color: #6c757d;
+    transition: transform 0.2s;
+
+    &.rotated {
+      transform: rotate(180deg);
+    }
+  }
+
+  .section-underline {
+    height: 2px;
+    background: #0b5b5b;
+    width: 100%;
+  }
+}
+

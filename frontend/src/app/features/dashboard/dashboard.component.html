@@ -1,0 +1,143 @@
+<div class="dashboard-container">
+  <div class="modules-grid">
+    <!-- Doctors Management -->
+    <div class="module-card">
+      <div class="module-icon">
+        <i class="fas fa-user-doctor"></i>
+      </div>
+      <h3 class="module-title">Doctors Management</h3>
+      <p class="module-description">Manage doctor profiles, schedules, and professional information</p>
+      <div class="module-features">
+        <span class="feature-tag" (click)="navigateToDoctors(); $event.stopPropagation()" [class.active]="true">Profiles</span>
+        <span class="feature-tag" (click)="navigateToDoctorSchedule(); $event.stopPropagation()">Schedule</span>
+        <span class="feature-tag" (click)="navigateToDoctorRecords(); $event.stopPropagation()">Records</span>
+      </div>
+    </div>
+
+    <!-- Staff Management -->
+    <div class="module-card">
+      <div class="module-icon">
+        <i class="fas fa-users"></i>
+      </div>
+      <h3 class="module-title">Staff Management</h3>
+      <p class="module-description">Manage staff members, roles, and department assignments</p>
+      <div class="module-features">
+        <span class="feature-tag" (click)="navigateToStaff(); $event.stopPropagation()">Directory</span>
+        <span class="feature-tag" (click)="navigateToStaffRoles(); $event.stopPropagation()" [class.active]="true">Roles</span>
+        <span class="feature-tag" (click)="navigateToStaffAssignments(); $event.stopPropagation()">Assignments</span>
+      </div>
+    </div>
+
+    <!-- Patient Management -->
+    <div class="module-card" (click)="navigateToPatientManagement()" style="cursor: pointer;">
+      <div class="module-icon">
+        <i class="fas fa-user-injured"></i>
+      </div>
+      <h3 class="module-title">Patient Management</h3>
+      <p class="module-description">Comprehensive patient records, history, and care management</p>
+      <div class="module-features">
+        <span class="feature-tag" (click)="navigateToPatientManagement(); $event.stopPropagation()">Records</span>
+        <span class="feature-tag" (click)="navigateToPatientManagement(); $event.stopPropagation()">History</span>
+        <span class="feature-tag" (click)="navigateToPatientManagement(); $event.stopPropagation()">Care Plans</span>
+      </div>
+    </div>
+
+    <!-- Appointment Scheduling -->
+    <div class="module-card">
+      <div class="module-icon">
+        <i class="fas fa-calendar-check"></i>
+      </div>
+      <h3 class="module-title">Appointment Scheduling</h3>
+      <p class="module-description">Efficient scheduling system for doctors and patients</p>
+      <div class="module-features">
+        <span class="feature-tag">Booking</span>
+        <span class="feature-tag">Calendar</span>
+        <span class="feature-tag">Reminders</span>
+      </div>
+    </div>
+
+    <!-- Billing and Insurance -->
+    <div class="module-card">
+      <div class="module-icon">
+        <i class="fas fa-file-invoice-dollar"></i>
+      </div>
+      <h3 class="module-title">Billing and Insurance</h3>
+      <p class="module-description">Streamlined billing, invoicing, and insurance claim processing</p>
+      <div class="module-features">
+        <span class="feature-tag">Invoicing</span>
+        <span class="feature-tag">Claims</span>
+        <span class="feature-tag">Payments</span>
+      </div>
+    </div>
+
+    <!-- Pharmacy Management -->
+    <div class="module-card">
+      <div class="module-icon">
+        <i class="fas fa-pills"></i>
+      </div>
+      <h3 class="module-title">Pharmacy Management</h3>
+      <p class="module-description">Complete pharmacy inventory and prescription management</p>
+      <div class="module-features">
+        <span class="feature-tag">Inventory</span>
+        <span class="feature-tag">Prescriptions</span>
+        <span class="feature-tag">Dispensing</span>
+      </div>
+    </div>
+
+    <!-- Lab & Radiology Info System -->
+    <div class="module-card">
+      <div class="module-icon">
+        <i class="fas fa-flask"></i>
+      </div>
+      <h3 class="module-title">Lab & Radiology Info System</h3>
+      <p class="module-description">Laboratory tests, radiology reports, and diagnostic imaging</p>
+      <div class="module-features">
+        <span class="feature-tag">Lab Tests</span>
+        <span class="feature-tag">Reports</span>
+        <span class="feature-tag">Imaging</span>
+      </div>
+    </div>
+
+    <!-- Electronic Prescription -->
+    <div class="module-card">
+      <div class="module-icon">
+        <i class="fas fa-prescription"></i>
+      </div>
+      <h3 class="module-title">Electronic Prescription</h3>
+      <p class="module-description">Digital prescription management and e-prescribing system</p>
+      <div class="module-features">
+        <span class="feature-tag">E-Prescribe</span>
+        <span class="feature-tag">Digital</span>
+        <span class="feature-tag">Secure</span>
+      </div>
+    </div>
+
+    <!-- Inventory Manager -->
+    <div class="module-card">
+      <div class="module-icon">
+        <i class="fas fa-boxes"></i>
+      </div>
+      <h3 class="module-title">Inventory Manager</h3>
+      <p class="module-description">Medical supplies, equipment, and inventory tracking</p>
+      <div class="module-features">
+        <span class="feature-tag">Supplies</span>
+        <span class="feature-tag">Equipment</span>
+        <span class="feature-tag">Tracking</span>
+      </div>
+    </div>
+
+    <!-- Telehealth -->
+    <div class="module-card">
+      <div class="module-icon">
+        <i class="fas fa-video"></i>
+      </div>
+      <h3 class="module-title">Telehealth</h3>
+      <p class="module-description">Remote consultations and virtual healthcare services</p>
+      <div class="module-features">
+        <span class="feature-tag">Video Calls</span>
+        <span class="feature-tag">Remote Care</span>
+        <span class="feature-tag">Virtual</span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,53 @@
+<aside class="sidebar" [class.sidebar-open]="isOpen" [class.sidebar-closed]="!isOpen">
+  <div class="sidebar-inner">
+    <div class="sidebar-logo" (click)="navigateToDashboard()">
+      <div class="logo-container">
+        <img src="assets/logo.svg" alt="Hospital Logo" class="sidebar-logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="logo-fallback" style="display:none;">
+          <span>H</span>
+        </div>
+      </div>
+      <div>
+        <span>Hospital</span>
+      </div>
+    </div>
+    <div class="sidebar-menu" *ngFor="let section of menuSections">
+      <p class="menu-label" *ngIf="section.title">{{ section.title }}</p>
+      <ul>
+        <li *ngFor="let item of section.items">
+          <div class="menu-item-wrapper">
+            <ng-container *ngIf="hasChildren(item); else noChildren">
+              <div class="menu-link" [class.has-children]="hasChildren(item)" (click)="toggleSubmenu(item.label)">
+                <i class="fas" [class]="item.icon"></i>
+                <span>{{ item.label }}</span>
+                <i class="fas fa-chevron-down chevron" [class.expanded]="isExpanded(item.label)"></i>
+              </div>
+              <ul class="submenu" *ngIf="isExpanded(item.label)">
+                <li *ngFor="let child of item.children">
+                  <a [routerLink]="child.route" [class.active]="isActiveRoute(child.route)">
+                    <span class="submenu-dot"></span>
+                    <span>{{ child.label }}</span>
+                  </a>
+                </li>
+              </ul>
+            </ng-container>
+            <ng-template #noChildren>
+              <ng-container *ngIf="item.route; else staticItem">
+                <a [routerLink]="item.route" [class.active]="isActiveRoute(item.route)">
+                  <i class="fas" [class]="item.icon"></i>
+                  <span>{{ item.label }}</span>
+                </a>
+              </ng-container>
+              <ng-template #staticItem>
+                <div class="menu-link disabled">
+                  <i class="fas" [class]="item.icon"></i>
+                  <span>{{ item.label }}</span>
+                </div>
+              </ng-template>
+            </ng-template>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</aside>

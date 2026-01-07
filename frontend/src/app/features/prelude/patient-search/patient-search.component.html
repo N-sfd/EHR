@@ -1,0 +1,105 @@
+<div class="epic-prelude-search">
+  <!-- Header -->
+  <div class="epic-header">
+    <div class="header-left">
+      <h1 class="epic-title">Patient Search</h1>
+    </div>
+    <div class="header-right">
+      <button class="epic-btn epic-btn-primary" (click)="createNewPatient()">
+        <i class="fas fa-user-plus"></i> Create New Patient
+      </button>
+    </div>
+  </div>
+
+  <!-- Search Section -->
+  <div class="search-section">
+    <div class="search-controls">
+      <div class="search-type-selector">
+        <label>Search by:</label>
+        <select [(ngModel)]="searchType" (change)="onSearchTypeChange()" class="epic-select">
+          <option value="name">Name</option>
+          <option value="dob">Date of Birth</option>
+          <option value="mrn">MRN</option>
+          <option value="phone">Phone</option>
+        </select>
+      </div>
+      <div class="search-input-group">
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm" 
+          (keyup.enter)="search()"
+          [placeholder]="getSearchPlaceholder()"
+          class="epic-search-input"
+        />
+        <button class="epic-btn epic-btn-primary" (click)="search()" [disabled]="isLoading">
+          <i class="fas fa-search"></i> Search
+        </button>
+      </div>
+    </div>
+
+    <!-- Duplicate Warning Banner -->
+    <div class="duplicate-warning" *ngIf="showDuplicateWarning">
+      <i class="fas fa-exclamation-triangle"></i>
+      <span><strong>Warning:</strong> Multiple patients found. Please verify the correct patient.</span>
+    </div>
+  </div>
+
+  <!-- Recently Accessed -->
+  <div class="recently-accessed" *ngIf="recentlyAccessed.length > 0 && searchResults.length === 0">
+    <h3>Recently Accessed Patients</h3>
+    <div class="patient-cards">
+      <div class="patient-card" *ngFor="let patient of recentlyAccessed" (click)="selectPatient(patient)">
+        <div class="patient-name">{{ patient.firstName }} {{ patient.lastName }}</div>
+        <div class="patient-info">
+          <span>MRN: {{ patient.patientCode || 'N/A' }}</span>
+          <span>DOB: {{ formatDate(patient.dateOfBirth) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Results -->
+  <div class="search-results" *ngIf="searchResults.length > 0">
+    <h3>Search Results ({{ searchResults.length }})</h3>
+    <table class="epic-table">
+      <thead>
+        <tr>
+          <th>Patient Name</th>
+          <th>MRN</th>
+          <th>DOB</th>
+          <th>Age</th>
+          <th>Sex</th>
+          <th>Phone</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let patient of searchResults" (click)="selectPatient(patient)" class="clickable-row">
+          <td><strong>{{ patient.firstName }} {{ patient.lastName }}</strong></td>
+          <td>{{ patient.patientCode || 'N/A' }}</td>
+          <td>{{ formatDate(patient.dateOfBirth) }}</td>
+          <td>{{ calculateAge(patient.dateOfBirth) }}</td>
+          <td>{{ patient.gender || 'N/A' }}</td>
+          <td>{{ patient.phoneNumber || 'N/A' }}</td>
+          <td>
+            <button class="epic-btn-icon" (click)="selectPatient(patient); $event.stopPropagation()">
+              <i class="fas fa-arrow-right"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && searchResults.length === 0 && searchTerm">
+    <p>No patients found matching your search criteria.</p>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Searching...</p>
+  </div>
+</div>
+

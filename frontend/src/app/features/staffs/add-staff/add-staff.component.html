@@ -1,0 +1,214 @@
+<div class="page-header">
+  <div>
+    <h3 class="page-title">{{ isEditMode ? 'Edit Staff' : 'New Staff' }}</h3>
+  </div>
+</div>
+
+<form [formGroup]="staffForm" (ngSubmit)="submitForm()" class="staff-form">
+  <section class="card">
+    <div class="card-header">
+      <h4 class="card-title">Staff Information</h4>
+    </div>
+    <div class="card-body" formGroupName="person">
+      <!-- Profile Image -->
+      <div class="profile-image-section">
+        <label>Profile Image</label>
+        <div class="profile-image-container">
+          <div class="profile-image-preview" (click)="triggerFileInput()">
+            <img *ngIf="profileImagePreview" [src]="profileImagePreview" alt="Profile Preview" class="preview-img">
+            <div *ngIf="!profileImagePreview" class="profile-placeholder">
+              <i class="fas fa-user-plus"></i>
+              <div class="upload-icon-overlay">
+                <i class="fas fa-image"></i>
+              </div>
+            </div>
+          </div>
+          <div class="image-actions">
+            <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" style="display: none;">
+            <button type="button" class="btn btn-outline small" (click)="triggerFileInput()">
+              <i class="fas fa-upload"></i> {{ profileImagePreview ? 'Change Image' : 'Choose Image' }}
+            </button>
+            <button *ngIf="profileImagePreview" type="button" class="btn btn-outline small danger" (click)="removeImage()" title="Remove Image">
+              <i class="fas fa-trash"></i> Remove
+            </button>
+          </div>
+          <small class="image-help-text" *ngIf="profileImagePreview">
+            Image will be stored in the database. Click "Change Image" to replace or "Remove" to delete.
+          </small>
+        </div>
+      </div>
+      
+      <div class="form-row dual">
+        <div>
+          <label class="required-label">Name<span class="asterisk">*</span></label>
+          <input type="text" class="form-control" formControlName="firstName" placeholder="First name">
+          <div class="error-message" *ngIf="staffForm.get('person.firstName')?.invalid && staffForm.get('person.firstName')?.touched">
+            First name is required
+          </div>
+        </div>
+        <div>
+          <label class="required-label">Last Name<span class="asterisk">*</span></label>
+          <input type="text" class="form-control" formControlName="lastName" placeholder="Last name">
+          <div class="error-message" *ngIf="staffForm.get('person.lastName')?.invalid && staffForm.get('person.lastName')?.touched">
+            Last name is required
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-header">
+      <h4 class="card-title">Role & Employment</h4>
+    </div>
+    <div class="card-body" formGroupName="staff">
+      <div class="form-row dual">
+        <div>
+          <label class="required-label">Role<span class="asterisk">*</span></label>
+          <select class="form-select" formControlName="role">
+            <option value="">Select</option>
+            <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
+          </select>
+          <div class="error-message" *ngIf="staffForm.get('staff.role')?.invalid && staffForm.get('staff.role')?.touched">
+            Role is required
+          </div>
+        </div>
+        <div>
+          <label class="required-label">Designation<span class="asterisk">*</span></label>
+          <select class="form-select" formControlName="designation">
+            <option value="">Select</option>
+            <option *ngFor="let designation of designations" [value]="designation">{{ designation }}</option>
+          </select>
+          <div class="error-message" *ngIf="staffForm.get('staff.designation')?.invalid && staffForm.get('staff.designation')?.touched">
+            Designation is required
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label class="required-label">Hire Date<span class="asterisk">*</span></label>
+          <input type="date" class="form-control" formControlName="hireDate">
+          <div class="error-message" *ngIf="staffForm.get('staff.hireDate')?.invalid && staffForm.get('staff.hireDate')?.touched">
+            Hire date is required
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-header">
+      <h4 class="card-title">Contact Information</h4>
+    </div>
+    <div class="card-body" formGroupName="person">
+      <div class="form-row dual">
+        <div>
+          <label class="required-label">Phone Number<span class="asterisk">*</span></label>
+          <input type="text" class="form-control" formControlName="phoneNumber" placeholder="Phone Number">
+          <div class="error-message" *ngIf="staffForm.get('person.phoneNumber')?.invalid && staffForm.get('person.phoneNumber')?.touched">
+            Phone number is required
+          </div>
+        </div>
+        <div>
+          <label class="required-label">Email<span class="asterisk">*</span></label>
+          <input type="email" class="form-control" formControlName="emailAddress" placeholder="Email">
+          <div class="error-message" *ngIf="staffForm.get('person.emailAddress')?.invalid && staffForm.get('person.emailAddress')?.touched">
+            <span *ngIf="staffForm.get('person.emailAddress')?.hasError('required')">Email is required</span>
+            <span *ngIf="staffForm.get('person.emailAddress')?.hasError('email')">Invalid email format</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-row dual">
+        <div>
+          <label class="required-label">DOB<span class="asterisk">*</span></label>
+          <input type="date" class="form-control" formControlName="dateOfBirth">
+          <div class="error-message" *ngIf="staffForm.get('person.dateOfBirth')?.invalid && staffForm.get('person.dateOfBirth')?.touched">
+            Date of birth is required
+          </div>
+        </div>
+        <div>
+          <label class="required-label">Gender<span class="asterisk">*</span></label>
+          <select class="form-select" formControlName="gender">
+            <option value="">Select</option>
+            <option>Male</option>
+            <option>Female</option>
+            <option>Other</option>
+          </select>
+          <div class="error-message" *ngIf="staffForm.get('person.gender')?.invalid && staffForm.get('person.gender')?.touched">
+            Gender is required
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label class="required-label">Blood Group<span class="asterisk">*</span></label>
+          <select class="form-select" formControlName="bloodGroup">
+            <option value="">Select</option>
+            <option *ngFor="let group of bloodGroups" [value]="group">{{ group }}</option>
+          </select>
+          <div class="error-message" *ngIf="staffForm.get('person.bloodGroup')?.invalid && staffForm.get('person.bloodGroup')?.touched">
+            Blood group is required
+          </div>
+        </div>
+      </div>
+      <div class="form-row dual">
+        <div>
+          <label>Address 1</label>
+          <input type="text" class="form-control" formControlName="addressLine1" placeholder="Address 1">
+        </div>
+        <div>
+          <label>Address 2</label>
+          <input type="text" class="form-control" formControlName="addressLine2" placeholder="Address 2">
+        </div>
+      </div>
+      <div class="form-row triple">
+        <div>
+          <label>Country</label>
+          <select class="form-select" formControlName="country">
+            <option value="">Select</option>
+            <option *ngFor="let country of countries" [value]="country">{{ country }}</option>
+          </select>
+        </div>
+        <div>
+          <label>State</label>
+          <select class="form-select" formControlName="state">
+            <option value="">Select</option>
+            <option *ngFor="let state of availableStates" [value]="state">{{ state }}</option>
+          </select>
+        </div>
+        <div>
+          <label>City</label>
+          <select class="form-select" formControlName="city">
+            <option value="">Select</option>
+            <option *ngFor="let city of availableCities" [value]="city">{{ city }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Zipcode</label>
+          <input type="text" class="form-control" formControlName="zipCode" placeholder="Zipcode">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="alert success" *ngIf="successMessage">
+    <i class="fas fa-circle-check"></i>
+    {{ successMessage }}
+  </div>
+  <div class="alert error" *ngIf="errorMessage">
+    <i class="fas fa-triangle-exclamation"></i>
+    {{ errorMessage }}
+  </div>
+
+  <div class="form-actions">
+    <button type="button" class="btn btn-outline" routerLink="/staff">
+      Cancel
+    </button>
+    <button class="btn btn-primary" type="submit" [disabled]="isSaving">
+      <span *ngIf="!isSaving">{{ isEditMode ? 'Save Changes' : 'Add Staff' }}</span>
+      <span *ngIf="isSaving"><i class="fas fa-spinner fa-spin"></i> Saving...</span>
+    </button>
+  </div>
+</form>

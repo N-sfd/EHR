@@ -1,0 +1,117 @@
+<div class="appointment-calendar-page">
+  <div class="page-header">
+    <div class="header-left">
+      <h2 class="page-title">Appointment Calendar</h2>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" (click)="createAppointment()">
+        <i class="fas fa-plus"></i> New Appointment
+      </button>
+    </div>
+  </div>
+
+  <!-- Calendar Navigation -->
+  <div class="calendar-navigation">
+    <div class="nav-controls">
+      <button class="btn-icon" (click)="previousMonth()" title="Previous Month">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <h3 class="month-year">{{ getMonthYearString() }}</h3>
+      <button class="btn-icon" (click)="nextMonth()" title="Next Month">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+      <button class="btn btn-secondary" (click)="goToToday()">Today</button>
+    </div>
+    <div class="view-mode-toggle">
+      <button 
+        class="btn-toggle" 
+        [class.active]="viewMode === 'month'"
+        (click)="viewMode = 'month'"
+      >
+        Month
+      </button>
+      <button 
+        class="btn-toggle" 
+        [class.active]="viewMode === 'week'"
+        (click)="viewMode = 'week'"
+      >
+        Week
+      </button>
+      <button 
+        class="btn-toggle" 
+        [class.active]="viewMode === 'day'"
+        (click)="viewMode = 'day'"
+      >
+        Day
+      </button>
+    </div>
+  </div>
+
+  <!-- Calendar Grid -->
+  <div class="calendar-container" *ngIf="viewMode === 'month'">
+    <div class="calendar-grid">
+      <!-- Day Headers -->
+      <div class="calendar-day-header" *ngFor="let dayName of getDayNames()">
+        {{ dayName }}
+      </div>
+      
+      <!-- Calendar Days -->
+      <div 
+        *ngFor="let day of getDaysInMonth()"
+        class="calendar-day"
+        [class.other-month]="!isCurrentMonth(day)"
+        [class.today]="isToday(day)"
+        [class.selected]="isSelected(day)"
+        (click)="selectDate(day)"
+      >
+        <div class="day-number">{{ day.getDate() }}</div>
+        <div class="day-appointments">
+          <div 
+            *ngFor="let appointment of getAppointmentsForDate(day)"
+            class="appointment-item"
+            [ngClass]="getStatusClass(appointment.status)"
+            (click)="viewAppointment(appointment); $event.stopPropagation()"
+            [title]="appointment.patientName + ' - ' + appointment.time"
+          >
+            <span class="appointment-time">{{ appointment.time }}</span>
+            <span class="appointment-patient">{{ appointment.patientName }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Selected Date Appointments -->
+  <div class="selected-date-appointments" *ngIf="selectedDate">
+    <h3 class="section-title">
+      Appointments for {{ selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) }}
+    </h3>
+    <div class="appointments-list">
+      <div 
+        *ngFor="let appointment of getAppointmentsForDate(selectedDate)"
+        class="appointment-card"
+        (click)="viewAppointment(appointment)"
+      >
+        <div class="appointment-time-badge">
+          {{ appointment.time }}
+        </div>
+        <div class="appointment-details">
+          <div class="appointment-patient-name">{{ appointment.patientName }}</div>
+          <div class="appointment-doctor-name">{{ appointment.doctorName }}</div>
+          <div class="appointment-meta">
+            <span class="appointment-type" [class.online]="appointment.appointmentType === 'Online'">
+              {{ appointment.appointmentType }}
+            </span>
+            <span class="status-badge" [ngClass]="getStatusClass(appointment.status)">
+              {{ appointment.status }}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="getAppointmentsForDate(selectedDate).length === 0" class="no-appointments">
+        No appointments scheduled for this date
+      </div>
+    </div>
+  </div>
+</div>
+

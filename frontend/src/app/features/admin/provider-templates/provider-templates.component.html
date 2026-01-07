@@ -1,0 +1,287 @@
+<div class="provider-templates">
+  <div class="templates-header">
+    <h2>Provider Templates</h2>
+    <p class="subtitle">Configure visit types, note templates, and order sets for providers</p>
+  </div>
+
+  <div class="templates-layout">
+    <!-- Left Panel: Provider List -->
+    <div class="providers-panel">
+      <h3>Providers</h3>
+      
+      <!-- Search Box -->
+      <div class="provider-search">
+        <i class="fas fa-search search-icon"></i>
+        <input 
+          type="text" 
+          [(ngModel)]="providerSearchQuery"
+          (input)="onProviderSearch()"
+          placeholder="Search by name, specialty..."
+          class="search-input"
+        />
+      </div>
+
+      <!-- Loading State -->
+      <div class="loading-state" *ngIf="isLoadingProviders">
+        <div class="spinner"></div>
+        <p>Loading providers...</p>
+      </div>
+
+      <!-- Error State -->
+      <div class="error-state" *ngIf="errorMessage && !isLoadingProviders">
+        <i class="fas fa-exclamation-circle"></i>
+        <p>{{ errorMessage }}</p>
+      </div>
+
+      <!-- Providers List -->
+      <div class="providers-list" *ngIf="!isLoadingProviders && !errorMessage">
+        <div 
+          *ngFor="let provider of filteredProviders"
+          class="provider-item"
+          [class.active]="selectedProviderId === provider.id"
+          (click)="selectTemplate(provider.id)"
+        >
+          <div class="provider-avatar-small">
+            <img [src]="getProviderAvatar(provider)" [alt]="provider.name" (error)="onImageError($event, provider)" />
+          </div>
+          <div class="provider-info">
+            <div class="provider-name">{{ provider.name }}</div>
+            <div class="provider-specialty">
+              <span class="specialty-badge">{{ provider.specialty }}</span>
+            </div>
+            <div class="provider-department">{{ provider.department }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="!isLoadingProviders && !errorMessage && filteredProviders.length === 0">
+        <div class="empty-content">
+          <i class="fas fa-user-md empty-icon"></i>
+          <p *ngIf="providers.length === 0">No providers available</p>
+          <p *ngIf="providers.length > 0">No providers match your search</p>
+          <button 
+            *ngIf="providers.length === 0"
+            class="btn-primary seed-btn" 
+            (click)="seedDemoProviders()"
+          >
+            <i class="fas fa-seedling"></i> Seed Demo Providers
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel: Template Editor -->
+    <div class="template-editor" *ngIf="selectedTemplate">
+      <!-- Loading State for Template -->
+      <div class="loading-state" *ngIf="isLoading">
+        <div class="spinner"></div>
+        <p>Loading template...</p>
+      </div>
+
+      <div *ngIf="!isLoading">
+        <div class="editor-header">
+          <h3>{{ selectedTemplate.providerName }}</h3>
+          <div class="tabs">
+            <button 
+              class="tab-btn"
+              [class.active]="activeTab === 'visitTypes'"
+              (click)="onTabChange('visitTypes')"
+            >
+              Visit Types
+            </button>
+            <button 
+              class="tab-btn"
+              [class.active]="activeTab === 'noteTemplates'"
+              (click)="onTabChange('noteTemplates')"
+            >
+              Note Templates
+            </button>
+            <button 
+              class="tab-btn"
+              [class.active]="activeTab === 'orderSets'"
+              (click)="onTabChange('orderSets')"
+            >
+              Order Sets
+            </button>
+          </div>
+        </div>
+
+        <div class="editor-content">
+          <!-- Visit Types Tab -->
+          <div class="tab-content" *ngIf="activeTab === 'visitTypes'">
+            <div class="section-header">
+              <h4>Visit Types</h4>
+              <button class="btn-primary" (click)="newVisitType()" [disabled]="isLoading">
+                <i class="fas fa-plus"></i> Add Visit Type
+              </button>
+            </div>
+
+            <!-- Visit Type Form -->
+            <div class="form-panel" *ngIf="isEditingVisitType">
+              <form [formGroup]="visitTypeForm" (ngSubmit)="saveVisitType()">
+                <div class="form-grid">
+                  <div class="form-group" [class.has-error]="isFieldInvalid('name')">
+                    <label>Name <span class="required">*</span></label>
+                    <input type="text" formControlName="name" class="form-input" />
+                    <div class="validation-message error" *ngIf="isFieldInvalid('name')">
+                      Name is required
+                    </div>
+                  </div>
+
+                  <div class="form-group" [class.has-error]="isFieldInvalid('durationMinutes')">
+                    <label>Duration (minutes) <span class="required">*</span></label>
+                    <select formControlName="durationMinutes" class="form-input">
+                      <option value="10">10 min</option>
+                      <option value="15">15 min</option>
+                      <option value="20">20 min</option>
+                      <option value="30">30 min</option>
+                      <option value="45">45 min</option>
+                      <option value="60">60 min</option>
+                    </select>
+                    <div class="validation-message error" *ngIf="isFieldInvalid('durationMinutes')">
+                      Duration is required
+                    </div>
+                  </div>
+
+                  <div class="form-group" [class.has-error]="isFieldInvalid('allowedDepartments')">
+                    <label>Allowed Departments <span class="required">*</span></label>
+                    <div class="checkbox-list">
+                      <ng-container *ngFor="let dept of departments">
+                        <label *ngIf="getDepartmentId(dept)" class="checkbox-item">
+                          <input 
+                            type="checkbox" 
+                            [value]="getDepartmentId(dept)"
+                            [checked]="visitTypeForm.get('allowedDepartments')?.value?.includes(getDepartmentId(dept))"
+                            (change)="onDepartmentToggle(getDepartmentId(dept)!, $event)"
+                          />
+                          <span>{{ dept.name }}</span>
+                        </label>
+                      </ng-container>
+                    </div>
+                    <div class="validation-message error" *ngIf="isFieldInvalid('allowedDepartments')">
+                      At least one department must be selected
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Default Provider Type</label>
+                    <select formControlName="defaultProviderType" class="form-input">
+                      <option value="PHYSICIAN">Physician</option>
+                      <option value="NURSE_PRACTITIONER">Nurse Practitioner</option>
+                      <option value="PHYSICIAN_ASSISTANT">Physician Assistant</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Required Resources</label>
+                    <input 
+                      type="text" 
+                      formControlName="requiredResources" 
+                      class="form-input"
+                      placeholder="Room, EKG, Lab (comma-separated)"
+                    />
+                    <small class="form-hint">Enter resources separated by commas</small>
+                  </div>
+
+                  <div class="form-group checkbox-group">
+                    <label>
+                      <input type="checkbox" formControlName="allowOverbook" />
+                      Allow Overbook
+                    </label>
+                  </div>
+
+                  <div class="form-group checkbox-group">
+                    <label>
+                      <input type="checkbox" formControlName="isActive" />
+                      Active
+                    </label>
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <button type="submit" class="btn-primary" [disabled]="visitTypeForm.invalid || isLoading">
+                    <i class="fas fa-save"></i> Save
+                  </button>
+                  <button type="button" class="btn-secondary" (click)="cancelEdit()">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Visit Types List -->
+            <div class="list-panel" *ngIf="!isEditingVisitType">
+              <div class="list-item" *ngFor="let visitType of selectedTemplate.visitTypes">
+                <div class="item-content">
+                  <div class="item-header">
+                    <span class="item-name">{{ visitType.name }}</span>
+                    <span class="item-badge" [class.active]="visitType.isActive">
+                      {{ visitType.isActive ? 'Active' : 'Inactive' }}
+                    </span>
+                  </div>
+                  <div class="item-details">
+                    <span>Duration: {{ visitType.durationMinutes }} min</span>
+                    <span>Departments: {{ visitType.allowedDepartments.length }}</span>
+                    <span *ngIf="visitType.allowOverbook" class="overbook-badge">Overbook Allowed</span>
+                    <span *ngIf="visitType.requiredResources && visitType.requiredResources.length > 0" class="resources-badge">
+                      Resources: {{ visitType.requiredResources.join(', ') }}
+                    </span>
+                  </div>
+                </div>
+                <div class="item-actions">
+                  <button class="btn-icon" (click)="editVisitType(visitType)" title="Edit">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-icon btn-danger" (click)="deleteVisitType(visitType.id!)" title="Delete">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="empty-state" *ngIf="selectedTemplate.visitTypes.length === 0">
+                <i class="fas fa-clipboard-list empty-icon"></i>
+                <p>No visit types configured. Click "Add Visit Type" to add one.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Note Templates Tab (Stub) -->
+          <div class="tab-content" *ngIf="activeTab === 'noteTemplates'">
+            <div class="section-header">
+              <h4>Note Templates</h4>
+              <button class="btn-secondary" disabled>
+                <i class="fas fa-plus"></i> Add Note Template
+              </button>
+            </div>
+            <div class="stub-message">
+              <i class="fas fa-info-circle"></i>
+              <p>Note Templates configuration coming soon</p>
+            </div>
+          </div>
+
+          <!-- Order Sets Tab (Stub) -->
+          <div class="tab-content" *ngIf="activeTab === 'orderSets'">
+            <div class="section-header">
+              <h4>Order Sets</h4>
+              <button class="btn-secondary" disabled>
+                <i class="fas fa-plus"></i> Add Order Set
+              </button>
+            </div>
+            <div class="stub-message">
+              <i class="fas fa-info-circle"></i>
+              <p>Order Sets configuration coming soon</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State for Right Panel -->
+    <div class="empty-state-panel" *ngIf="!selectedTemplate">
+      <div class="empty-content">
+        <i class="fas fa-user-md empty-icon"></i>
+        <p>Select a provider to configure templates</p>
+      </div>
+    </div>
+  </div>
+</div>

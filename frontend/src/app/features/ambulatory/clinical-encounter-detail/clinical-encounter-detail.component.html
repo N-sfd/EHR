@@ -1,0 +1,484 @@
+<div class="encounter-detail-page">
+  <!-- Back Button -->
+  <div class="page-header">
+    <button class="btn-back" (click)="goBack()">
+      <i class="fas fa-arrow-left"></i> Back to Encounters
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading encounter...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage && !isLoading" class="error-state">
+    <i class="fas fa-exclamation-circle"></i>
+    <p>{{ errorMessage }}</p>
+    <button class="btn-primary" (click)="goBack()">Go Back</button>
+  </div>
+
+  <!-- Encounter Content -->
+  <div *ngIf="!isLoading && !errorMessage && encounter" class="encounter-content">
+    <!-- Sticky Patient Header -->
+    <div class="patient-header-sticky">
+      <div class="patient-header-inner">
+        <div class="patient-info">
+          <h2>
+            {{ patient ? (patient.firstName + ' ' + patient.lastName) : ('Patient #' + encounter.patientId) }}
+          </h2>
+          <div class="patient-meta">
+            <ng-container *ngIf="patient">
+              <span *ngIf="patient.mrn"><strong>MRN:</strong> {{ patient.mrn }}</span>
+              <span *ngIf="patient.dateOfBirth"><strong>DOB:</strong> {{ formatDateOnly(patient.dateOfBirth) }}</span>
+              <span *ngIf="patient.gender"><strong>Gender:</strong> {{ patient.gender }}</span>
+              <span *ngIf="patient.allergies" class="allergy-badge">
+                <i class="fas fa-exclamation-triangle"></i> Allergies
+              </span>
+            </ng-container>
+          </div>
+        </div>
+        <div class="encounter-meta">
+          <div class="meta-item">
+            <label>Encounter #</label>
+            <span>{{ encounter.encounterNumber || encounter.id }}</span>
+          </div>
+          <div class="meta-item">
+            <label>Status</label>
+            <span class="status-badge" [class]="getStatusClass(encounter.encounterStatus)">
+              {{ getStatusLabel(encounter.encounterStatus) }}
+            </span>
+          </div>
+          <div class="meta-item" *ngIf="encounter.roomAssigned">
+            <label>Room</label>
+            <span>{{ encounter.roomAssigned }}</span>
+          </div>
+          <div class="meta-item" *ngIf="provider">
+            <label>Provider</label>
+            <span>Dr. {{ provider.firstName }} {{ provider.lastName }}</span>
+          </div>
+          <div class="meta-item" *ngIf="department">
+            <label>Department</label>
+            <span>{{ department.name }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Registration Completeness Banner -->
+    <div *ngIf="registrationCompleteness && (registrationCompleteness.blockers.length > 0 || registrationCompleteness.warnings.length > 0)" 
+         class="registration-banner"
+         [class.banner-critical]="hasBlockers()"
+         [class.banner-warning]="!hasBlockers() && registrationCompleteness.warnings.length > 0">
+      <div class="banner-content">
+        <div class="banner-icon">
+          <i class="fas" [ngClass]="hasBlockers() ? 'fa-exclamation-triangle' : 'fa-exclamation-circle'"></i>
+        </div>
+        <div class="banner-text">
+          <div class="banner-title">
+            <strong *ngIf="hasBlockers()">Registration incomplete — action required</strong>
+            <strong *ngIf="!hasBlockers() && registrationCompleteness.warnings.length > 0">Registration has warnings</strong>
+          </div>
+          <div class="banner-progress">
+            <span class="progress-label">Completeness</span>
+            <div class="progress-bar-container">
+              <div 
+                class="progress-bar-fill" 
+                [style.width.%]="registrationCompleteness.completenessPct"
+                [class.progress-critical]="hasBlockers()"
+                [class.progress-warning]="!hasBlockers() && registrationCompleteness.warnings.length > 0"
+                [class.progress-complete]="!hasBlockers() && registrationCompleteness.warnings.length == 0"
+              ></div>
+            </div>
+            <span class="progress-percentage">{{ registrationCompleteness.completenessPct }}%</span>
+          </div>
+          <div class="missing-checklist">
+            <div class="checklist-items">
+              <span 
+                *ngFor="let item of getVisibleMissingFields()"
+                class="checklist-item"
+                [class.item-critical]="item.severity == 'CRITICAL'"
+                [class.item-warning]="item.severity == 'WARN'"
+              >
+                <span class="section-tag">{{ item.section }}</span>
+                {{ item.label }}
+              </span>
+            </div>
+            <button 
+              *ngIf="registrationCompleteness.missing.length > 6"
+              class="btn-show-all"
+              (click)="toggleShowAll()"
+            >
+              {{ showAllMissing ? 'Show less' : 'Show all' }}
+            </button>
+          </div>
+        </div>
+        <div class="banner-actions" *ngIf="canEditPatient()">
+          <button 
+            class="btn-update"
+            [class.btn-fix-now]="hasBlockers()"
+            [class.btn-review]="!hasBlockers()"
+            (click)="onUpdateRequested()"
+          >
+            <i class="fas fa-edit"></i> {{ getActionButtonLabel() }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Warnings Banner -->
+    <div *ngIf="warnings.length > 0" class="warnings-banner">
+      <div class="warnings-content">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div class="warnings-list">
+          <ng-container *ngFor="let warning of warnings">
+            <span *ngIf="warning.section"
+                  class="warning-item" 
+                  [class]="'warning-' + warning.type"
+                  (click)="navigateToSection(warning.section)">
+              {{ warning.message }}
+            </span>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <!-- Left Navigator -->
+      <div class="left-navigator">
+        <div class="nav-steps">
+          <button
+            *ngFor="let step of navigationSteps"
+            class="nav-step"
+            [class.active]="activeStep == step.id"
+            [class.completed]="step.completed"
+            [class.has-warning]="step.hasWarning"
+            (click)="setActiveStep(step.id)"
+          >
+            <div class="step-indicator">
+              <i class="fas" [class]="step.icon" *ngIf="!step.completed"></i>
+              <i class="fas fa-check-circle" *ngIf="step.completed"></i>
+            </div>
+            <span class="step-label">{{ step.label }}</span>
+            <i class="fas fa-exclamation-triangle warning-icon" *ngIf="step.hasWarning && !step.completed"></i>
+            <i class="fas fa-exclamation-circle registration-warning-icon" 
+               *ngIf="hasBlockers() && !step.completed"
+               [title]="getBlockersTooltip()"
+            ></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Content Area -->
+      <div class="content-area">
+        <!-- Rooming Step -->
+        <div *ngIf="activeStep == 'rooming'" class="step-content">
+          <div class="step-header">
+            <h3><i class="fas fa-door-open"></i> Rooming</h3>
+          </div>
+          <div *ngIf="rooming; else noRooming" class="step-body">
+            <div class="info-grid">
+              <div class="info-section">
+                <h4>Rooming Information</h4>
+                <div class="info-item">
+                  <label>Roomed By:</label>
+                  <span>Staff #{{ rooming.roomedByStaffId }}</span>
+                </div>
+                <div class="info-item">
+                  <label>Roomed Date/Time:</label>
+                  <span>{{ formatDate(rooming.roomedDateTime) }}</span>
+                </div>
+                <div class="info-item" *ngIf="rooming.roomNumber">
+                  <label>Room Number:</label>
+                  <span>{{ rooming.roomNumber }}</span>
+                </div>
+                <div class="info-item" *ngIf="rooming.isComplete">
+                  <label>Status:</label>
+                  <span class="status-complete">Complete</span>
+                </div>
+              </div>
+
+              <div class="info-section">
+                <h4>Chief Complaint</h4>
+                <p>{{ rooming.chiefComplaint || '-' }}</p>
+              </div>
+
+              <div class="info-section" *ngIf="rooming.historyOfPresentIllness">
+                <h4>History of Present Illness</h4>
+                <p>{{ rooming.historyOfPresentIllness }}</p>
+              </div>
+            </div>
+          </div>
+          <ng-template #noRooming>
+            <div class="empty-state">
+              <i class="fas fa-door-open"></i>
+              <p>Rooming information not yet completed.</p>
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- Vitals Step -->
+        <div *ngIf="activeStep == 'vitals'" class="step-content">
+          <div class="step-header">
+            <h3><i class="fas fa-heartbeat"></i> Vitals</h3>
+          </div>
+          <div *ngIf="rooming; else noVitals" class="step-body">
+            <div class="vitals-grid">
+              <div class="vital-item">
+                <label>Blood Pressure</label>
+                <span *ngIf="rooming.bloodPressureSystolic && rooming.bloodPressureDiastolic">
+                  {{ rooming.bloodPressureSystolic }}/{{ rooming.bloodPressureDiastolic }} mmHg
+                </span>
+                <span *ngIf="!rooming.bloodPressureSystolic || !rooming.bloodPressureDiastolic" class="missing">Not recorded</span>
+              </div>
+              <div class="vital-item">
+                <label>Temperature</label>
+                <span *ngIf="rooming.temperatureF">{{ rooming.temperatureF }}°F</span>
+                <span *ngIf="!rooming.temperatureF" class="missing">Not recorded</span>
+              </div>
+              <div class="vital-item">
+                <label>Pulse</label>
+                <span *ngIf="rooming.pulse">{{ rooming.pulse }} bpm</span>
+                <span *ngIf="!rooming.pulse" class="missing">Not recorded</span>
+              </div>
+              <div class="vital-item">
+                <label>Respiratory Rate</label>
+                <span *ngIf="rooming.respiratoryRate">{{ rooming.respiratoryRate }} /min</span>
+                <span *ngIf="!rooming.respiratoryRate" class="missing">Not recorded</span>
+              </div>
+              <div class="vital-item">
+                <label>Oxygen Saturation</label>
+                <span *ngIf="rooming.oxygenSaturation">{{ rooming.oxygenSaturation }}%</span>
+                <span *ngIf="!rooming.oxygenSaturation" class="missing">Not recorded</span>
+              </div>
+              <div class="vital-item">
+                <label>Height</label>
+                <span *ngIf="rooming.heightInches">{{ rooming.heightInches }}"</span>
+                <span *ngIf="!rooming.heightInches" class="missing">Not recorded</span>
+              </div>
+              <div class="vital-item">
+                <label>Weight</label>
+                <span *ngIf="rooming.weightLbs">{{ rooming.weightLbs }} lbs</span>
+                <span *ngIf="!rooming.weightLbs" class="missing">Not recorded</span>
+              </div>
+              <div class="vital-item">
+                <label>BMI</label>
+                <span *ngIf="rooming.bmi">{{ rooming.bmi }}</span>
+                <span *ngIf="!rooming.bmi" class="missing">Not recorded</span>
+              </div>
+              <div class="vital-item">
+                <label>Pain Score</label>
+                <span *ngIf="rooming.painScore != null">{{ rooming.painScore }}/10</span>
+                <span *ngIf="rooming.painScore == null" class="missing">Not recorded</span>
+              </div>
+            </div>
+          </div>
+          <ng-template #noVitals>
+            <div class="empty-state">
+              <i class="fas fa-heartbeat"></i>
+              <p>Vitals not yet recorded.</p>
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- Medications Step -->
+        <div *ngIf="activeStep == 'meds'" class="step-content">
+          <div class="step-header">
+            <h3><i class="fas fa-pills"></i> Medications</h3>
+          </div>
+          <div class="step-body">
+            <div class="info-section">
+              <h4>Medication Reconciliation</h4>
+              <div class="info-item">
+                <label>Medications Reviewed:</label>
+                <span [class.status-complete]="rooming?.medicationsReviewed" [class.status-incomplete]="!rooming?.medicationsReviewed">
+                  {{ rooming?.medicationsReviewed ? 'Yes' : 'No' }}
+                </span>
+              </div>
+              <div class="info-item">
+                <label>Allergies Reviewed:</label>
+                <span [class.status-complete]="rooming?.allergiesReviewed" [class.status-incomplete]="!rooming?.allergiesReviewed">
+                  {{ rooming?.allergiesReviewed ? 'Yes' : 'No' }}
+                </span>
+              </div>
+              <div class="empty-state" *ngIf="!rooming">
+                <i class="fas fa-pills"></i>
+                <p>Medication reconciliation not yet completed.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Diagnoses Step -->
+        <div *ngIf="activeStep == 'diagnoses'" class="step-content">
+          <div class="step-header">
+            <h3><i class="fas fa-stethoscope"></i> Diagnoses</h3>
+          </div>
+          <div *ngIf="providerEncounter; else noDiagnoses" class="step-body">
+            <div class="info-section">
+              <h4>Diagnoses</h4>
+              <div class="info-item" *ngIf="providerEncounter.primaryDiagnosis">
+                <label>Primary Diagnosis:</label>
+                <span>{{ providerEncounter.primaryDiagnosis }}</span>
+              </div>
+              <div class="info-item" *ngIf="providerEncounter.diagnosisCodes">
+                <label>Diagnosis Codes:</label>
+                <span>{{ providerEncounter.diagnosisCodes }}</span>
+              </div>
+              <div class="info-item" *ngIf="providerEncounter.diagnosisDescriptions">
+                <label>Diagnosis Descriptions:</label>
+                <span>{{ providerEncounter.diagnosisDescriptions }}</span>
+              </div>
+              <div class="info-item" *ngIf="providerEncounter.assessment">
+                <label>Assessment:</label>
+                <p>{{ providerEncounter.assessment }}</p>
+              </div>
+            </div>
+          </div>
+          <ng-template #noDiagnoses>
+            <div class="empty-state">
+              <i class="fas fa-stethoscope"></i>
+              <p>Diagnoses not yet documented.</p>
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- Orders Step -->
+        <div *ngIf="activeStep == 'orders'" class="step-content">
+          <div class="step-header">
+            <h3><i class="fas fa-file-medical"></i> Orders</h3>
+          </div>
+          <div *ngIf="providerEncounter; else noOrders" class="step-body">
+            <div class="info-section">
+              <h4>Orders Summary</h4>
+              <div class="info-item">
+                <label>Orders Placed:</label>
+                <span [class.status-complete]="providerEncounter.ordersPlaced" [class.status-incomplete]="!providerEncounter.ordersPlaced">
+                  {{ providerEncounter.ordersPlaced ? 'Yes' : 'No' }}
+                </span>
+              </div>
+              <div class="info-item" *ngIf="providerEncounter.labOrdersCount">
+                <label>Lab Orders:</label>
+                <span>{{ providerEncounter.labOrdersCount }}</span>
+              </div>
+              <div class="info-item" *ngIf="providerEncounter.imagingOrdersCount">
+                <label>Imaging Orders:</label>
+                <span>{{ providerEncounter.imagingOrdersCount }}</span>
+              </div>
+              <div class="info-item" *ngIf="providerEncounter.medicationOrdersCount">
+                <label>Medication Orders:</label>
+                <span>{{ providerEncounter.medicationOrdersCount }}</span>
+              </div>
+            </div>
+          </div>
+          <ng-template #noOrders>
+            <div class="empty-state">
+              <i class="fas fa-file-medical"></i>
+              <p>No orders placed yet.</p>
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- Notes Step -->
+        <div *ngIf="activeStep == 'notes'" class="step-content">
+          <div class="step-header">
+            <h3><i class="fas fa-file-alt"></i> Notes</h3>
+          </div>
+          <div class="step-body">
+            <div class="info-section" *ngIf="providerEncounter">
+              <h4>SOAP Notes</h4>
+              <div class="info-item" *ngIf="providerEncounter.subjective">
+                <label>Subjective (S):</label>
+                <p>{{ providerEncounter.subjective }}</p>
+              </div>
+              <div class="info-item" *ngIf="providerEncounter.objective">
+                <label>Objective (O):</label>
+                <p>{{ providerEncounter.objective }}</p>
+              </div>
+              <div class="info-item" *ngIf="providerEncounter.assessmentSoap">
+                <label>Assessment (A):</label>
+                <p>{{ providerEncounter.assessmentSoap }}</p>
+              </div>
+              <div class="info-item" *ngIf="providerEncounter.planSoap">
+                <label>Plan (P):</label>
+                <p>{{ providerEncounter.planSoap }}</p>
+              </div>
+              <div class="info-item" *ngIf="providerEncounter.notes">
+                <label>Additional Notes:</label>
+                <p>{{ providerEncounter.notes }}</p>
+              </div>
+            </div>
+            <div class="info-section" *ngIf="encounter.notes">
+              <h4>Encounter Notes</h4>
+              <p>{{ encounter.notes }}</p>
+            </div>
+            <div *ngIf="!providerEncounter && !encounter.notes" class="empty-state">
+              <i class="fas fa-file-alt"></i>
+              <p>No clinical notes documented yet.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Checkout Step -->
+        <div *ngIf="activeStep == 'checkout'" class="step-content">
+          <div class="step-header">
+            <h3><i class="fas fa-sign-out-alt"></i> Checkout</h3>
+          </div>
+          <div *ngIf="checkout; else noCheckout" class="step-body">
+            <div class="info-grid">
+              <div class="info-section">
+                <h4>Checkout Information</h4>
+                <div class="info-item">
+                  <label>Checked Out By:</label>
+                  <span>Staff #{{ checkout.checkedOutByStaffId }}</span>
+                </div>
+                <div class="info-item">
+                  <label>Checkout Date/Time:</label>
+                  <span>{{ formatDate(checkout.checkoutDateTime) }}</span>
+                </div>
+                <div class="info-item" *ngIf="checkout.isComplete">
+                  <label>Status:</label>
+                  <span class="status-complete">Complete</span>
+                </div>
+              </div>
+
+              <div class="info-section" *ngIf="checkout.followUpAppointmentScheduled">
+                <h4>Follow-up</h4>
+                <div class="info-item">
+                  <label>Follow-up Scheduled:</label>
+                  <span>Yes</span>
+                </div>
+                <div class="info-item" *ngIf="checkout.followUpDate">
+                  <label>Follow-up Date:</label>
+                  <span>{{ formatDateOnly(checkout.followUpDate) }}</span>
+                </div>
+              </div>
+
+              <div class="info-section" *ngIf="checkout.patientInstructions">
+                <h4>Patient Instructions</h4>
+                <p>{{ checkout.patientInstructions }}</p>
+              </div>
+            </div>
+          </div>
+          <ng-template #noCheckout>
+            <div class="empty-state">
+              <i class="fas fa-sign-out-alt"></i>
+              <p>Checkout not yet completed.</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Patient Update Drawer -->
+  <app-patient-update-drawer
+    *ngIf="patient"
+    [patient]="patient"
+    [isOpen]="showUpdateDrawer"
+    (close)="onDrawerClose()"
+    (saved)="onPatientSaved($event)"
+  ></app-patient-update-drawer>
+</div>

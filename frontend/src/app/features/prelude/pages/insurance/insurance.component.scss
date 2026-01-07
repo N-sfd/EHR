@@ -1,0 +1,62 @@
+.insurance-page {
+  max-width: 1200px;
+
+  .coverage-list {
+    .coverage-item {
+      padding: 16px;
+      border-bottom: 1px solid #e0e0e0;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .coverage-header {
+        margin-bottom: 12px;
+
+        .coverage-title {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          flex-wrap: wrap;
+
+          h4 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+          }
+        }
+      }
+
+      .coverage-details {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+
+        .detail-row {
+          display: flex;
+          gap: 8px;
+
+          .detail-label {
+            font-weight: 500;
+            color: #6c757d;
+            font-size: 13px;
+          }
+
+          .detail-value {
+            color: #2c3e50;
+            font-size: 13px;
+          }
+        }
+      }
+    }
+  }
+
+  .empty-state,
+  .loading-state {
+    padding: 48px;
+    text-align: center;
+    color: #6c757d;
+  }
+}
+

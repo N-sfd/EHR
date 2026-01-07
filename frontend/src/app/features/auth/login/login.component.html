@@ -1,0 +1,69 @@
+<div class="login-shell">
+  <div class="login-panel accent">
+    <div class="logo-tag"> MEDICAL CLINIC OS</div>
+    <h1>Coordinate providers, staff & operations from a single screen.</h1>
+    <p class="lead">
+      Stay ahead with live schedules, automated reminders, AI assistance and proactive compliance insights.
+    </p>
+
+    <div class="highlight-grid">
+      <div class="highlight-card" *ngFor="let item of highlights">
+        <span class="value">{{ item.value }}</span>
+        <span class="label">{{ item.label }}</span>
+      </div>
+    </div>
+
+    <div class="testimonial">
+      <p>“MDcare  helped us improve slot utilization by 32% in just eight weeks.”</p>
+      <span>- Trustcare Clinic, Las Vegas</span>
+    </div>
+  </div>
+
+  <div class="login-panel form">
+    <div class="form-card">
+      <div class="pill">AI Assistance</div>
+      <h2>Welcome back</h2>
+      <p class="subheading">Sign in to orchestrate your clinic command center.</p>
+
+      <form [formGroup]="loginForm" (ngSubmit)="submit()">
+        <div class="form-group">
+          <label>Username</label>
+          <input class="form-control" type="text" formControlName="username" placeholder="e.g. admin@preclinic.io">
+        </div>
+
+        <div class="form-group">
+          <label>Password</label>
+          <div class="password-field">
+            <input class="form-control" [type]="passwordVisible ? 'text' : 'password'" formControlName="password" placeholder="••••••••">
+            <button type="button" class="toggle-password" (click)="togglePasswordVisibility()" [attr.aria-label]="passwordVisible ? 'Hide password' : 'Show password'">
+              <i class="fas" [class]="passwordVisible ? 'fa-eye-slash' : 'fa-eye'"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-meta">
+          <label class="remember">
+            <input type="checkbox" formControlName="rememberMe">
+            Keep me signed in
+          </label>
+          <a href="#">Forgot password?</a>
+        </div>
+
+        <div class="alert error" *ngIf="errorMessage">
+          <i class="fas fa-circle-exclamation"></i>
+          {{ errorMessage }}
+        </div>
+
+        <button class="btn btn-primary w-100" type="submit" [disabled]="isSubmitting">
+          <span *ngIf="!isSubmitting">Sign in</span>
+          <span *ngIf="isSubmitting">
+            <i class="fas fa-spinner fa-spin"></i> Signing in...
+          </span>
+        </button>
+      </form>
+
+      <p class="hint">Use any valid Spring Security credentials (default: admin / admin123).</p>
+    </div>
+  </div>
+</div>
+

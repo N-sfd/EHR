@@ -1,0 +1,109 @@
+.patient-header {
+  background: #0b5b5b;
+  color: #fff;
+  padding: 16px 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .header-title {
+    .page-title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+      color: #fff;
+    }
+  }
+
+  .patient-summary {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+
+    .summary-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .summary-label {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.8);
+        font-weight: 500;
+      }
+
+      .summary-value {
+        font-size: 14px;
+        color: #fff;
+        font-weight: 600;
+      }
+    }
+
+    .completeness-item {
+      .completeness-progress {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: help;
+        min-width: 120px;
+
+        .progress-bar-container {
+          flex: 1;
+          height: 8px;
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 4px;
+          overflow: hidden;
+          min-width: 60px;
+
+          .progress-bar-fill {
+            height: 100%;
+            transition: width 0.3s ease, background-color 0.3s ease;
+            border-radius: 4px;
+
+            &.progress-complete {
+              background: #10b981; // Green
+            }
+
+            &.progress-warning {
+              background: #f59e0b; // Yellow/Orange
+            }
+
+            &.progress-critical {
+              background: #ef4444; // Red
+            }
+          }
+        }
+
+        .progress-percentage {
+          font-size: 12px;
+          font-weight: 600;
+          color: #fff;
+          min-width: 35px;
+          text-align: right;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .patient-header {
+    .header-content {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .patient-summary {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+  }
+}
+

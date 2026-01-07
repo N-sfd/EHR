@@ -1,0 +1,145 @@
+<div class="registration-rules">
+  <div class="rules-header">
+    <h2>Registration Rules</h2>
+    <p class="subtitle">Configure rules for patient registration and check-in</p>
+  </div>
+
+  <div class="rules-layout">
+    <!-- Rules List -->
+    <div class="rules-list-panel">
+      <div class="panel-header">
+        <h3>Rules</h3>
+        <button class="btn-primary" (click)="newRule()">
+          <i class="fas fa-plus"></i> New Rule
+        </button>
+      </div>
+      <div class="rules-list">
+        <div 
+          *ngFor="let rule of rules"
+          class="rule-item"
+          [class.active]="selectedRule?.id === rule.id"
+          [class.inactive]="!rule.isActive"
+          (click)="editRule(rule)"
+        >
+          <div class="rule-header">
+            <div class="rule-name">{{ rule.name }}</div>
+            <div class="rule-badge" [class.active]="rule.isActive">
+              {{ rule.isActive ? 'Active' : 'Inactive' }}
+            </div>
+          </div>
+          <div class="rule-description">{{ rule.description }}</div>
+          <div class="rule-meta">
+            <span class="rule-type">{{ rule.ruleType }}</span>
+            <span class="rule-action">{{ rule.action }}</span>
+            <span class="rule-priority">Priority: {{ rule.priority }}</span>
+          </div>
+        </div>
+        <div class="empty-state" *ngIf="rules.length === 0">
+          <p>No registration rules configured</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rule Editor -->
+    <div class="rule-editor" *ngIf="isEditing">
+      <div class="editor-header">
+        <h3>{{ selectedRule ? 'Edit Rule' : 'New Rule' }}</h3>
+      </div>
+
+      <form [formGroup]="ruleForm" (ngSubmit)="saveRule()" class="rule-form">
+        <div class="form-section">
+          <div class="form-group" [class.has-error]="isFieldInvalid('name')">
+            <label>Rule Name <span class="required">*</span></label>
+            <input type="text" formControlName="name" class="form-input" />
+            <div class="validation-message error" *ngIf="isFieldInvalid('name')">
+              Name is required
+            </div>
+          </div>
+
+          <div class="form-group" [class.has-error]="isFieldInvalid('description')">
+            <label>Description <span class="required">*</span></label>
+            <textarea formControlName="description" class="form-input" rows="3"></textarea>
+            <div class="validation-message error" *ngIf="isFieldInvalid('description')">
+              Description is required
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group" [class.has-error]="isFieldInvalid('ruleType')">
+              <label>Rule Type <span class="required">*</span></label>
+              <select formControlName="ruleType" class="form-input">
+                <option *ngFor="let type of ruleTypes" [value]="type.value">
+                  {{ type.label }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group" [class.has-error]="isFieldInvalid('action')">
+              <label>Action <span class="required">*</span></label>
+              <select formControlName="action" class="form-input">
+                <option *ngFor="let action of actions" [value]="action.value">
+                  {{ action.label }} - {{ action.description }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group" [class.has-error]="isFieldInvalid('priority')">
+              <label>Priority <span class="required">*</span></label>
+              <input type="number" formControlName="priority" class="form-input" min="1" />
+            </div>
+
+            <div class="form-group checkbox-group">
+              <label>
+                <input type="checkbox" formControlName="isActive" />
+                Active
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Condition -->
+        <div class="form-section">
+          <h4>Condition</h4>
+          <div formGroupName="condition">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Field <span class="required">*</span></label>
+                <input type="text" formControlName="field" class="form-input" placeholder="e.g., insurance.eligibilityStatus" />
+              </div>
+
+              <div class="form-group">
+                <label>Operator <span class="required">*</span></label>
+                <select formControlName="operator" class="form-input">
+                  <option *ngFor="let op of operators" [value]="op.value">
+                    {{ op.label }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="form-group" *ngIf="getConditionOperator() !== 'EXISTS' && getConditionOperator() !== 'NOT_EXISTS'">
+                <label>Value</label>
+                <input type="text" formControlName="value" class="form-input" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" [disabled]="ruleForm.invalid">
+            Save Rule
+          </button>
+          <button type="button" class="btn-secondary" (click)="cancelEdit()">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!isEditing">
+      <p>Click "New Rule" to create a registration rule</p>
+    </div>
+  </div>
+</div>
+

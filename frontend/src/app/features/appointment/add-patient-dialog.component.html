@@ -1,0 +1,187 @@
+<h2 mat-dialog-title>Add New Patient</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="patientForm" class="patient-form">
+    
+    <!-- Patient Information Section -->
+    <div class="form-section">
+      <h3 class="section-title">Patient Information</h3>
+      
+      <!-- Profile Image -->
+      <div class="profile-image-section">
+        <div class="profile-image-placeholder">
+          <mat-icon>person</mat-icon>
+          <span>Profile Image</span>
+        </div>
+        <input 
+          type="file" 
+          accept="image/*" 
+          (change)="onImageUpload($event)"
+          id="profileImage"
+          style="display: none;">
+        <label for="profileImage" class="upload-btn">
+          <mat-icon>camera_alt</mat-icon>
+          Upload
+        </label>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label>First Name*</mat-label>
+          <input matInput formControlName="firstName" required>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label>Last Name*</mat-label>
+          <input matInput formControlName="lastName" required>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label>Phone Number*</mat-label>
+          <input matInput type="tel" formControlName="phoneNumber" required>
+          <mat-icon matPrefix>phone</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label>Email Address*</mat-label>
+          <input matInput type="email" formControlName="emailAddress" required>
+          <mat-icon matPrefix>email</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label>Primary Doctor*</mat-label>
+          <mat-select formControlName="primaryDoctorId" required>
+            <mat-option *ngFor="let doctor of doctors" [value]="doctor.id">
+              Dr. {{ doctor.firstName }} {{ doctor.lastName }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label>DOB*</mat-label>
+          <input matInput [matDatepicker]="dobPicker" formControlName="dateOfBirth" required>
+          <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
+          <mat-datepicker #dobPicker></mat-datepicker>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label>Gender*</mat-label>
+          <mat-select formControlName="gender" required>
+            <mat-option *ngFor="let gender of genders" [value]="gender">
+              {{ gender }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label>Blood Group*</mat-label>
+          <mat-select formControlName="bloodGroup" required>
+            <mat-option *ngFor="let bg of bloodGroups" [value]="bg">
+              {{ bg }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-half">
+          <mat-label>Status*</mat-label>
+          <mat-select formControlName="status" required>
+            <mat-option *ngFor="let status of statuses" [value]="status">
+              {{ status }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Address Information Section -->
+    <div class="form-section">
+      <h3 class="section-title">Address Information</h3>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-full">
+          <mat-label>Address 1*</mat-label>
+          <input matInput formControlName="addressLine1" required>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-full">
+          <mat-label>Address 2</mat-label>
+          <input matInput formControlName="addressLine2">
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-third">
+          <mat-label>Country*</mat-label>
+          <mat-select formControlName="country" required>
+            <mat-option *ngFor="let country of countries" [value]="country">
+              {{ country }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-third">
+          <mat-label>State*</mat-label>
+          <mat-select formControlName="state" required [disabled]="availableStates.length === 0">
+            <mat-option *ngIf="availableStates.length === 0" disabled>
+              Select country first
+            </mat-option>
+            <mat-option *ngFor="let state of availableStates" [value]="state">
+              {{ state }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field-third">
+          <mat-label>City*</mat-label>
+          <mat-select formControlName="city" required [disabled]="availableCities.length === 0">
+            <mat-option *ngIf="availableCities.length === 0" disabled>
+              Select state first
+            </mat-option>
+            <mat-option *ngFor="let city of availableCities" [value]="city">
+              {{ city }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field-full">
+          <mat-label>Pincode*</mat-label>
+          <input matInput formControlName="pincode" required>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div class="error-message" *ngIf="errorMessage">
+      <mat-icon>error</mat-icon>
+      {{ errorMessage }}
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="onCancel()">Cancel</button>
+  <button 
+    mat-raised-button 
+    color="primary" 
+    (click)="onSubmit()"
+    [disabled]="patientForm.invalid || isLoading">
+    <mat-icon *ngIf="!isLoading">person_add</mat-icon>
+    <mat-icon *ngIf="isLoading" class="spinning">hourglass_empty</mat-icon>
+    {{ isLoading ? 'Adding...' : 'Add New Patient' }}
+  </button>
+</mat-dialog-actions>
+

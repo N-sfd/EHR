@@ -1,0 +1,11 @@
+<div class="section-header" (click)="collapsible ? toggleCollapse() : null" [class.collapsible]="collapsible" [class.collapsed]="collapsed">
+  <div class="section-title-row">
+    <h4 class="section-title">
+      <i [class]="icon" *ngIf="icon" class="section-icon"></i>
+      {{ title }}
+    </h4>
+    <i class="fas fa-chevron-down collapse-icon" *ngIf="collapsible" [class.rotated]="!collapsed"></i>
+  </div>
+  <div class="section-underline"></div>
+</div>
+

@@ -1,0 +1,139 @@
+<div class="page-header">
+  <div class="header-top">
+    <div class="header-left">
+    </div>
+    <div class="header-actions">
+      <a [routerLink]="['/admin/patients/add']" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Add Patient
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="search-section">
+  <div class="search-container">
+    <div class="search-bar">
+      <i class="fas fa-magnifying-glass search-icon"></i>
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Search patients by name, MRN, phone, or DOB..." 
+        [(ngModel)]="searchTerm" 
+        (input)="onSearchChange()"
+      >
+      <button class="search-clear" *ngIf="searchTerm" (click)="clearSearch()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="search-filters">
+      <select class="filter-select" [(ngModel)]="statusFilter" (change)="onFilterChange()">
+        <option value="all">All Status</option>
+        <option value="ACTIVE">Active</option>
+        <option value="INACTIVE">Inactive</option>
+      </select>
+      <span class="results-count">{{ filteredPatients.length }} patient(s) found</span>
+    </div>
+  </div>
+</div>
+
+<div class="content-area">
+  <div *ngIf="isLoading" class="loading-state">
+    <p>Loading patients...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="error-state">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <div *ngIf="!isLoading && !errorMessage" class="patients-table-container">
+    <table class="patients-table">
+      <thead>
+        <tr>
+          <th>Patient Code</th>
+          <th>Name</th>
+          <th>Contact</th>
+          <th>Date of Birth</th>
+          <th>Gender</th>
+          <th>Status</th>
+          <th>Missing Info</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="filteredPatients.length === 0">
+          <td colspan="8" class="text-center">No patients found</td>
+        </tr>
+        <ng-container *ngFor="let patient of filteredPatients">
+          <tr>
+            <td>
+              <span class="patient-code">{{ patient.patientCode || 'N/A' }}</span>
+            </td>
+            <td>
+              <div class="patient-info">
+                <img 
+                  [src]="getPatientImage(patient)" 
+                  [alt]="patient.firstName + ' ' + patient.lastName"
+                  class="patient-avatar"
+                  (error)="onImageError($event)"
+                />
+                <div class="patient-details">
+                  <div class="patient-name">{{ patient.firstName }} {{ patient.lastName }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+            <div>{{ patient.phoneNumber || 'N/A' }}</div>
+            <div class="text-muted">{{ patient.emailAddress || '' }}</div>
+          </td>
+          <td>{{ patient.dateOfBirth || 'N/A' }}</td>
+          <td>{{ patient.gender || 'N/A' }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="'status-' + (patient.status?.toLowerCase() || 'active')">
+              {{ patient.status || 'ACTIVE' }}
+            </span>
+          </td>
+          <td>
+            <span class="completeness-badge" 
+                  [ngClass]="'badge-' + getCompletenessStatus(patient).toLowerCase()"
+                  [title]="getCompletenessTooltip(patient)">
+              {{ getCompletenessStatus(patient) }}
+            </span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-icon" [routerLink]="['/admin/patients/edit', patient.id]" title="Edit">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-icon" (click)="onUpdateRequested(patient)" title="Update Registration">
+                <i class="fas fa-clipboard-check"></i>
+              </button>
+              <button class="btn-icon btn-danger" (click)="deletePatient(patient)" title="Delete">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+          </tr>
+          <!-- Registration Completeness Banner Row -->
+          <tr *ngIf="patient" class="banner-row">
+            <td colspan="8" class="banner-cell">
+              <app-registration-completeness-banner 
+                [patient]="patient"
+                (updateRequested)="onUpdateRequested(patient)"
+              ></app-registration-completeness-banner>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Patient Update Drawer -->
+<app-patient-update-drawer
+  *ngIf="selectedPatient"
+  [patient]="selectedPatient"
+  [isOpen]="showUpdateDrawer"
+  (close)="onDrawerClose()"
+  (saved)="onPatientSaved($event)"
+></app-patient-update-drawer>
+

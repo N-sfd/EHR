@@ -1,0 +1,417 @@
+<div class="add-doctor-container">
+  <!-- Page Header -->
+  <div class="page-intro">
+    <a routerLink="/admin/doctors" class="back-link">
+      <i class="fas fa-chevron-left"></i> DOCTOR
+    </a>
+    <div class="intro-heading">
+      <h2>{{ isEditMode ? 'Edit Doctor' : 'New Doctor' }}</h2>
+    </div>
+  </div>
+
+  <!-- Progress Steps Stepper -->
+  <div class="steps-indicator-card">
+    <div class="steps-indicator">
+      <div class="step" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">
+        <div class="step-circle">
+          <div class="step-number" *ngIf="currentStep === 1">1</div>
+          <i class="fas fa-check" *ngIf="currentStep > 1"></i>
+        </div>
+        <div class="step-label">Personal Info</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" [class.active]="currentStep === 2" [class.completed]="currentStep > 2">
+        <div class="step-circle">
+          <div class="step-number" *ngIf="currentStep <= 2">2</div>
+          <i class="fas fa-check" *ngIf="currentStep > 2"></i>
+        </div>
+        <div class="step-label">Professional Information</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" [class.active]="currentStep === 3" [class.completed]="currentStep > 3">
+        <div class="step-circle">
+          <div class="step-number" *ngIf="currentStep <= 3">3</div>
+          <i class="fas fa-check" *ngIf="currentStep > 3"></i>
+        </div>
+        <div class="step-label">Education & Certifications</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" [class.active]="currentStep === 4" [class.completed]="currentStep > 4">
+        <div class="step-circle">
+          <div class="step-number" *ngIf="currentStep <= 4">4</div>
+          <i class="fas fa-check" *ngIf="currentStep > 4"></i>
+        </div>
+        <div class="step-label">Availability & Scheduling</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" [class.active]="currentStep === 5" [class.completed]="currentStep > 5">
+        <div class="step-circle">
+          <div class="step-number" *ngIf="currentStep <= 5">5</div>
+          <i class="fas fa-check" *ngIf="currentStep > 5"></i>
+        </div>
+        <div class="step-label">Compliance & Licensing</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 1: Personal Info -->
+  <div class="wizard-content" *ngIf="currentStep === 1">
+    <section class="card">
+      <div class="card-header">
+        <h4 class="card-title">Personal Information</h4>
+      </div>
+      <div class="card-body" [formGroup]="form">
+        <!-- Profile Image -->
+        <div class="profile-image-section">
+          <label>Profile Image</label>
+          <div class="profile-image-container">
+            <div class="profile-image-preview" (click)="triggerFileInput()">
+              <img *ngIf="profileImagePreview" [src]="profileImagePreview" alt="Profile Preview" class="preview-img">
+              <div *ngIf="!profileImagePreview" class="profile-placeholder">
+                <i class="fas fa-user-plus"></i>
+              </div>
+            </div>
+            <div class="image-upload-text" (click)="triggerFileInput()">
+              <i class="fas fa-arrow-up"></i> Choose Image
+            </div>
+            <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" style="display: none;">
+          </div>
+        </div>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="required-label">First Name</label>
+            <input type="text" formControlName="firstName" class="form-control" placeholder="First name" />
+          </div>
+          <div class="form-group">
+            <label class="required-label">Last Name</label>
+            <input type="text" formControlName="lastName" class="form-control" placeholder="Last name" />
+          </div>
+          <div class="form-group">
+            <label for="gender">Gender</label>
+            <select id="gender" formControlName="gender" class="form-control" title="Gender">
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="dateOfBirth">Date of Birth</label>
+            <input type="date" id="dateOfBirth" formControlName="dateOfBirth" class="form-control" title="Date of Birth" />
+          </div>
+          <div class="form-group">
+            <label class="required-label">Email</label>
+            <input type="email" formControlName="emailAddress" class="form-control" placeholder="Email address" />
+          </div>
+          <div class="form-group">
+            <label class="required-label">Phone</label>
+            <input type="tel" formControlName="phoneNumber" class="form-control" placeholder="Phone number" />
+          </div>
+          <div class="form-group">
+            <label for="pronoun">Pronoun</label>
+            <select id="pronoun" formControlName="pronoun" class="form-control" title="Pronoun">
+              <option value="">Select Pronoun</option>
+              <option value="He/Him">He/Him</option>
+              <option value="She/Her">She/Her</option>
+              <option value="They/Them">They/Them</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="ethnicity">Ethnicity</label>
+            <select id="ethnicity" formControlName="ethnicity" class="form-control" title="Ethnicity">
+              <option value="">Select Ethnicity</option>
+              <option value="American Indian or Alaska Native">American Indian or Alaska Native</option>
+              <option value="Asian">Asian</option>
+              <option value="Black or African American">Black or African American</option>
+              <option value="Hispanic or Latino">Hispanic or Latino</option>
+              <option value="Native Hawaiian or Other Pacific Islander">Native Hawaiian or Other Pacific Islander</option>
+              <option value="White">White</option>
+              <option value="Two or More Races">Two or More Races</option>
+              <option value="Other">Other</option>
+              <option value="Prefer Not to Answer">Prefer Not to Answer</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Step 2: Professional Information -->
+  <div class="wizard-content" *ngIf="currentStep === 2">
+    <section class="card">
+      <div class="card-header">
+        <h4 class="card-title">Professional Information</h4>
+      </div>
+      <div class="card-body" [formGroup]="form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Years of Experience</label>
+            <input type="number" formControlName="yearsOfExperience" class="form-control" placeholder="Years" min="0" />
+          </div>
+          <div class="form-group">
+            <label for="consultationType">Consultation Type</label>
+            <select id="consultationType" formControlName="consultationType" class="form-control" title="Consultation Type">
+              <option value="">Select Type</option>
+              <option value="IN_PERSON">In Person</option>
+              <option value="ONLINE">Online</option>
+              <option value="BOTH">Both</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="required-label" for="departmentId">Department</label>
+            <select id="departmentId" formControlName="departmentId" class="form-control" title="Department">
+              <option [ngValue]="null">-- Select Department --</option>
+              <option *ngFor="let d of departments" [ngValue]="d.departmentId || d.id">
+                {{ d.name }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="required-label" for="designationId">Designation</label>
+            <select id="designationId" formControlName="designationId" class="form-control" title="Designation" [disabled]="!filteredDesignations.length">
+              <option [ngValue]="null">-- Select Designation --</option>
+              <option *ngFor="let d of filteredDesignations" [ngValue]="d.designationId || d.id">
+                {{ d.title }}
+              </option>
+            </select>
+            <small class="form-text text-muted" *ngIf="!filteredDesignations.length && form.get('departmentId')?.value">
+              No designations available for this department.
+            </small>
+            <small class="form-text text-muted" *ngIf="!form.get('departmentId')?.value">
+              Please select a department first.
+            </small>
+          </div>
+          <div class="form-group full-width">
+            <label>About</label>
+            <textarea formControlName="about" class="form-control" rows="4" placeholder="About the doctor"></textarea>
+          </div>
+          <div class="form-group full-width">
+            <label class="required-label">Specialization</label>
+            <div class="specialization-list">
+              <label *ngFor="let s of specializations" class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  [value]="s.id || s.specializationId"
+                  (change)="toggleSpecialization(getSpecializationId(s), $event)"
+                  [checked]="form.value.specializationIds?.includes(getSpecializationId(s))"
+                />
+                {{ s.name }}
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Step 3: Education & Certifications -->
+  <div class="wizard-content" *ngIf="currentStep === 3">
+    <section class="card">
+      <div class="card-header">
+        <h4 class="card-title">Education & Certifications</h4>
+      </div>
+      <div class="card-body">
+        <div class="form-section">
+          <h5>Education</h5>
+          <div class="repeatable-section">
+            <div class="repeat-row" *ngFor="let edu of educations; let i = index">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Institution</label>
+                  <input type="text" [(ngModel)]="edu.institution" [ngModelOptions]="{standalone: true}" class="form-control" placeholder="Institution name" />
+                </div>
+                <div class="form-group">
+                  <label>Degree</label>
+                  <input type="text" [(ngModel)]="edu.degree" [ngModelOptions]="{standalone: true}" class="form-control" placeholder="Degree" />
+                </div>
+                <div class="form-group">
+                  <label [for]="'edu-start-date-' + i">Start Date</label>
+                  <input type="date" [id]="'edu-start-date-' + i" [(ngModel)]="edu.startDate" [ngModelOptions]="{standalone: true}" class="form-control" title="Start Date" />
+                </div>
+                <div class="form-group">
+                  <label [for]="'edu-end-date-' + i">End Date</label>
+                  <input type="date" [id]="'edu-end-date-' + i" [(ngModel)]="edu.endDate" [ngModelOptions]="{standalone: true}" class="form-control" title="End Date" />
+                </div>
+              </div>
+              <button type="button" class="btn btn-outline small" (click)="removeEducation(i)" *ngIf="educations.length > 1">
+                <i class="fas fa-trash"></i> Remove
+              </button>
+            </div>
+            <button type="button" class="btn btn-outline" (click)="addEducation()">
+              <i class="fas fa-plus"></i> Add Education
+            </button>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h5>Certifications</h5>
+          <div class="repeatable-section">
+            <div class="repeat-row" *ngFor="let cert of certifications; let i = index">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Certification Name</label>
+                  <input type="text" [(ngModel)]="cert.name" [ngModelOptions]="{standalone: true}" class="form-control" placeholder="Certification name" />
+                </div>
+                <div class="form-group">
+                  <label>Issuing Organization</label>
+                  <input type="text" [(ngModel)]="cert.issuingOrganization" [ngModelOptions]="{standalone: true}" class="form-control" placeholder="Organization" />
+                </div>
+                <div class="form-group">
+                  <label [for]="'cert-issue-date-' + i">Issue Date</label>
+                  <input type="date" [id]="'cert-issue-date-' + i" [(ngModel)]="cert.issueDate" [ngModelOptions]="{standalone: true}" class="form-control" title="Issue Date" />
+                </div>
+                <div class="form-group">
+                  <label [for]="'cert-expiry-date-' + i">Expiry Date</label>
+                  <input type="date" [id]="'cert-expiry-date-' + i" [(ngModel)]="cert.expiryDate" [ngModelOptions]="{standalone: true}" class="form-control" title="Expiry Date" />
+                </div>
+              </div>
+              <button type="button" class="btn btn-outline small" (click)="removeCertification(i)" *ngIf="certifications.length > 1">
+                <i class="fas fa-trash"></i> Remove
+              </button>
+            </div>
+            <button type="button" class="btn btn-outline" (click)="addCertification()">
+              <i class="fas fa-plus"></i> Add Certification
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Step 4: Availability & Scheduling -->
+  <div class="wizard-content" *ngIf="currentStep === 4">
+    <section class="card">
+      <div class="card-header">
+        <h4 class="card-title">Availability & Scheduling</h4>
+      </div>
+      <div class="card-body" [formGroup]="form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="primaryLocationId">Primary Location</label>
+            <select id="primaryLocationId" formControlName="primaryLocationId" class="form-control" title="Primary Location">
+              <option [ngValue]="null">-- Select Location --</option>
+              <option *ngFor="let loc of locations" [value]="loc.id">
+                {{ loc.name }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group full-width">
+            <label>Working Days</label>
+            <div class="days-checkboxes">
+              <label class="checkbox-label" *ngFor="let day of daysOfWeek">
+                <input 
+                  type="checkbox" 
+                  [value]="day"
+                  (change)="toggleWorkingDay(day, $event)"
+                  [checked]="selectedWorkingDays.includes(day)"
+                />
+                {{ day }}
+              </label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="startTime">Start Time</label>
+            <input type="time" id="startTime" formControlName="startTime" class="form-control" title="Start Time" />
+          </div>
+          <div class="form-group">
+            <label for="endTime">End Time</label>
+            <input type="time" id="endTime" formControlName="endTime" class="form-control" title="End Time" />
+          </div>
+          <div class="form-group">
+            <label>Slot Duration (minutes)</label>
+            <input type="number" formControlName="slotDuration" class="form-control" placeholder="e.g. 30" min="5" />
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Step 5: Compliance & Licensing -->
+  <div class="wizard-content" *ngIf="currentStep === 5">
+    <section class="card">
+      <div class="card-header">
+        <h4 class="card-title">Compliance & Licensing</h4>
+      </div>
+      <div class="card-body" [formGroup]="form">
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="form-field-half">
+            <mat-label>Medical License Number</mat-label>
+            <input matInput formControlName="licenseNumber" placeholder="Medical License number" />
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="form-field-half">
+            <mat-label>License Council</mat-label>
+            <input matInput formControlName="licenseCouncil" placeholder="Issuing council" />
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="form-field-half">
+            <mat-label>License Issue Date</mat-label>
+            <input matInput [matDatepicker]="issueDatePicker" formControlName="licenseIssueDate" placeholder="mm/dd/yyyy" />
+            <mat-datepicker-toggle matSuffix [for]="issueDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #issueDatePicker></mat-datepicker>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="form-field-half">
+            <mat-label>License Expiry Date</mat-label>
+            <input matInput [matDatepicker]="expiryDatePicker" formControlName="licenseExpiry" placeholder="mm/dd/yyyy" />
+            <mat-datepicker-toggle matSuffix [for]="expiryDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #expiryDatePicker></mat-datepicker>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="form-field-full">
+            <mat-label>Additional Notes</mat-label>
+            <textarea matInput formControlName="complianceNotes" rows="4" placeholder="Any additional compliance or licensing notes"></textarea>
+          </mat-form-field>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Error Message -->
+  <div class="alert alert-success" *ngIf="successMessage">
+    <mat-icon>check_circle</mat-icon>
+    {{ successMessage }}
+  </div>
+  <div class="alert alert-error" *ngIf="errorMessage">
+    <mat-icon>error</mat-icon>
+    <div class="error-content">
+      <span>{{ errorMessage }}</span>
+      <button 
+        *ngIf="showRetryButton" 
+        mat-raised-button 
+        color="primary" 
+        (click)="save()" 
+        [disabled]="isSaving"
+        class="retry-button">
+        <mat-icon>refresh</mat-icon>
+        Retry
+      </button>
+    </div>
+  </div>
+
+  <!-- Add Department Modal -->
+  <app-add-department-modal 
+    #addDepartmentModal
+    (departmentAdded)="onDepartmentAdded($event)">
+  </app-add-department-modal>
+
+  <!-- Add Job/Designation Modal -->
+
+  <!-- Action Buttons -->
+  <div class="wizard-actions">
+    <button type="button" class="btn btn-outline" (click)="cancel()">Cancel</button>
+    <div class="step-buttons">
+      <button type="button" class="btn btn-outline" *ngIf="currentStep > 1" (click)="previousStep()">
+        <i class="fas fa-arrow-left"></i> Previous
+      </button>
+      <button type="button" class="btn btn-primary" *ngIf="currentStep < totalSteps" (click)="nextStep()">
+        Next <i class="fas fa-arrow-right"></i>
+      </button>
+      <button type="button" class="btn btn-primary" *ngIf="currentStep === totalSteps" (click)="save()" [disabled]="isSaving">
+        <i class="fas fa-save"></i> {{ isSaving ? 'Saving...' : (isEditMode ? 'Update' : 'Save') }}
+      </button>
+    </div>
+  </div>
+</div>

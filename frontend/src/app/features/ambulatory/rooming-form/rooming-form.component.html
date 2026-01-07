@@ -1,0 +1,138 @@
+<div class="rooming-form">
+  <h2 class="section-title">Rooming - Nurse Workflow</h2>
+
+  <div *ngIf="errorMessage" class="alert alert-error">
+    <i class="fas fa-exclamation-circle"></i> {{ errorMessage }}
+  </div>
+
+  <form [formGroup]="roomingForm" (ngSubmit)="save()">
+    <!-- Vitals Section -->
+    <div class="form-section">
+      <h3>Vitals</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Blood Pressure (Systolic)</label>
+          <input type="number" formControlName="bloodPressureSystolic" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Blood Pressure (Diastolic)</label>
+          <input type="number" formControlName="bloodPressureDiastolic" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Temperature (°F)</label>
+          <input type="number" step="0.1" formControlName="temperatureF" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Pulse (bpm)</label>
+          <input type="number" formControlName="pulse" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Respiratory Rate</label>
+          <input type="number" formControlName="respiratoryRate" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>SpO2 (%)</label>
+          <input type="number" step="0.1" formControlName="oxygenSaturation" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Height (inches)</label>
+          <input type="number" step="0.1" formControlName="heightInches" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Weight (lbs)</label>
+          <input type="number" step="0.1" formControlName="weightLbs" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>BMI</label>
+          <input type="text" formControlName="bmi" readonly class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Pain Score (0-10)</label>
+          <input type="number" min="0" max="10" formControlName="painScore" class="form-control">
+        </div>
+      </div>
+    </div>
+
+    <!-- Chief Complaint -->
+    <div class="form-section">
+      <h3>Chief Complaint & History</h3>
+      <div class="form-group">
+        <label>Chief Complaint</label>
+        <textarea formControlName="chiefComplaint" rows="3" class="form-control"></textarea>
+      </div>
+      <div class="form-group">
+        <label>History of Present Illness</label>
+        <textarea formControlName="historyOfPresentIllness" rows="4" class="form-control"></textarea>
+      </div>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" formControlName="medicationsReviewed">
+          Medications Reviewed
+        </label>
+      </div>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" formControlName="allergiesReviewed">
+          Allergies Reviewed
+        </label>
+      </div>
+    </div>
+
+    <!-- Screening -->
+    <div class="form-section">
+      <h3>Screening</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Smoking Status</label>
+          <select formControlName="smokingStatus" class="form-control">
+            <option value="">Select...</option>
+            <option value="Never">Never</option>
+            <option value="Former">Former</option>
+            <option value="Current">Current</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" formControlName="fallRiskAssessment">
+            Fall Risk Assessment
+          </label>
+          <input type="number" formControlName="fallRiskScore" placeholder="Score" class="form-control" *ngIf="roomingForm.get('fallRiskAssessment')?.value">
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" formControlName="depressionScreening">
+            Depression Screening
+          </label>
+          <input type="number" formControlName="depressionScreeningScore" placeholder="Score" class="form-control" *ngIf="roomingForm.get('depressionScreening')?.value">
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" formControlName="alcoholScreening">
+            Alcohol Screening
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="form-section">
+      <h3>Nursing Notes</h3>
+      <div class="form-group">
+        <label>Patient Concerns</label>
+        <textarea formControlName="patientConcerns" rows="3" class="form-control"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Nursing Notes</label>
+        <textarea formControlName="nursingNotes" rows="4" class="form-control"></textarea>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="form-actions">
+      <button type="submit" class="epic-btn epic-btn-primary" [disabled]="isLoading || roomingForm.invalid">
+        <i class="fas fa-save"></i> Save Rooming
+      </button>
+      <div class="error-message" *ngIf="errorMessage">{{ errorMessage }}</div>
+    </div>
+  </form>
+</div>

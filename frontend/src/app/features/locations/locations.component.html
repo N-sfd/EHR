@@ -1,0 +1,371 @@
+<div class="locations-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">
+        <i class="fas fa-map-marker-alt"></i>
+        Locations
+        <span class="total-count">Total Location : {{ getTotalLocations() }}</span>
+      </h1>
+      <button class="btn btn-primary" (click)="openAddModal()">
+        <i class="fas fa-plus"></i> New Location
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading && locations.length === 0">
+    <div class="spinner"></div>
+    <p>Loading locations...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-state" *ngIf="errorMessage">
+    <i class="fas fa-exclamation-circle"></i>
+    <p>{{ errorMessage }}</p>
+    <button class="btn btn-outline" (click)="loadLocations()">Retry</button>
+  </div>
+
+  <!-- Locations Table -->
+  <div class="locations-table-container" *ngIf="!isLoading || locations.length > 0">
+    <table class="locations-table">
+      <thead>
+        <tr>
+          <th>Clinic Name</th>
+          <th>Address</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let location of filteredLocations">
+          <td>
+            <div class="location-info">
+              <div class="location-image">
+                <img [src]="getLocationImage(location)" [alt]="location.name || location.locationName" title="Location Image"
+                     (error)="onImageError($event, location)">
+              </div>
+              <div class="location-details">
+                <span class="location-name">{{ location.locationName }}</span>
+                <span class="location-type" *ngIf="location.locationType">
+                  {{ location.locationType }}
+                </span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="address-info">
+              <span class="address-line">{{ location.addressLine1 }}</span>
+              <span class="address-city">{{ location.city }}, {{ location.state }}</span>
+            </div>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-icon edit-btn" (click)="openEditModal(location)" title="Edit">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-icon delete-btn" (click)="openDeleteModal(location)" title="Delete">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="filteredLocations.length === 0 && !isLoading">
+      <i class="fas fa-map-marker-alt"></i>
+      <h4>No locations found</h4>
+      <p>Try adjusting your search or add a new location.</p>
+      <button class="btn btn-primary" (click)="openAddModal()">New Location</button>
+    </div>
+  </div>
+
+  <!-- Add Location Modal -->
+  <div class="modal-overlay" *ngIf="showAddModal" (click)="closeModals()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>New Location</h2>
+        <button class="close-btn" (click)="closeModals()" title="Close" aria-label="Close">
+          <span class="sr-only">Close</span>
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="saveLocation()">
+          <!-- Image Upload -->
+          <div class="form-group">
+            <label for="imageInput" class="form-label-required">Image <span class="required">*</span></label>
+            <div class="image-upload-container">
+              <div class="image-preview" *ngIf="imagePreview">
+                <img [src]="imagePreview" alt="Preview">
+                <button type="button" class="remove-image-btn" (click)="removeImage()" title="Remove Image" aria-label="Remove Image">
+                  <span class="sr-only">Remove Image</span>
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <input type="file" id="imageInput" accept="image/*" (change)="onImageSelect($event)" style="display: none;" aria-label="Choose Image" title="Choose Image" placeholder="Choose Image">
+              <label for="imageInput" class="image-upload-btn" *ngIf="!imagePreview" title="Choose Image" aria-label="Choose Image">
+                <span class="sr-only">Choose Image</span>
+                <i class="fas fa-image"></i> Choose Image
+              </label>
+            </div>
+          </div>
+
+          <!-- Name -->
+          <div class="form-group">
+            <label for="nameInput" class="form-label-required">Name <span class="required">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="formData.name" 
+                   name="locationName" required title="Name" placeholder="Enter Location Name">
+          </div>
+
+          <!-- Location Type -->
+          <div class="form-group">
+            <label for="locationTypeInput" class="form-label-required">Location Type <span class="required">*</span></label>
+            <select class="form-control" [(ngModel)]="formData.type" 
+                    name="locationType" required title="Location Type" placeholder="Select Location Type">
+              <option value="">Select</option>
+              <option *ngFor="let type of locationTypes" [value]="type">{{ type }}</option>
+            </select>
+          </div>
+
+          <!-- Email Address -->
+          <div class="form-group">
+            <label for="emailAddressInput" class="form-label-required">Email Address <span class="required">*</span></label>
+            <input type="email" class="form-control" [(ngModel)]="formData.email" 
+                   name="emailAddress" required title="Email Address" placeholder="Enter Email Address">
+          </div>
+
+          <!-- Phone Number -->
+          <div class="form-group">
+            <label for="phoneNumberInput" class="form-label-required">Phone Number <span class="required">*</span></label>
+            <input type="tel" class="form-control" [(ngModel)]="formData.phoneNumber" 
+                   name="phoneNumber" required title="Phone Number" placeholder="Enter Phone Number">
+          </div>
+
+          <!-- Address 1 -->
+          <div class="form-group">
+            <label for="addressLine1Input" class="form-label-required">Address 1 <span class="required">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="formData.addressLine1" 
+                   name="addressLine1" required title="Address 1" placeholder="Enter Address 1">
+          </div>
+
+          <!-- Address 2 -->
+          <div class="form-group">
+            <label for="addressLine2Input" class="form-label-required">Address 2</label>
+            <input type="text" class="form-control" [(ngModel)]="formData.addressLine2" 
+                   name="addressLine2" title="Address 2" placeholder="Enter Address 2">
+          </div>
+
+          <!-- Country -->
+          <div class="form-group">
+            <label for="countryInput" class="form-label-required">Country <span class="required">*</span></label>
+            <select class="form-control" [(ngModel)]="formData.country" 
+                    name="country" (change)="onCountryChange()" required title="Country" placeholder="Select Country">
+              <option value="">Select</option>
+              <option *ngFor="let country of countries" [value]="country">{{ country }}</option>
+            </select>
+          </div>
+
+          <!-- State -->
+          <div class="form-group">
+            <label for="stateInput" class="form-label-required">State <span class="required">*</span></label>
+            <select class="form-control" [(ngModel)]="formData.state" 
+                    name="state" (change)="onStateChange()" title="State" placeholder="Select State"
+                    [disabled]="!formData.country" required>
+              <option value="">Select</option>
+              <option *ngFor="let state of selectedCountryStates" [value]="state">{{ state }}</option>
+            </select>
+          </div>
+
+          <!-- City -->
+          <div class="form-group">
+            <label for="cityInput" class="form-label-required"  >City <span class="required">*</span></label>
+            <select class="form-control" [(ngModel)]="formData.city" 
+                    name="city" [disabled]="!formData.state" required title="City" placeholder="Select City">
+              <option value="">Select</option>
+              <option *ngFor="let city of selectedStateCities" [value]="city">{{ city }}</option>
+            </select>
+          </div>
+
+          <!-- Zipcode -->
+          <div class="form-group">
+            <label for="zipCodeInput" class="form-label-required">Zipcode <span class="required">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="formData.zipCode" 
+                   name="zipCode" required title="Zipcode" placeholder="Enter Zipcode">
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" (click)="closeModals()" title="Cancel" aria-label="Cancel">
+              <span class="sr-only">Cancel</span>
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary" [disabled]="!isFormValid() || isLoading" title="Add New Location" aria-label="Add New Location">
+              <span class="sr-only">Add New Location</span>
+              <span *ngIf="isLoading">Saving...</span>
+              <span *ngIf="!isLoading">Add New Location</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Location Modal -->
+  <div class="modal-overlay" *ngIf="showEditModal" (click)="closeModals()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Edit Location</h2>
+        <button class="close-btn" (click)="closeModals()" title="Close" aria-label="Close"   >
+          <span class="sr-only">Close</span>
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="saveLocation()">
+          <!-- Image Upload -->
+          <div class="form-group">
+            <label for="editImageInput" class="form-label-required">Image <span class="required">*</span></label>
+            <div class="image-upload-container">
+              <div class="image-preview" *ngIf="imagePreview">
+                <img [src]="imagePreview" alt="Preview">
+                <button type="button" class="remove-image-btn" (click)="removeImage()" title="Remove Image"  aria-label="Remove Image"      >
+                  <span class="sr-only">Remove Image</span>
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <input type="file" id="editImageInput" accept="image/*" (change)="onImageSelect($event)" style="display: none;" aria-label="Choose Image" title="Choose Image" placeholder="Choose Image">
+              <label for="editImageInput" class="image-upload-btn" *ngIf="!imagePreview" title="Choose Image" aria-label="Choose Image">
+                <span class="sr-only">Choose Image</span>
+                <i class="fas fa-image"></i> Choose Image
+              </label>
+            </div>
+          </div>
+
+          <!-- Name -->
+          <div class="form-group">
+            <label for="nameInput" class="form-label-required">Name <span class="required">*</span></label>
+            <label for="nameInput" class="form-label-required">Name <span class="required">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="formData.name" 
+                   name="locationName" required title="Name" placeholder="Enter Location Name">
+          </div>
+
+          <!-- Location Type -->
+          <div class="form-group">
+            <label for="locationTypeInput" class="form-label-required">Location Type <span class="required">*</span></label>
+            <select class="form-control" [(ngModel)]="formData.type" 
+                    name="locationType" required title="Location Type" placeholder="Select Location Type">
+              <option value="">Select</option>
+              <option *ngFor="let type of locationTypes" [value]="type">{{ type }}</option>
+            </select>
+          </div>
+
+          <!-- Email Address -->
+          <div class="form-group">
+            <label for="emailAddressInput" class="form-label-required">Email Address <span class="required">*</span></label>
+            <input type="email" class="form-control" [(ngModel)]="formData.email" 
+                   name="emailAddress" required title="Email Address" placeholder="Enter Email Address">
+          </div>
+
+          <!-- Phone Number -->
+          <div class="form-group">
+            <label for="phoneNumberInput" class="form-label-required">Phone Number <span class="required">*</span></label>
+            <input type="tel" class="form-control" [(ngModel)]="formData.phoneNumber" 
+                   name="phoneNumber" required title="Phone Number" placeholder="Enter Phone Number">
+          </div>
+
+          <!-- Address 1 -->
+          <div class="form-group">
+            <label for="addressLine1Input" class="form-label-required">Address 1 <span class="required">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="formData.addressLine1" 
+                   name="addressLine1" required title="Address 1" placeholder="Enter Address 1">
+          </div>
+
+          <!-- Address 2 -->
+          <div class="form-group">
+            <label for="addressLine2Input" class="form-label-required">Address 2</label>
+            <input type="text" class="form-control" [(ngModel)]="formData.addressLine2" 
+                   name="addressLine2" title="Address 2" placeholder="Enter Address 2">
+          </div>
+
+          <!-- Country -->
+          <div class="form-group">
+            <label for="countryInput" class="form-label-required">Country <span class="required">*</span></label>
+            <select class="form-control" [(ngModel)]="formData.country" 
+                    name="country" (change)="onCountryChange()" required title="Country" placeholder="Select Country">
+              <option value="">Select</option>
+              <option *ngFor="let country of countries" [value]="country">{{ country }}</option>
+            </select>
+          </div>
+
+          <!-- State -->
+          <div class="form-group">
+            <label for="stateInput" class="form-label-required">State <span class="required">*</span></label>
+            <select class="form-control" [(ngModel)]="formData.state" 
+                    name="state" (change)="onStateChange()" required title="State" placeholder="Select State">
+              <option value="">Select</option>
+              <option *ngFor="let state of selectedCountryStates" [value]="state">{{ state }}</option>
+            </select>
+          </div>
+
+          <!-- City -->
+          <div class="form-group">
+            <label for="cityInput" class="form-label-required">City <span class="required">*</span></label>
+            <select class="form-control" [(ngModel)]="formData.city" 
+                    name="city" required title="City" placeholder="Select City">
+              <option value="">Select</option>
+              <option *ngFor="let city of selectedStateCities" [value]="city">{{ city }}</option>
+            </select>
+          </div>
+
+          <!-- Zipcode -->
+          <div class="form-group">
+            <label for="zipCodeInput" class="form-label-required">Zipcode <span class="required">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="formData.zipCode" 
+                   name="zipCode" required title="Zipcode" placeholder="Enter Zipcode">
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" (click)="closeModals()" title="Cancel" aria-label="Cancel">
+              <span class="sr-only">Cancel</span>
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary" [disabled]="!isFormValid() || isLoading" title="Save Changes" aria-label="Save Changes">
+              <span class="sr-only">Save Changes</span>
+              <span *ngIf="isLoading">Saving...</span>
+              <span *ngIf="!isLoading">Save Changes</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showDeleteModal" (click)="closeModals()">
+    <div class="modal-content delete-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Delete Confirmation</h2>
+        <button class="close-btn" (click)="closeModals()" title="Close" aria-label="Close">
+          <span class="sr-only">Close</span>
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure want to delete?</p>
+        <div class="delete-actions">
+          <button type="button" class="btn btn-outline" (click)="closeModals()" title="Cancel" aria-label="Cancel">
+            <span class="sr-only">Cancel</span>
+            Cancel
+          </button>
+              <button type="button" class="btn btn-danger" (click)="deleteLocation()" [disabled]="isLoading" title="Yes, Delete" aria-label="Yes, Delete">
+            <span class="sr-only">Yes, Delete</span>
+            <span *ngIf="isLoading">Deleting...</span>
+            <span *ngIf="!isLoading">Yes, Delete</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,182 @@
+<div class="alerts-warnings">
+  <div class="alerts-header">
+    <h2>Alerts & Warnings</h2>
+    <p class="subtitle">Configure clinical alerts and warnings for patient records</p>
+  </div>
+
+  <div class="alerts-layout">
+    <!-- Rules List -->
+    <div class="rules-list-panel">
+      <div class="panel-header">
+        <h3>Alert Rules</h3>
+        <button class="btn-primary" (click)="newRule()">
+          <i class="fas fa-plus"></i> New Rule
+        </button>
+      </div>
+      <div class="rules-list">
+        <div 
+          *ngFor="let rule of rules"
+          class="rule-item"
+          [class.active]="selectedRule?.id === rule.id"
+          [class.inactive]="!rule.isActive"
+          (click)="editRule(rule)"
+        >
+          <div class="rule-header">
+            <div class="rule-name">{{ rule.name }}</div>
+            <div class="rule-badge" [style.background-color]="getSeverityColor(rule.severity)">
+              {{ rule.severity }}
+            </div>
+          </div>
+          <div class="rule-description">{{ rule.description }}</div>
+          <div class="rule-meta">
+            <span>Trigger: {{ rule.trigger.triggerType }}</span>
+            <span>Roles: {{ rule.visibleRoles.join(', ') }}</span>
+          </div>
+          <div class="rule-status" [class.active]="rule.isActive">
+            {{ rule.isActive ? 'Active' : 'Inactive' }}
+          </div>
+        </div>
+        <div class="empty-state" *ngIf="rules.length === 0">
+          <p>No alert rules configured</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rule Editor -->
+    <div class="rule-editor" *ngIf="isEditing">
+      <div class="editor-header">
+        <h3>{{ selectedRule ? 'Edit Alert Rule' : 'New Alert Rule' }}</h3>
+      </div>
+
+      <form [formGroup]="alertForm" (ngSubmit)="saveRule()" class="alert-form">
+        <div class="form-section">
+          <div class="form-group" [class.has-error]="isFieldInvalid('name')">
+            <label>Alert Name <span class="required">*</span></label>
+            <input type="text" formControlName="name" class="form-input" />
+            <div class="validation-message error" *ngIf="isFieldInvalid('name')">
+              Name is required
+            </div>
+          </div>
+
+          <div class="form-group" [class.has-error]="isFieldInvalid('description')">
+            <label>Description <span class="required">*</span></label>
+            <textarea formControlName="description" class="form-input" rows="3"></textarea>
+          </div>
+
+          <div class="form-group" [class.has-error]="isFieldInvalid('severity')">
+            <label>Severity <span class="required">*</span></label>
+            <select formControlName="severity" class="form-input">
+              <option *ngFor="let severity of severities" [value]="severity.value">
+                {{ severity.label }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group" [class.has-error]="isFieldInvalid('message')">
+            <label>Alert Message <span class="required">*</span></label>
+            <textarea formControlName="message" class="form-input" rows="2"></textarea>
+          </div>
+        </div>
+
+        <!-- Trigger Configuration -->
+        <div class="form-section">
+          <h4>Trigger Configuration</h4>
+          <div formGroupName="trigger">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Trigger Type <span class="required">*</span></label>
+                <select formControlName="triggerType" class="form-input">
+                  <option *ngFor="let type of triggerTypes" [value]="type.value">
+                    {{ type.label }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Frequency <span class="required">*</span></label>
+                <select formControlName="frequency" class="form-input">
+                  <option *ngFor="let freq of frequencies" [value]="freq.value">
+                    {{ freq.label }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <div formGroupName="condition">
+              <h5>Condition</h5>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Field <span class="required">*</span></label>
+                  <input type="text" formControlName="field" class="form-input" />
+                </div>
+
+                <div class="form-group">
+                  <label>Operator <span class="required">*</span></label>
+                  <select formControlName="operator" class="form-input">
+                    <option *ngFor="let op of operators" [value]="op.value">
+                      {{ op.label }}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="form-group" *ngIf="getConditionOperator() !== 'EXISTS' && getConditionOperator() !== 'NOT_EXISTS'">
+                  <label>Value</label>
+                  <input type="text" formControlName="value" class="form-input" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visibility -->
+        <div class="form-section">
+          <h4>Visibility</h4>
+          <div class="form-group" [class.has-error]="isFieldInvalid('visibleRoles')">
+            <label>Visible Roles <span class="required">*</span></label>
+            <div class="roles-checkboxes">
+              <label *ngFor="let role of roles" class="role-checkbox">
+                <input 
+                  type="checkbox" 
+                  [value]="role.value"
+                  [checked]="alertForm.get('visibleRoles')?.value?.includes(role.value)"
+                  (change)="onRoleToggle(role.value, $event)"
+                />
+                <span>{{ role.label }}</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Auto Dismiss -->
+        <div class="form-section">
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" formControlName="autoDismiss" />
+              Auto Dismiss
+            </label>
+          </div>
+          <div class="form-group" *ngIf="alertForm.get('autoDismiss')?.value">
+            <label>Dismiss After (minutes)</label>
+            <input type="number" formControlName="dismissAfterMinutes" class="form-input" min="1" />
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" [disabled]="alertForm.invalid">
+            Save Alert Rule
+          </button>
+          <button type="button" class="btn-secondary" (click)="cancelEdit()">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!isEditing">
+      <p>Click "New Rule" to create an alert rule</p>
+    </div>
+  </div>
+</div>
+

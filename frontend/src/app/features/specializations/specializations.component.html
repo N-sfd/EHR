@@ -1,0 +1,201 @@
+<div class="specializations-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">
+        <i class="fas fa-stethoscope"></i>
+        Specialization
+        <span class="total-count">Total Specializations : {{ getTotalSpecializations() }}</span>
+      </h1>
+      <div class="header-actions">
+        <button class="btn btn-primary" (click)="openAddModal()">
+          <i class="fas fa-plus"></i> Add New Specialization
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filter Toggle -->
+  <div class="search-filter-bar">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input type="text" placeholder="Search specializations..." [(ngModel)]="searchTerm" (input)="onSearchChange()">
+    </div>
+    <div class="filter-sort-actions">
+      <button class="btn btn-outline" (click)="toggleFilters()">
+        <i class="fas fa-filter"></i> Filters
+      </button>
+      <div class="sort-menu">
+        <label>Sort By :</label>
+        <select class="form-control" [(ngModel)]="sortBy" (change)="applyFilters()" aria-label="Sort By" title="Sort By">
+          <option value="Recent">Recent</option>
+          <option value="Oldest">Oldest</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading && specializations.length === 0">
+    <div class="spinner"></div>
+    <p>Loading specializations...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-state" *ngIf="errorMessage">
+    <i class="fas fa-exclamation-circle"></i>
+    <p>{{ errorMessage }}</p>
+    <button class="btn btn-outline" (click)="loadSpecializations()">Retry</button>
+  </div>
+
+  <!-- Specializations Table -->
+  <div class="specializations-table-container" *ngIf="!isLoading || specializations.length > 0">
+    <table class="specializations-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let spec of filteredSpecializations">
+          <td>{{ spec.name }}</td>
+          <td>
+            <span class="status-badge" [class.active]="spec.status === 'ACTIVE'" [class.inactive]="spec.status === 'INACTIVE'">
+              {{ spec.status || 'ACTIVE' }}
+            </span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-icon edit-btn" (click)="openEditModal(spec)" title="Edit">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-icon delete-btn" (click)="openDeleteModal(spec)" title="Delete">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="filteredSpecializations.length === 0">
+          <td colspan="3" class="no-data">No specializations found</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Add Specialization Modal -->
+  <div class="modal-overlay" *ngIf="showAddModal" (click)="closeModals()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Add New Specialization</h2>
+        <button class="close-btn" (click)="closeModals()" title="Close" aria-label="Close">
+          <span class="sr-only">Close</span>
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body modal-body-scrollable">
+        <div class="alert alert-error" *ngIf="errorMessage">
+          <i class="fas fa-exclamation-circle"></i>
+          {{ errorMessage }}
+        </div>
+        <form (ngSubmit)="saveSpecialization(); $event.preventDefault()" #specializationForm="ngForm" (submit)="$event.preventDefault()">
+          <div class="form-group form-group-spaced">
+            <label class="form-label-required">Specialization <span class="required">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="formData.name" 
+                   name="name" required #nameInput="ngModel"
+                   [class.is-invalid]="nameInput.invalid && nameInput.touched"
+                   (blur)="nameInput.control.markAsTouched()"
+                   placeholder="Enter specialization name (e.g., Cardiology, Pediatrics)"
+                   autofocus>
+            <div class="invalid-feedback" *ngIf="nameInput.invalid && nameInput.touched">
+              Specialization name is required.
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select class="form-control" [(ngModel)]="formData.status" name="status" aria-label="Select Status" title="Select Status">
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" (click)="closeModals()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="isLoading || !formData.name?.trim() || specializationForm.invalid">
+              <span *ngIf="isLoading">Adding...</span>
+              <span *ngIf="!isLoading">Add Specialization</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Specialization Modal -->
+  <div class="modal-overlay" *ngIf="showEditModal" (click)="closeModals()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Edit Specialization</h2>
+        <button class="close-btn" (click)="closeModals()" title="Close" aria-label="Close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body modal-body-scrollable">
+        <div class="alert alert-error" *ngIf="errorMessage">
+          <i class="fas fa-exclamation-circle"></i>
+          {{ errorMessage }}
+        </div>
+        <form (ngSubmit)="saveSpecialization(); $event.preventDefault()" #editSpecializationForm="ngForm" (submit)="$event.preventDefault()">
+          <div class="form-group form-group-spaced">
+            <label class="form-label-required">Specialization <span class="required">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="formData.name" 
+                   name="name" required #nameInputEdit="ngModel"
+                   [class.is-invalid]="nameInputEdit.invalid && nameInputEdit.touched"
+                   (blur)="nameInputEdit.control.markAsTouched()"
+                   placeholder="Enter specialization name">
+            <div class="invalid-feedback" *ngIf="nameInputEdit.invalid && nameInputEdit.touched">
+              Specialization name is required.
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select class="form-control" [(ngModel)]="formData.status" name="status" aria-label="Select Status" title="Select Status">
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" (click)="closeModals()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="isLoading || !formData.name?.trim() || editSpecializationForm.invalid">
+              <span *ngIf="isLoading">Saving...</span>
+              <span *ngIf="!isLoading">Save Changes</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showDeleteModal" (click)="closeModals()">
+    <div class="modal-content delete-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Delete Confirmation</h2>
+        <button class="close-btn" (click)="closeModals()" title="Close" aria-label="Close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure want to delete?</p>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeModals()">Cancel</button>
+          <button type="button" class="btn btn-danger" (click)="deleteSpecialization()" [disabled]="isLoading">
+            <span *ngIf="isLoading">Deleting...</span>
+            <span *ngIf="!isLoading">Yes, Delete</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

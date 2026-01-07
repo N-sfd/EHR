@@ -1,0 +1,318 @@
+<div class="page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-top">
+      <div class="header-left">
+        <h2 class="page-title">Doctor Schedule</h2>
+        <span class="total-badge">Total Doctors : {{ filteredDoctors.length }}</span>
+      </div>
+      <div class="header-actions">
+        <div class="dropdown" (click)="$event.stopPropagation()">
+          <button class="btn" (click)="toggleFilters()">
+            <i class="fas fa-filter"></i> Filters
+          </button>
+        </div>
+        <div class="dropdown" (click)="$event.stopPropagation()">
+          <button class="btn" (click)="toggleExportMenu()">
+            <i class="fas fa-download"></i> Export
+            <i class="fas fa-chevron-down" style="margin-left: 8px; font-size: 12px;"></i>
+          </button>
+          <div class="dropdown-menu" *ngIf="showExportMenu">
+            <a class="dropdown-item" (click)="exportPDF()">
+              <i class="fas fa-file-pdf"></i> Download as PDF
+            </a>
+            <a class="dropdown-item" (click)="exportExcel()">
+              <i class="fas fa-file-excel"></i> Download as Excel
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Panel -->
+  <div class="filters card" *ngIf="showFilters">
+    <div class="card-header">
+      <h3>Filter</h3>
+      <button class="btn-link" (click)="clearAllFilters()">Clear All</button>
+    </div>
+    <div class="card-body">
+      <div class="filter-section">
+        <label class="filter-label">Doctor</label>
+        <div class="filter-chips scrollable">
+          <button 
+            class="filter-chip" 
+            [class.active]="doctorFilter === 'all'"
+            (click)="doctorFilter = 'all'; applyFilters()">
+            Reset
+          </button>
+          <button 
+            *ngFor="let doctor of uniqueDoctors"
+            class="filter-chip" 
+            [class.active]="doctorFilter === doctor"
+            (click)="doctorFilter = doctor; applyFilters()">
+            {{ doctor }}
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <label class="filter-label">Designation</label>
+        <div class="filter-chips scrollable">
+          <button 
+            class="filter-chip" 
+            [class.active]="designationFilter === 'all'"
+            (click)="designationFilter = 'all'; applyFilters()">
+            Reset
+          </button>
+          <button 
+            *ngFor="let designation of designations"
+            class="filter-chip" 
+            [class.active]="designationFilter === designation"
+            (click)="designationFilter = designation; applyFilters()">
+            {{ designation }}
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <label class="filter-label">Department</label>
+        <div class="filter-chips scrollable">
+          <button 
+            class="filter-chip" 
+            [class.active]="departmentFilter === 'all'"
+            (click)="departmentFilter = 'all'; applyFilters()">
+            Reset
+          </button>
+          <button 
+            *ngFor="let dept of departments"
+            class="filter-chip" 
+            [class.active]="departmentFilter === dept"
+            (click)="departmentFilter = dept; applyFilters()">
+            {{ dept }}
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <label class="filter-label">Date*</label>
+        <input type="date" [(ngModel)]="dateFilter" (change)="applyFilters()" class="filter-input">
+      </div>
+
+      <div class="filter-section">
+        <label class="filter-label">Amount</label>
+        <div class="filter-chips scrollable">
+          <button 
+            class="filter-chip" 
+            [class.active]="amountFilter === 'all'"
+            (click)="amountFilter = 'all'; applyFilters()">
+            Reset
+          </button>
+          <button 
+            *ngFor="let amount of amountRanges"
+            class="filter-chip" 
+            [class.active]="amountFilter === amount"
+            (click)="amountFilter = amount; applyFilters()">
+            {{ amount }}
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <label class="filter-label">Status</label>
+        <div class="filter-chips scrollable">
+          <button 
+            class="filter-chip" 
+            [class.active]="statusFilter === 'all'"
+            (click)="statusFilter = 'all'; applyFilters()">
+            Reset
+          </button>
+          <button 
+            *ngFor="let status of statuses"
+            class="filter-chip" 
+            [class.active]="statusFilter === status"
+            (click)="statusFilter = status; applyFilters()">
+            {{ status }}
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="card-footer">
+      <button class="btn btn-secondary" (click)="showFilters = false">Close Filter</button>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <label class="sort-label">Sort By :</label>
+      <select class="sort-select" [(ngModel)]="sortBy" (change)="applySorting()">
+        <option value="recent">Recent</option>
+        <option value="ascending">Ascending</option>
+        <option value="descending">Descending</option>
+        <option value="lastMonth">Last Month</option>
+        <option value="last7Days">Last 7 Days</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="state-card" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading doctors...</p>
+  </div>
+
+  <!-- Doctors Table -->
+  <div class="table-responsive" *ngIf="!isLoading">
+    <table class="schedule-table">
+      <thead>
+        <tr>
+          <th>Doctor</th>
+          <th>Department</th>
+          <th>Phone</th>
+          <th>Availability</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let doctor of filteredDoctors">
+          <td>
+            <div class="doctor-cell">
+              <div class="avatar">
+                <img 
+                  [src]="getAvatar(doctor)" 
+                  [alt]="doctor.firstName"
+                  (error)="onImageError($event, doctor)">
+              </div>
+              <div class="doctor-info">
+                <a [routerLink]="['/admin/doctors/profile', doctor.id]" class="doctor-name">
+                  Dr. {{ doctor.firstName }} {{ doctor.lastName }}
+                </a>
+                <span class="doctor-spec">{{ getSpecialization(doctor) }}</span>
+                <span class="doctor-credentials">{{ getCredentials(doctor) }}</span>
+              </div>
+            </div>
+          </td>
+          <td>{{ getDepartment(doctor) }}</td>
+          <td>{{ doctor.phoneNumber || '+1 54554 54584' }}</td>
+          <td>
+            <div class="availability-days">
+              <span 
+                *ngFor="let active of getAvailabilityDays(doctor); let i = index"
+                class="day"
+                [class.active]="active">
+                {{ dayAbbreviations[i] }}
+              </span>
+            </div>
+          </td>
+          <td>
+            <div class="row-actions">
+              <a 
+                class="action-link" 
+                [routerLink]="['/admin/appointments/calendar']"
+                [queryParams]="{ doctorId: doctor.id }"
+                title="View Calendar">
+                <i class="fas fa-calendar"></i>
+              </a>
+              <button 
+                class="action-link" 
+                (click)="openScheduleModal(doctor)"
+                title="Edit Schedule">
+                <i class="fas fa-edit"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div class="state-card" *ngIf="!isLoading && filteredDoctors.length === 0">
+      <p>No doctors found matching the filters.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Schedule Details Modal -->
+<div class="modal-overlay" *ngIf="showScheduleModal" (click)="closeScheduleModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Schedule Details</h3>
+      <button class="modal-close" (click)="closeScheduleModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body" *ngIf="selectedDoctor">
+      <div class="schedule-doctor-info">
+        <div class="doctor-code">#DT{{ selectedDoctor.id || selectedDoctor.doctorCode }}</div>
+        <h4>Dr. {{ selectedDoctor.firstName }} {{ selectedDoctor.lastName }}</h4>
+        <p>{{ getDepartment(selectedDoctor) }}</p>
+        <p>{{ getSpecialization(selectedDoctor) }}</p>
+        <p class="credentials-text">Credentials: {{ getCredentials(selectedDoctor) }}</p>
+      </div>
+
+      <form [formGroup]="scheduleForm" class="schedule-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>From</label>
+            <input type="date" formControlName="from" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>To</label>
+            <input type="date" formControlName="to" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Recurs Every</label>
+            <select formControlName="recurEvery" class="form-control">
+              <option value="1 Week">1 Week</option>
+              <option value="1 Month">1 Month</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="schedules-section">
+          <h5>Schedules</h5>
+          <div class="day-schedules" *ngFor="let day of daysOfWeek; let dayIndex = index">
+            <div class="day-header">
+              <strong>{{ day }}</strong>
+              <button 
+                type="button" 
+                class="btn-add-session" 
+                (click)="addSession(dayIndex)">
+                <i class="fas fa-plus"></i> Add Session
+              </button>
+            </div>
+            <div class="sessions-list" *ngIf="getDaySessions(dayIndex).length > 0">
+              <div 
+                class="session-item" 
+                *ngFor="let session of getDaySessions(dayIndex).controls; let sessionIndex = index"
+                [formGroup]="$any(session)">
+                <select formControlName="type" class="form-control session-type">
+                  <option value="Morning">Morning</option>
+                  <option value="Noon">Noon</option>
+                </select>
+                <input type="time" formControlName="from" class="form-control" placeholder="From">
+                <input type="time" formControlName="to" class="form-control" placeholder="To">
+                <button 
+                  type="button" 
+                  class="btn-remove" 
+                  (click)="removeSession(dayIndex, sessionIndex)">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+            <div class="no-sessions" *ngIf="getDaySessions(dayIndex).length === 0">
+              <p>No sessions scheduled</p>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="closeScheduleModal()">Cancel</button>
+      <button class="btn btn-primary" (click)="saveSchedule()">Save Changes</button>
+    </div>
+  </div>
+</div>

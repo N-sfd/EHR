@@ -1,0 +1,348 @@
+<div class="epic-scheduler">
+  <!-- Patient Search (if no patient selected) -->
+  <div class="patient-search-banner" *ngIf="!selectedPatient">
+    <div class="search-container">
+      <input 
+        type="text" 
+        class="patient-search-input" 
+        placeholder="Search patient by name, MRN, or phone to begin scheduling..."
+        [(ngModel)]="patientSearchTerm"
+        (keyup.enter)="searchPatient()"
+      />
+      <button class="btn-primary" (click)="searchPatient()">
+        <i class="fas fa-search"></i> Search
+      </button>
+      <button class="btn-secondary" (click)="router.navigate(['/admin/prelude/search'])">
+        <i class="fas fa-user-plus"></i> Create New Patient
+      </button>
+    </div>
+    <div class="search-results" *ngIf="patientSearchResults.length > 0">
+      <div class="result-item" *ngFor="let patient of patientSearchResults" (click)="selectPatientFromSearch(patient)">
+        <strong>{{ patient.firstName }} {{ patient.lastName }}</strong>
+        <span>MRN: {{ patient.patientCode || 'N/A' }}</span>
+        <span>DOB: {{ patient.dateOfBirth }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Zone 1: Patient Header (Top Strip - Mandatory) -->
+  <div class="patient-header" *ngIf="selectedPatient">
+    <div class="patient-header-content">
+      <div class="patient-name" (click)="router.navigate(['/admin/prelude/patient', selectedPatient.id])">
+        {{ selectedPatient.firstName }} {{ selectedPatient.lastName }}
+      </div>
+      <div class="patient-info">
+        <span class="mrn">MRN: {{ selectedPatient.patientCode || 'N/A' }}</span>
+        <span class="dob">DOB: {{ selectedPatient.dateOfBirth }} ({{ calculateAge(selectedPatient.dateOfBirth) }} yrs)</span>
+        <span class="sex">Sex: {{ selectedPatient.gender || 'N/A' }}</span>
+      </div>
+      <div class="patient-alerts" *ngIf="patientAlerts.length > 0">
+        <span class="alert-badge" *ngFor="let alert of patientAlerts">{{ alert }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Zone 2 & 3: Main Layout -->
+  <div class="scheduler-layout">
+    <!-- Zone 2: Provider Schedule Grid (LEFT) -->
+    <div class="provider-grid-section">
+      <div class="grid-header">
+        <h3>Provider Schedule</h3>
+        <div class="date-navigation">
+          <button class="btn-icon" (click)="previousDay()">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <input type="date" [(ngModel)]="selectedDate" (change)="onDateChange()" class="date-input">
+          <button class="btn-icon" (click)="nextDay()">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+          <button class="btn-secondary" (click)="goToToday()">Today</button>
+        </div>
+      </div>
+
+      <!-- Provider Selection -->
+      <div class="provider-selection">
+        <h4>Select Providers:</h4>
+        <div class="provider-checkboxes">
+          <label *ngFor="let provider of providers" class="provider-checkbox">
+            <input 
+              type="checkbox" 
+              [checked]="selectedProviders.includes(provider.id || 0)"
+              (change)="onProviderToggle(provider.id || 0)"
+            />
+            <span>{{ provider.firstName }} {{ provider.lastName }}</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Schedule Grid -->
+      <div class="schedule-grid-container">
+        <div class="grid-wrapper">
+          <!-- Time Column -->
+          <div class="time-column">
+            <div class="time-header">Time</div>
+            <div class="time-slots">
+              <div class="time-label" *ngFor="let hour of getTimeSlots()">
+                {{ formatTimeLabel(hour) }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Provider Columns -->
+          <div class="providers-columns">
+            <div class="provider-column" *ngFor="let grid of scheduleGrids">
+              <div class="provider-header">
+                <div class="provider-name">{{ grid.providerName || 'Provider ' + grid.providerId }}</div>
+              </div>
+              <div class="provider-slots">
+                <div 
+                  *ngFor="let slot of grid.timeSlots"
+                  [class]="getSlotClass(slot)"
+                  (click)="onSlotClick(slot, grid.providerId)"
+                  [title]="getSlotTooltip(slot)"
+                >
+                  <div class="slot-time">{{ formatTime(slot.startTime) }}</div>
+                  <div class="slot-content" *ngIf="slot.appointment">
+                    <div class="patient-name-small">{{ slot.appointment.patientName }}</div>
+                    <div class="visit-type-small">{{ slot.appointment.visitType || 'Visit' }}</div>
+                  </div>
+                  <div class="slot-available-text" *ngIf="slot.status === 'AVAILABLE'">
+                    Available
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legend -->
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-color slot-available"></div>
+          <span>Available</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color slot-booked"></div>
+          <span>Booked</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color slot-overbook"></div>
+          <span>Overbook</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color slot-blocked"></div>
+          <span>Blocked</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Zone 3: Appointment Details Panel (RIGHT) -->
+    <div class="appointment-details-section">
+      <div class="details-header">
+        <h3>Appointment Details</h3>
+      </div>
+
+      <!-- Section A: Patient Information (Read-only) -->
+      <div class="details-section" *ngIf="selectedPatient">
+        <h4 class="section-title">Patient Information</h4>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Patient Name:</label>
+            <span>{{ selectedPatient.firstName }} {{ selectedPatient.lastName }}</span>
+          </div>
+          <div class="info-item">
+            <label>MRN:</label>
+            <span>{{ selectedPatient.patientCode || 'N/A' }}</span>
+          </div>
+          <div class="info-item">
+            <label>DOB:</label>
+            <span>{{ selectedPatient.dateOfBirth }}</span>
+          </div>
+          <div class="info-item">
+            <label>Contact:</label>
+            <span>{{ selectedPatient.phoneNumber || 'N/A' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section B: Appointment Basics -->
+      <div class="details-section">
+        <h4 class="section-title">Appointment Basics</h4>
+        <div class="form-grid">
+          <div class="form-group" [class.has-error]="validationErrors.includes('Appointment date is required')">
+            <label>Appointment Date <span class="required">*</span></label>
+            <input 
+              type="date" 
+              [(ngModel)]="appointment.appointmentDate" 
+              (change)="validateAppointment()"
+              class="form-input"
+            />
+          </div>
+          <div class="form-group" [class.has-error]="validationErrors.includes('Appointment time is required')">
+            <label>Start Time <span class="required">*</span></label>
+            <input 
+              type="time" 
+              [(ngModel)]="appointment.appointmentTime" 
+              (change)="validateAppointment()"
+              class="form-input"
+            />
+          </div>
+          <div class="form-group" [class.has-error]="validationErrors.includes('Duration is required')">
+            <label>Duration (minutes) <span class="required">*</span></label>
+            <select 
+              [(ngModel)]="appointment.durationMinutes" 
+              (change)="validateAppointment()"
+              class="form-input"
+            >
+              <option value="15">15 min</option>
+              <option value="30">30 min</option>
+              <option value="45">45 min</option>
+              <option value="60">60 min</option>
+            </select>
+          </div>
+          <div class="form-group" [class.has-error]="validationErrors.includes('Visit type is required')">
+            <label>Visit Type <span class="required">*</span></label>
+            <select 
+              [(ngModel)]="appointment.visitType" 
+              (change)="onVisitTypeChange()"
+              class="form-input"
+            >
+              <option value="">Select...</option>
+              <option *ngFor="let type of visitTypes" [value]="type">{{ type }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select [(ngModel)]="appointment.status" class="form-input">
+              <option value="Schedule">Schedule</option>
+              <option value="Confirmed">Confirmed</option>
+              <option value="Arrived">Arrived</option>
+              <option value="Checked In">Checked In</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Appointment Type</label>
+            <select [(ngModel)]="appointment.appointmentType" class="form-input">
+              <option value="In Person">In Person</option>
+              <option value="Online">Online</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section C: Provider & Location -->
+      <div class="details-section">
+        <h4 class="section-title">Provider & Location</h4>
+        <div class="form-grid">
+          <div class="form-group" [class.has-error]="validationErrors.includes('Provider is required')">
+            <label>Provider <span class="required">*</span></label>
+            <select 
+              [(ngModel)]="appointment.doctorId" 
+              (change)="validateAppointment()"
+              class="form-input"
+            >
+              <option value="">Select Provider...</option>
+              <option *ngFor="let provider of providers" [value]="provider.id">
+                {{ provider.firstName }} {{ provider.lastName }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Department</label>
+            <select [(ngModel)]="appointment.departmentId" class="form-input">
+              <option value="">Select Department...</option>
+              <option *ngFor="let dept of departments" [value]="dept.id">
+                {{ dept.name }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Location</label>
+            <input 
+              type="text" 
+              [(ngModel)]="appointment.location" 
+              placeholder="Room number, address, etc."
+              class="form-input"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Section D: Reason for Visit -->
+      <div class="details-section">
+        <h4 class="section-title">Reason for Visit</h4>
+        <div class="form-group">
+          <label>Visit Reason</label>
+          <input 
+            type="text" 
+            [(ngModel)]="appointment.reason" 
+            placeholder="e.g., Annual physical"
+            class="form-input"
+          />
+        </div>
+        <div class="form-group">
+          <label>Chief Complaint</label>
+          <textarea 
+            [(ngModel)]="appointment.notes" 
+            placeholder="e.g., Knee pain"
+            rows="3"
+            class="form-input"
+          ></textarea>
+        </div>
+        <div class="form-group">
+          <label>Scheduling Notes</label>
+          <textarea 
+            [(ngModel)]="appointment.notes" 
+            placeholder="Free text notes"
+            rows="2"
+            class="form-input"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Section E: Insurance Snapshot (Read-only) -->
+      <div class="details-section" *ngIf="appointment.insuranceInfo">
+        <h4 class="section-title">Insurance Snapshot</h4>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Primary Insurance:</label>
+            <span>{{ appointment.insuranceInfo.payerName || 'N/A' }}</span>
+          </div>
+          <div class="info-item">
+            <label>Eligibility:</label>
+            <span class="eligibility-status">Active</span>
+          </div>
+          <div class="info-item" *ngIf="appointment.insuranceInfo.copayAmount">
+            <label>Copay:</label>
+            <span>${{ appointment.insuranceInfo.copayAmount }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section F: Validation Errors -->
+      <div class="validation-errors" *ngIf="validationErrors.length > 0">
+        <div class="error-item" *ngFor="let error of validationErrors">
+          <i class="fas fa-exclamation-circle"></i> {{ error }}
+        </div>
+      </div>
+
+      <!-- Section F: Appointment Actions -->
+      <div class="details-section actions-section">
+        <div class="action-buttons">
+          <button 
+            class="btn-primary" 
+            (click)="saveAppointment()" 
+            [disabled]="isSaving || validationErrors.length > 0"
+          >
+            <i class="fas fa-calendar-check"></i> {{ isSaving ? 'Saving...' : 'Schedule' }}
+          </button>
+          <button class="btn-secondary" (click)="router.navigate(['/admin/appointments'])">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

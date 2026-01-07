@@ -1,0 +1,19 @@
+<nav class="prelude-sidebar" role="navigation" aria-label="Patient navigation">
+  <ul class="sidebar-menu">
+    <li
+      *ngFor="let item of items; let i = index"
+      class="sidebar-item"
+      [class.active]="selectedIndex === i"
+      [class.focused]="focusedIndex === i"
+      (click)="onItemClick(item, i)"
+      (keydown)="onKeyDown($event, i)"
+      [tabindex]="focusedIndex === i ? 0 : -1"
+      role="menuitem"
+      [attr.aria-current]="selectedIndex === i ? 'page' : null"
+    >
+      <i [class]="item.icon" class="sidebar-icon"></i>
+      <span class="sidebar-label">{{ item.label }}</span>
+    </li>
+  </ul>
+</nav>
+

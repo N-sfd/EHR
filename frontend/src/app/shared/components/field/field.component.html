@@ -1,0 +1,22 @@
+<div class="field" [class.has-error]="error">
+  <label [for]="id || label" class="field-label">
+    {{ label }}
+    <span class="required-asterisk" *ngIf="required">*</span>
+  </label>
+  <input
+    [id]="id || label"
+    [type]="type"
+    [value]="value"
+    [placeholder]="placeholder"
+    [disabled]="disabled"
+    (input)="onInput($event)"
+    (blur)="onTouched()"
+    class="field-input"
+    [class.error]="error"
+  />
+  <div class="field-hint" *ngIf="hint && !error">{{ hint }}</div>
+  <div class="field-error" *ngIf="error">
+    <i class="fas fa-exclamation-circle"></i> {{ error }}
+  </div>
+</div>
+

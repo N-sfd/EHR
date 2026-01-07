@@ -1,0 +1,43 @@
+<div class="table-container">
+  <div class="table-loading" *ngIf="loading">
+    <i class="fas fa-spinner fa-spin"></i> Loading...
+  </div>
+
+  <table class="epic-table" [class.striped]="striped" [class.hoverable]="hoverable">
+    <thead>
+      <tr>
+        <th 
+          *ngFor="let column of columns" 
+          [style.width]="column.width"
+          [class.sortable]="column.sortable"
+          (click)="sort(column)"
+        >
+          {{ column.label }}
+          <i 
+            *ngIf="column.sortable" 
+            class="fas" 
+            [ngClass]="getSortIcon(column)"
+          ></i>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let row of data; let i = index">
+        <td *ngFor="let column of columns" [style.width]="column.width">
+          <ng-container *ngIf="column.template; else defaultCell">
+            <ng-container *ngTemplateOutlet="column.template; context: { $implicit: row, column: column }"></ng-container>
+          </ng-container>
+          <ng-template #defaultCell>
+            {{ row[column.key] }}
+          </ng-template>
+        </td>
+      </tr>
+      <tr *ngIf="data.length === 0 && !loading">
+        <td [attr.colspan]="columns.length" class="empty-message">
+          {{ emptyMessage }}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+

@@ -1,0 +1,19 @@
+<div class="tabs-container" [class.tabs-pills]="variant === 'pills'">
+  <div class="tabs-header">
+    <button
+      *ngFor="let tab of tabs"
+      class="tab-button"
+      [class.active]="tab.active"
+      [class.disabled]="tab.disabled"
+      [class.tab-pill]="variant === 'pills'"
+      (click)="!tab.disabled && selectTab(tab)"
+    >
+      <i *ngIf="tab.icon" class="fas" [ngClass]="tab.icon"></i>
+      {{ tab.label }}
+    </button>
+  </div>
+  <div class="tabs-content">
+    <ng-content></ng-content>
+  </div>
+</div>
+

@@ -1,0 +1,407 @@
+<div class="workflow-demo">
+  <div class="demo-header">
+    <h1>EHR Workflow Demo</h1>
+    <p class="subtitle">Complete patient journey from search to provider encounter</p>
+    <button class="btn-reset" (click)="resetWorkflow()">
+      <i class="fas fa-redo"></i> Reset Workflow
+    </button>
+  </div>
+
+  <!-- Workflow Steps Progress -->
+  <div class="workflow-progress">
+    <div 
+      *ngFor="let step of workflowSteps; let i = index"
+      class="step-indicator"
+      [class.active]="i === currentStep"
+      [class.completed]="step.status === 'completed'"
+      [class.error]="step.status === 'error'"
+      (click)="goToStep(i)"
+    >
+      <div class="step-number">{{ i + 1 }}</div>
+      <div class="step-title">{{ step.title }}</div>
+    </div>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <div class="alert alert-success" *ngIf="successMessage">
+    <i class="fas fa-check-circle"></i> {{ successMessage }}
+  </div>
+  <div class="alert alert-error" *ngIf="errorMessage">
+    <i class="fas fa-exclamation-circle"></i> {{ errorMessage }}
+  </div>
+
+  <!-- Step Content -->
+  <div class="workflow-content">
+    <!-- Step 1: Patient Search -->
+    <div class="step-panel" *ngIf="currentStep === 0">
+      <h2>{{ workflowSteps[0].title }}</h2>
+      <p>{{ workflowSteps[0].description }}</p>
+
+      <div class="search-section">
+        <div class="search-input-group">
+          <input 
+            type="text" 
+            [(ngModel)]="patientSearchQuery"
+            (keyup.enter)="searchPatients()"
+            placeholder="Search by name, MRN, phone, DOB..."
+            class="search-input"
+          />
+          <button class="btn-primary" (click)="searchPatients()" [disabled]="isSearching">
+            <i class="fas fa-search"></i> {{ isSearching ? 'Searching...' : 'Search' }}
+          </button>
+        </div>
+
+        <div class="search-results" *ngIf="searchResults.length > 0">
+          <h3>Search Results</h3>
+          <div class="result-item" *ngFor="let patient of searchResults" (click)="selectPatient(patient)">
+            <div class="patient-info">
+              <strong>{{ patient.firstName }} {{ patient.lastName }}</strong>
+              <span>MRN: {{ patient.patientCode || 'N/A' }}</span>
+              <span>DOB: {{ patient.dateOfBirth }}</span>
+              <span>Phone: {{ patient.phoneNumber || 'N/A' }}</span>
+            </div>
+            <button class="btn-select">Select</button>
+          </div>
+        </div>
+
+        <div class="selected-patient" *ngIf="selectedPatient">
+          <h3>Selected Patient</h3>
+          <div class="patient-card">
+            <div class="patient-header">
+              <strong>{{ selectedPatient.firstName }} {{ selectedPatient.lastName }}</strong>
+              <span class="mrn">MRN: {{ selectedPatient.patientCode }}</span>
+            </div>
+            <div class="patient-details">
+              <div><strong>DOB:</strong> {{ selectedPatient.dateOfBirth }} ({{ selectedPatient.dateOfBirth ? calculateAge(selectedPatient.dateOfBirth) : 'N/A' }} yrs)</div>
+              <div><strong>Sex:</strong> {{ selectedPatient.gender }}</div>
+              <div><strong>Phone:</strong> {{ selectedPatient.phoneNumber || 'N/A' }}</div>
+              <div><strong>Email:</strong> {{ selectedPatient.emailAddress || 'N/A' }}</div>
+            </div>
+            <div class="patient-actions">
+              <button class="btn-secondary" (click)="router.navigate(['/admin/prelude/patient', selectedPatient.id])">
+                View Demographics
+              </button>
+              <button class="btn-secondary" (click)="router.navigate(['/admin/prelude/patient', selectedPatient.id, 'insurance'])">
+                View Coverage
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Schedule Appointment -->
+    <div class="step-panel" *ngIf="currentStep === 1">
+      <h2>{{ workflowSteps[1].title }}</h2>
+      <p>{{ workflowSteps[1].description }}</p>
+
+      <div class="schedule-section" *ngIf="selectedPatient">
+        <div class="info-box">
+          <p><strong>Patient:</strong> {{ selectedPatient.firstName }} {{ selectedPatient.lastName }}</p>
+          <p>Click the button below to open the scheduling interface where you can select a time slot and create an appointment.</p>
+        </div>
+        <button class="btn-primary btn-large" (click)="goToScheduling()">
+          <i class="fas fa-calendar-plus"></i> Open Scheduling
+        </button>
+        <p class="help-text">After scheduling, return here to continue the workflow.</p>
+
+        <div class="appointment-info" *ngIf="selectedAppointment">
+          <h3>Appointment Scheduled</h3>
+          <div class="info-card">
+            <div><strong>Appointment Code:</strong> {{ selectedAppointment.appointmentCode }}</div>
+            <div><strong>Date:</strong> {{ selectedAppointment.appointmentDate }}</div>
+            <div><strong>Time:</strong> {{ selectedAppointment.appointmentTime }}</div>
+            <div><strong>Status:</strong> {{ selectedAppointment.status }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="warning-box" *ngIf="!selectedPatient">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>Please complete Step 1 (Patient Search) first.</p>
+      </div>
+    </div>
+
+    <!-- Step 3: Check-in -->
+    <div class="step-panel" *ngIf="currentStep === 2">
+      <h2>{{ workflowSteps[2].title }}</h2>
+      <p>{{ workflowSteps[2].description }}</p>
+
+      <div class="checkin-section" *ngIf="selectedAppointment">
+        <div class="appointment-summary">
+          <h3>Appointment Summary</h3>
+          <div class="info-card">
+            <div><strong>Patient:</strong> {{ selectedPatient?.firstName }} {{ selectedPatient?.lastName }}</div>
+            <div><strong>Appointment:</strong> {{ selectedAppointment.appointmentCode }}</div>
+            <div><strong>Date:</strong> {{ selectedAppointment.appointmentDate }}</div>
+            <div><strong>Time:</strong> {{ selectedAppointment.appointmentTime }}</div>
+            <div><strong>Current Status:</strong> {{ selectedAppointment.status }}</div>
+          </div>
+        </div>
+
+        <div class="checkin-actions">
+          <button 
+            class="btn-primary" 
+            (click)="checkIn('ARRIVED')"
+            [disabled]="isLoading || selectedAppointment.status === 'Checked In'"
+          >
+            <i class="fas fa-user-check"></i> Mark as Arrived
+          </button>
+          <button 
+            class="btn-primary" 
+            (click)="checkIn('CHECKED_IN')"
+            [disabled]="isLoading || selectedAppointment.status === 'Checked In'"
+          >
+            <i class="fas fa-check-circle"></i> Check In
+          </button>
+        </div>
+
+        <div class="validation-errors" *ngIf="checkInErrors.length > 0">
+          <h4>Check-in Validation Errors:</h4>
+          <ul>
+            <li *ngFor="let error of checkInErrors">{{ error }}</li>
+          </ul>
+        </div>
+
+        <div class="status-badge" *ngIf="checkInStatus">
+          <i class="fas fa-check"></i>
+          Patient {{ checkInStatus === 'ARRIVED' ? 'Arrived' : 'Checked In' }}
+        </div>
+      </div>
+
+      <div class="warning-box" *ngIf="!selectedAppointment">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>Please complete Step 2 (Schedule Appointment) first.</p>
+      </div>
+    </div>
+
+    <!-- Step 4: Create Encounter -->
+    <div class="step-panel" *ngIf="currentStep === 3">
+      <h2>{{ workflowSteps[3].title }}</h2>
+      <p>{{ workflowSteps[3].description }}</p>
+
+      <div class="encounter-section" *ngIf="selectedAppointment">
+        <div class="info-box">
+          <p>Once the patient is checked in, create an encounter to begin the clinical workflow.</p>
+        </div>
+
+        <!-- Registration Completeness Banner -->
+        <app-registration-completeness-banner 
+          *ngIf="selectedPatient"
+          [patient]="selectedPatient"
+          (updateRequested)="onUpdateRequested()"
+          style="margin-bottom: 20px;"
+        ></app-registration-completeness-banner>
+
+        <button 
+          class="btn-primary btn-large" 
+          (click)="createEncounter()"
+          [disabled]="isLoading || selectedAppointment.status !== 'Checked In' || !!selectedEncounter || !canCreateEncounter()"
+          [title]="!canCreateEncounter() ? 'Complete registration: ' + registrationBlockers.join(', ') : ''"
+        >
+          <i class="fas fa-file-medical"></i> {{ selectedEncounter ? 'Encounter Created' : 'Create Encounter' }}
+        </button>
+
+        <div class="warning-box" *ngIf="registrationBlockers.length > 0">
+          <i class="fas fa-exclamation-triangle"></i>
+          <p>Registration incomplete. Missing: {{ registrationBlockers.join(', ') }}</p>
+          <button class="btn-secondary" (click)="onUpdateRequested()" style="margin-top: 8px;">
+            <i class="fas fa-edit"></i> Fix Now
+          </button>
+        </div>
+
+        <div class="encounter-info" *ngIf="selectedEncounter">
+          <h3>Encounter Created</h3>
+          <div class="info-card">
+            <div><strong>Encounter ID:</strong> {{ selectedEncounter.encounterId }}</div>
+            <div><strong>Status:</strong> {{ selectedEncounter.encounterStatus || 'ROOMING' }}</div>
+            <div><strong>Patient:</strong> {{ selectedPatient?.firstName }} {{ selectedPatient?.lastName }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="warning-box" *ngIf="!selectedAppointment || selectedAppointment.status !== 'Checked In'">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>Patient must be checked in before creating encounter.</p>
+      </div>
+    </div>
+
+    <!-- Step 5: Nurse Rooming -->
+    <div class="step-panel" *ngIf="currentStep === 4">
+      <h2>{{ workflowSteps[4].title }}</h2>
+      <p>{{ workflowSteps[4].description }}</p>
+
+      <div class="rooming-section" *ngIf="selectedEncounter">
+        <form class="rooming-form">
+          <div class="form-section">
+            <h3>Vital Signs</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Blood Pressure</label>
+                <input type="text" [(ngModel)]="roomingData.vitals.bloodPressure" name="bp" placeholder="120/80" />
+              </div>
+              <div class="form-group">
+                <label>Temperature (°F)</label>
+                <input type="number" [(ngModel)]="roomingData.vitals.temperature" name="temp" step="0.1" />
+              </div>
+              <div class="form-group">
+                <label>Pulse (bpm)</label>
+                <input type="number" [(ngModel)]="roomingData.vitals.pulse" name="pulse" />
+              </div>
+              <div class="form-group">
+                <label>Respiratory Rate</label>
+                <input type="number" [(ngModel)]="roomingData.vitals.respiratoryRate" name="rr" />
+              </div>
+              <div class="form-group">
+                <label>Oxygen Saturation (%)</label>
+                <input type="number" [(ngModel)]="roomingData.vitals.oxygenSaturation" name="spo2" step="0.1" />
+              </div>
+              <div class="form-group">
+                <label>Height (cm)</label>
+                <input type="number" [(ngModel)]="roomingData.vitals.height" name="height" (blur)="calculateBMI()" />
+              </div>
+              <div class="form-group">
+                <label>Weight (kg)</label>
+                <input type="number" [(ngModel)]="roomingData.vitals.weight" name="weight" (blur)="calculateBMI()" />
+              </div>
+              <div class="form-group">
+                <label>BMI</label>
+                <input type="text" [value]="roomingData.vitals.bmi" readonly />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Chief Complaint</h3>
+            <textarea 
+              [(ngModel)]="roomingData.chiefComplaint" 
+              name="complaint"
+              rows="3"
+              placeholder="Enter chief complaint..."
+            ></textarea>
+          </div>
+
+          <div class="form-section">
+            <h3>Medication Reconciliation</h3>
+            <textarea 
+              [(ngModel)]="roomingData.medications" 
+              name="meds"
+              rows="4"
+              placeholder="List current medications..."
+            ></textarea>
+          </div>
+
+          <div class="form-section">
+            <h3>Allergies</h3>
+            <textarea 
+              [(ngModel)]="roomingData.allergies" 
+              name="allergies"
+              rows="2"
+              placeholder="List known allergies..."
+            ></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-primary" (click)="saveRooming()" [disabled]="isLoading">
+              <i class="fas fa-save"></i> {{ isLoading ? 'Saving...' : 'Save Rooming' }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="warning-box" *ngIf="!selectedEncounter">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>Please complete Step 4 (Create Encounter) first.</p>
+      </div>
+    </div>
+
+    <!-- Step 6: Provider Encounter -->
+    <div class="step-panel" *ngIf="currentStep === 5">
+      <h2>{{ workflowSteps[5].title }}</h2>
+      <p>{{ workflowSteps[5].description }}</p>
+
+      <div class="provider-section" *ngIf="selectedEncounter">
+        <form class="provider-form">
+          <div class="form-section">
+            <h3>Diagnoses</h3>
+            <div class="diagnoses-list">
+              <div class="diagnosis-item" *ngFor="let diagnosis of providerData.diagnoses; let i = index">
+                <span>{{ diagnosis }}</span>
+                <button type="button" class="btn-icon" (click)="removeDiagnosis(i)">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+            <button type="button" class="btn-secondary" (click)="addDiagnosis()">
+              <i class="fas fa-plus"></i> Add Diagnosis
+            </button>
+          </div>
+
+          <div class="form-section">
+            <h3>Orders</h3>
+            <div class="orders-list">
+              <div class="order-item" *ngFor="let order of providerData.orders; let i = index">
+                <span>{{ order }}</span>
+                <button type="button" class="btn-icon" (click)="removeOrder(i)">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+            <button type="button" class="btn-secondary" (click)="addOrder()">
+              <i class="fas fa-plus"></i> Add Order
+            </button>
+          </div>
+
+          <div class="form-section">
+            <h3>SOAP Note</h3>
+            <textarea 
+              [(ngModel)]="providerData.soapNote" 
+              name="soap"
+              rows="10"
+              placeholder="Enter SOAP note..."
+            ></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-primary" (click)="saveProviderEncounter()" [disabled]="isLoading">
+              <i class="fas fa-save"></i> {{ isLoading ? 'Saving...' : 'Complete Encounter' }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="warning-box" *ngIf="!selectedEncounter">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>Please complete previous steps first.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <div class="workflow-navigation">
+    <button 
+      class="btn-secondary" 
+      (click)="previousStep()"
+      [disabled]="currentStep === 0"
+    >
+      <i class="fas fa-chevron-left"></i> Previous
+    </button>
+    <button 
+      class="btn-primary" 
+      (click)="nextStep()"
+      [disabled]="currentStep === workflowSteps.length - 1"
+    >
+      Next <i class="fas fa-chevron-right"></i>
+    </button>
+  </div>
+
+  <!-- Patient Update Drawer -->
+  <app-patient-update-drawer
+    *ngIf="selectedPatient"
+    [patient]="selectedPatient"
+    [isOpen]="showUpdateDrawer"
+    (close)="onDrawerClose()"
+    (saved)="onPatientSaved($event)"
+  ></app-patient-update-drawer>
+</div>
+

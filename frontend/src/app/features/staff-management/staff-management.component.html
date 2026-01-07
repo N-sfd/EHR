@@ -1,0 +1,47 @@
+<div class="staff-management-container">
+  <div class="page-header">
+    <div class="header-content">
+      <a routerLink="/admin/dashboard" class="back-link-header">
+        <i class="fas fa-chevron-left"></i> STAFF MANAGEMENT
+      </a>
+      <div class="header-icon">
+        <i class="fas fa-users"></i>
+      </div>
+      <div class="header-text">
+        <h1>Staff Management</h1>
+        <p>Manage staff members, roles, and department assignments</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs-container">
+    <button 
+      class="tab-button" 
+      [class.active]="activeTab === 'directory'"
+      (click)="setActiveTab('directory')">
+      <i class="fas fa-address-book"></i>
+      Directory
+    </button>
+    <button 
+      class="tab-button" 
+      [class.active]="activeTab === 'roles'"
+      (click)="setActiveTab('roles')">
+      <i class="fas fa-user-shield"></i>
+      Roles
+    </button>
+    <button 
+      class="tab-button" 
+      [class.active]="activeTab === 'assignments'"
+      (click)="setActiveTab('assignments')">
+      <i class="fas fa-link"></i>
+      Assignments
+    </button>
+  </div>
+
+  <div class="tab-content">
+    <app-staff-directory *ngIf="activeTab === 'directory'"></app-staff-directory>
+    <app-roles-management *ngIf="activeTab === 'roles'"></app-roles-management>
+    <app-role-assignments *ngIf="activeTab === 'assignments'"></app-role-assignments>
+  </div>
+</div>
+

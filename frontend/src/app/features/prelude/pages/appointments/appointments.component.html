@@ -1,0 +1,27 @@
+<div class="appointments-page">
+  <app-card title="Upcoming Appointments">
+    <div class="appointments-list" *ngIf="!isLoading && appointments.length > 0">
+      <div class="appointment-item" *ngFor="let appointment of appointments">
+        <div class="appointment-date">
+          <div class="date-value">{{ appointment.date | date:'MMM d' }}</div>
+          <div class="time-value">{{ appointment.time }}</div>
+        </div>
+        <div class="appointment-details">
+          <div class="appointment-provider">{{ appointment.provider }}</div>
+          <div class="appointment-location">{{ appointment.location }}</div>
+          <div class="appointment-type">{{ appointment.type }}</div>
+        </div>
+        <div class="appointment-status">
+          <app-badge variant="info">{{ appointment.status }}</app-badge>
+        </div>
+      </div>
+    </div>
+    <div class="empty-state" *ngIf="!isLoading && appointments.length === 0">
+      <p>No upcoming appointments.</p>
+    </div>
+    <div class="loading-state" *ngIf="isLoading">
+      <p>Loading appointments...</p>
+    </div>
+  </app-card>
+</div>
+

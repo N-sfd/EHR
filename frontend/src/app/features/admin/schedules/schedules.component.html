@@ -1,0 +1,280 @@
+<div class="schedules">
+  <div class="schedules-header">
+    <h2>Provider Schedules</h2>
+    <p class="subtitle">Configure provider schedule templates, clinic hours, and overbook rules</p>
+  </div>
+
+  <div class="schedules-layout">
+    <!-- Left Panel: Provider List -->
+    <div class="providers-panel">
+      <h3>Providers</h3>
+      
+      <!-- Search Box -->
+      <div class="provider-search">
+        <i class="fas fa-search search-icon"></i>
+        <input 
+          type="text" 
+          [(ngModel)]="providerSearchQuery"
+          (input)="onProviderSearch()"
+          placeholder="Search by name, specialty..."
+          class="search-input"
+        />
+      </div>
+
+      <!-- Loading State -->
+      <div class="loading-state" *ngIf="isLoadingProviders">
+        <div class="spinner"></div>
+        <p>Loading providers...</p>
+      </div>
+
+      <!-- Error State -->
+      <div class="error-state" *ngIf="errorMessage && !isLoadingProviders">
+        <i class="fas fa-exclamation-circle"></i>
+        <p>{{ errorMessage }}</p>
+      </div>
+
+      <!-- Providers List -->
+      <div class="providers-list" *ngIf="!isLoadingProviders && !errorMessage">
+        <div 
+          *ngFor="let provider of filteredProviders"
+          class="provider-item"
+          [class.active]="selectedProviderId === provider.id"
+          (click)="selectTemplate(provider.id)"
+        >
+          <div class="provider-avatar-small">
+            <img [src]="getProviderAvatar(provider)" [alt]="provider.name" (error)="onImageError($event, provider)" />
+          </div>
+          <div class="provider-info">
+            <div class="provider-name">{{ provider.name }}</div>
+            <div class="provider-specialty">
+              <span class="specialty-badge">{{ provider.specialty }}</span>
+            </div>
+            <div class="provider-department">{{ provider.department }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="!isLoadingProviders && !errorMessage && filteredProviders.length === 0">
+        <div class="empty-content">
+          <i class="fas fa-user-md empty-icon"></i>
+          <p *ngIf="providers.length === 0">No providers available</p>
+          <p *ngIf="providers.length > 0">No providers match your search</p>
+          <button 
+            *ngIf="providers.length === 0"
+            class="btn-primary seed-btn" 
+            (click)="seedDemoProviders()"
+          >
+            <i class="fas fa-seedling"></i> Seed Demo Providers
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel: Schedule Editor -->
+    <div class="schedule-editor" *ngIf="isEditing">
+      <!-- Loading State for Schedule -->
+      <div class="loading-state" *ngIf="isLoading">
+        <div class="spinner"></div>
+        <p>Loading schedule...</p>
+      </div>
+
+      <div *ngIf="!isLoading">
+        <div class="editor-header">
+          <h3>{{ selectedTemplate?.providerName || 'New Schedule' }}</h3>
+        </div>
+
+        <form [formGroup]="scheduleForm" (ngSubmit)="saveSchedule()" class="schedule-form">
+          <!-- Basic Settings -->
+          <div class="form-section">
+            <h4>Basic Settings</h4>
+            <div class="form-grid">
+              <div class="form-group" [class.has-error]="isFieldInvalid('providerId')">
+                <label>Provider <span class="required">*</span></label>
+                <select formControlName="providerId" class="form-input" [disabled]="!!selectedTemplate">
+                  <option value="">Select Provider...</option>
+                  <option *ngFor="let provider of providers" [value]="provider.id">
+                    {{ provider.name }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="form-group" [class.has-error]="isFieldInvalid('location')">
+                <label>Location <span class="required">*</span></label>
+                <input type="text" formControlName="location" class="form-input" placeholder="Main Clinic" />
+              </div>
+
+              <div class="form-group" [class.has-error]="isFieldInvalid('slotDurationMinutes')">
+                <label>Slot Duration <span class="required">*</span></label>
+                <select formControlName="slotDurationMinutes" class="form-input">
+                  <option *ngFor="let duration of slotDurations" [value]="duration">
+                    {{ duration }} min
+                  </option>
+                </select>
+              </div>
+
+              <div class="form-group checkbox-group">
+                <label>
+                  <input type="checkbox" formControlName="isActive" />
+                  Active Schedule
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Clinic Hours -->
+          <div class="form-section">
+            <h4>Clinic Hours</h4>
+            <div class="clinic-hours-grid">
+              <div class="day-hours" *ngFor="let day of daysOfWeek">
+                <div class="day-header">
+                  <label class="day-checkbox">
+                    <input 
+                      type="checkbox" 
+                      [checked]="scheduleForm.get('clinicHours')?.get(day.key)?.get('isOpen')?.value"
+                      (change)="onDayToggle(day.key, $event)"
+                    />
+                    <span>{{ day.label }}</span>
+                  </label>
+                </div>
+                <div class="day-times" *ngIf="scheduleForm.get('clinicHours')?.get(day.key)?.get('isOpen')?.value">
+                  <input 
+                    type="time" 
+                    [value]="scheduleForm.get('clinicHours')?.get(day.key)?.get('startTime')?.value || '09:00'"
+                    (change)="onTimeChange(day.key, 'startTime', $event)"
+                    class="time-input"
+                  />
+                  <span>to</span>
+                  <input 
+                    type="time" 
+                    [value]="scheduleForm.get('clinicHours')?.get(day.key)?.get('endTime')?.value || '17:00'"
+                    (change)="onTimeChange(day.key, 'endTime', $event)"
+                    class="time-input"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Blocked Times -->
+          <div class="form-section">
+            <div class="section-header">
+              <h4>Blocked Ranges</h4>
+              <button type="button" class="btn-secondary" (click)="addBlockedTime()">
+                <i class="fas fa-plus"></i> Add Blocked Time
+              </button>
+            </div>
+            <div formArrayName="blockedTimes">
+              <div 
+                *ngFor="let blockedTime of blockedTimesArray.controls; let i = index"
+                [formGroupName]="i"
+                class="blocked-time-item"
+              >
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label>Day</label>
+                    <input type="date" formControlName="startDate" class="form-input" />
+                  </div>
+                  <div class="form-group">
+                    <label>Start Time</label>
+                    <input type="time" formControlName="startTime" class="form-input" />
+                  </div>
+                  <div class="form-group">
+                    <label>End Time</label>
+                    <input type="time" formControlName="endTime" class="form-input" />
+                  </div>
+                  <div class="form-group">
+                    <label>Reason</label>
+                    <input type="text" formControlName="reason" class="form-input" placeholder="Lunch Break" />
+                  </div>
+                  <div class="form-group checkbox-group">
+                    <label>
+                      <input type="checkbox" formControlName="isRecurring" />
+                      Recurring
+                    </label>
+                  </div>
+                </div>
+                <button type="button" class="btn-icon btn-danger" (click)="removeBlockedTime(i)">
+                  <i class="fas fa-trash"></i> Remove
+                </button>
+              </div>
+              <div class="empty-state" *ngIf="blockedTimesArray.length === 0">
+                <p>No blocked times configured</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Overbook Rules -->
+          <div class="form-section">
+            <div class="section-header">
+              <h4>Overbook Rules</h4>
+              <button type="button" class="btn-secondary" (click)="addOverbookRule()">
+                <i class="fas fa-plus"></i> Add Rule
+              </button>
+            </div>
+            <div formArrayName="overbookRules">
+              <div 
+                *ngFor="let rule of overbookRulesArray.controls; let i = index"
+                [formGroupName]="i"
+                class="overbook-rule-item"
+              >
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label>Visit Type ID</label>
+                    <input type="number" formControlName="visitTypeId" class="form-input" />
+                  </div>
+                  <div class="form-group">
+                    <label>Max Overbook Count</label>
+                    <input type="number" formControlName="maxOverbookCount" class="form-input" min="1" />
+                  </div>
+                  <div class="form-group">
+                    <label>Allowed Days</label>
+                    <select formControlName="allowedDays" class="form-input" multiple size="3">
+                      <option value="MONDAY">Monday</option>
+                      <option value="TUESDAY">Tuesday</option>
+                      <option value="WEDNESDAY">Wednesday</option>
+                      <option value="THURSDAY">Thursday</option>
+                      <option value="FRIDAY">Friday</option>
+                      <option value="SATURDAY">Saturday</option>
+                      <option value="SUNDAY">Sunday</option>
+                    </select>
+                  </div>
+                  <div class="form-group checkbox-group">
+                    <label>
+                      <input type="checkbox" formControlName="isActive" />
+                      Active
+                    </label>
+                  </div>
+                </div>
+                <button type="button" class="btn-icon btn-danger" (click)="removeOverbookRule(i)">
+                  <i class="fas fa-trash"></i> Remove
+                </button>
+              </div>
+              <div class="empty-state" *ngIf="overbookRulesArray.length === 0">
+                <p>No overbook rules configured</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" [disabled]="scheduleForm.invalid || isLoading">
+              <i class="fas fa-save"></i> Save Schedule
+            </button>
+            <button type="button" class="btn-secondary" (click)="cancelEdit()">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Empty State for Right Panel -->
+    <div class="empty-state-panel" *ngIf="!isEditing">
+      <div class="empty-content">
+        <i class="fas fa-calendar-alt empty-icon"></i>
+        <p>Select a provider to configure schedule</p>
+      </div>
+    </div>
+  </div>
+</div>
