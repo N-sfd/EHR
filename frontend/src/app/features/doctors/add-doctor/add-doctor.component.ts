@@ -13,12 +13,11 @@ import { StaffService } from '../../../core/services/staff.service';
 import { Staff } from '../../../core/models/staff.model';
 import { LocationService } from '../../../core/services/location.service';
 import { LocationDto } from '../../../core/models/location.model';
-import { DepartmentService } from '../../../core/services/department.service';
+import { MasterDataService } from '../../../core/services/master-data.service';
 import { Department } from '../../../core/models/department.model';
-import { DesignationService } from '../../../core/services/designation.service';
 import { Designation } from '../../../core/models/designation.model';
-import { SpecializationService } from '../../../core/services/specialization.service';
 import { SpecializationDto } from '../../../core/models/specialization.model';
+import { MasterDepartment, MasterDesignation, MasterSpecialization } from '../../../core/models/master-data.model';
 import { AddDepartmentModalComponent } from '../../../shared/components/add-department-modal/add-department-modal.component';
 import { DoctorService } from '../../../core/services/doctor.service';
 
@@ -60,9 +59,7 @@ export class AddDoctorComponent implements OnInit {
   private staffService = inject(StaffService);
   private doctorService = inject(DoctorService);
   private locationService = inject(LocationService);
-  private departmentService = inject(DepartmentService);
-  private designationService = inject(DesignationService);
-  private specializationService = inject(SpecializationService);
+  private masterDataService = inject(MasterDataService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
@@ -184,50 +181,59 @@ export class AddDoctorComponent implements OnInit {
         }
       };
       
-      this.specializationService.getAll().subscribe({
-        next: (s) => {
-          this.specializations = s.map(spec => ({
-            ...spec,
-            id: spec.specializationId || spec.id
+      this.masterDataService.getSpecializations().subscribe({
+        next: (masterSpecs: MasterSpecialization[]) => {
+          this.specializations = masterSpecs.map(spec => ({
+            id: Number(spec.id) || undefined,
+            specializationId: Number(spec.id) || undefined,
+            name: spec.name,
+            code: spec.code,
+            departmentId: spec.departmentId ? Number(spec.departmentId) : undefined,
+            description: spec.description,
+            status: spec.active ? 'ACTIVE' : 'INACTIVE'
           }));
           checkComplete();
         },
         error: (err) => {
           console.error('Error loading specializations', err);
+          this.specializations = [];
           checkComplete();
         }
       });
       
-      this.departmentService.getAll().subscribe({
-        next: (d) => {
-          // Map backend fields to frontend model and remove duplicates by id
-          const mapped = d.map(dept => ({
-            ...dept,
-            id: dept.departmentId || dept.id,
-            name: dept.name || '',
-            code: dept.code || ''
+      this.masterDataService.getDepartments().subscribe({
+        next: (masterDepts: MasterDepartment[]) => {
+          this.departments = masterDepts.map(dept => ({
+            id: dept.id,
+            departmentId: Number(dept.id) || undefined,
+            name: dept.name,
+            code: dept.code,
+            description: dept.description,
+            active: dept.active,
+            status: dept.active ? 'ACTIVE' : 'INACTIVE',
+            specialtyGroup: dept.specialtyGroup
           }));
-          // Remove duplicates by id
-          this.departments = Array.from(
-            new Map(mapped.map(dept => [dept.id, dept])).values()
-          );
           console.log('Departments loaded:', this.departments.length);
           checkComplete();
         },
         error: (err) => {
           console.error('Error loading departments', err);
+          this.departments = [];
           checkComplete();
         }
       });
       
-          this.designationService.getAll().subscribe({
-        next: (designations) => {
+      this.masterDataService.getDesignations().subscribe({
+        next: (masterDes: MasterDesignation[]) => {
           // Map designationId to id for consistency and remove duplicates
-          const mapped = designations.map(des => ({
-            ...des,
-            id: des.designationId || des.id,
-            // Ensure departmentId is properly set - convert to number for comparison
-            departmentId: des.departmentId ? Number(des.departmentId) : undefined
+          const mapped = masterDes.map(des => ({
+            id: Number(des.id) || undefined,
+            designationId: Number(des.id) || undefined,
+            title: des.name,
+            code: des.code,
+            description: des.description,
+            status: des.active ? 'ACTIVE' : 'INACTIVE',
+            active: des.active
           }));
           // Remove duplicates by id
           this.designations = Array.from(
@@ -400,34 +406,52 @@ export class AddDoctorComponent implements OnInit {
 
   onDepartmentAdded(department: Department) {
     // Reload departments and auto-select the new one
-    this.departmentService.getAll().subscribe({
-      next: (departments) => {
-        const mapped = departments.map(d => ({
-          ...d,
-          id: d.departmentId || d.id,
-          name: d.name || '',
-          code: d.code || ''
+    this.masterDataService.getDepartments().subscribe({
+      next: (masterDepts: MasterDepartment[]) => {
+        this.departments = masterDepts.map(dept => ({
+          id: dept.id,
+          departmentId: Number(dept.id) || undefined,
+          name: dept.name,
+          code: dept.code,
+          description: dept.description,
+          active: dept.active,
+          status: dept.active ? 'ACTIVE' : 'INACTIVE',
+          specialtyGroup: dept.specialtyGroup
         }));
-        // Remove duplicates by id
-        this.departments = Array.from(
-          new Map(mapped.map(dept => [dept.id, dept])).values()
-        );
+        // Add the newly created department if not already in list
         const deptId = department.departmentId || department.id;
+        if (deptId && !this.departments.find(d => (d.departmentId || d.id) === deptId)) {
+          this.departments.push(department);
+        }
         if (deptId) {
-          this.form.patchValue({ departmentId: deptId });
+          const numId = typeof deptId === 'string' ? Number(deptId) : deptId;
+          if (!isNaN(numId)) {
+            this.form.patchValue({ departmentId: numId });
+          }
         }
       },
-      error: (err) => console.error('Error reloading departments', err)
+      error: (err) => {
+        console.error('Error reloading departments', err);
+        // Add the new department anyway
+        if (department && !this.departments.find(d => (d.departmentId || d.id) === (department.departmentId || department.id))) {
+          this.departments.push(department);
+        }
+      }
     });
   }
 
   onDesignationAdded(designation: Designation) {
     // Reload designations and auto-select the new one
-    this.designationService.getAll().subscribe({
-      next: (designations) => {
-        const mapped = designations.map(des => ({
-          ...des,
-          id: des.designationId || des.id
+    this.masterDataService.getDesignations().subscribe({
+      next: (masterDes: MasterDesignation[]) => {
+        const mapped = masterDes.map(des => ({
+          id: Number(des.id) || undefined,
+          designationId: Number(des.id) || undefined,
+          title: des.name,
+          code: des.code,
+          description: des.description,
+          status: des.active ? 'ACTIVE' : 'INACTIVE',
+          active: des.active
         }));
         // Remove duplicates by id
         this.designations = Array.from(
@@ -495,7 +519,8 @@ export class AddDoctorComponent implements OnInit {
       const phone = staff.phoneNumber || staff.phone || '';
       
       // Get department ID - check both departmentId and department object
-      const departmentId = staff.departmentId || staff.department?.departmentId || staff.department?.id || null;
+      const deptIdRaw = staff.departmentId || staff.department?.departmentId || staff.department?.id || null;
+      const departmentId = deptIdRaw !== null ? (typeof deptIdRaw === 'string' ? Number(deptIdRaw) : deptIdRaw) : null;
       
       // Get designation ID - check designationId, jobId, and designation object
       const designationId = staff.designationId || staff.jobId || staff.designation?.designationId || staff.designation?.id || null;

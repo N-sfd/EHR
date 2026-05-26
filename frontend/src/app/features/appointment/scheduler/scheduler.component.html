@@ -1,0 +1,417 @@
+<div class="scheduler">
+  <!-- Step Indicator -->
+  <div class="step-indicator">
+    <div class="step-item" 
+         *ngFor="let step of steps" 
+         [class.active]="currentStep === step.number"
+         [class.completed]="currentStep > step.number"
+         [class.disabled]="!canProceedToStep(step.number) && currentStep < step.number"
+         (click)="goToStep(step.number)">
+      <div class="step-number">
+        <i class="fa" [ngClass]="currentStep > step.number ? 'fa-check' : step.icon"></i>
+      </div>
+      <div class="step-label">{{ step.title }}</div>
+    </div>
+  </div>
+
+  <!-- Server Error Banner -->
+  <div class="server-error-banner" *ngIf="serverErrors.length > 0">
+    <div class="error-banner-content">
+      <i class="fa fa-exclamation-circle"></i>
+      <div class="error-messages">
+        <div class="error-message" *ngFor="let error of serverErrors">{{ error }}</div>
+      </div>
+      <button class="error-close" (click)="serverErrors = []">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Step 1: Patient Selection -->
+  <div class="step-content" *ngIf="currentStep === 1">
+  <!-- Patient Search (if no patient selected) -->
+  <div class="patient-search-banner" *ngIf="!selectedPatient">
+    <div class="search-container">
+      <input 
+        type="text" 
+        class="patient-search-input" 
+        placeholder="Search patient by name, MRN, or phone to begin scheduling..."
+        [(ngModel)]="patientSearchTerm"
+        (input)="onPatientSearchInput()"
+        (keyup.enter)="searchPatient()"
+        (focus)="onPatientSearchInput()"
+        (blur)="onPatientSearchBlur()"
+        data-testid="patient-search-input"
+      />
+      <button class="btn-primary" (click)="searchPatient()">
+        <i class="fas fa-search"></i> Search
+      </button>
+      <button class="btn-secondary" (click)="router.navigate(['/admin/patients/add'])">
+        <i class="fas fa-user-plus"></i> Create New Patient
+      </button>
+    </div>
+    <div class="search-results" *ngIf="showPatientSearchResults && patientSearchResults.length > 0" data-testid="patient-search-results">
+      <div class="result-item" *ngFor="let patient of patientSearchResults" (click)="selectPatientFromSearch(patient)">
+        <img class="patient-avatar-result" [src]="patient.photoUrl || 'assets/avatars/patient-default.png'" alt="" *ngIf="patient.photoUrl" />
+        <div class="patient-initials-result" *ngIf="!patient.photoUrl">
+          {{ ((patient.firstName && patient.firstName[0]) || '') + ((patient.lastName && patient.lastName[0]) || '') }}
+        </div>
+        <div class="result-info">
+        <strong>{{ patient.firstName }} {{ patient.lastName }}</strong>
+          <div class="result-meta">
+            <span>
+              <i class="fa fa-id-card"></i>
+              MRN: {{ patient.patientCode || 'N/A' }}
+            </span>
+            <span>
+              <i class="fa fa-calendar"></i>
+              DOB: {{ patient.dateOfBirth }}
+            </span>
+            <span *ngIf="patient.phoneNumber">
+              <i class="fa fa-phone"></i>
+              {{ patient.phoneNumber }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="search-results empty" *ngIf="showPatientSearchResults && patientSearchResults.length === 0 && patientSearchTerm.length >= 2">
+      <div class="result-item">No patients found</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Zone 1: Patient Header (Top Strip - Mandatory) -->
+  <div class="patient-header" *ngIf="selectedPatient">
+    <div class="patient-header-content">
+      <img class="patient-avatar" [src]="selectedPatient.photoUrl || 'assets/avatars/patient-default.png'" alt="" />
+      <div class="patient-name" (click)="router.navigate(['/admin/patients/edit', selectedPatient.id])">
+        {{ selectedPatient.firstName }} {{ selectedPatient.lastName }}
+      </div>
+      <button class="btn-clear-patient" (click)="clearSelectedPatient()" title="Clear selected patient">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="patient-info">
+        <span class="mrn">MRN: {{ selectedPatient.patientCode || 'N/A' }}</span>
+        <span class="dob">DOB: {{ selectedPatient.dateOfBirth || 'N/A' }}<span *ngIf="selectedPatient.dateOfBirth"> ({{ getPatientAge() }} yrs)</span></span>
+        <span class="sex">Sex: {{ selectedPatient.gender || 'N/A' }}</span>
+      </div>
+      <div class="patient-alerts" *ngIf="patientAlerts.length > 0">
+        <span class="alert-badge" *ngFor="let alert of patientAlerts">{{ alert }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Appointment Details -->
+  <div class="step-content" *ngIf="currentStep === 2">
+    <div class="scheduler-layout">
+      <div class="appointment-details-section">
+        <div class="details-header">
+          <h3><i class="fa fa-calendar"></i> Appointment Details</h3>
+        </div>
+
+        <!-- Conflict Warning -->
+        <div class="conflict-warning" *ngIf="hasConflict">
+          <i class="fa fa-exclamation-triangle"></i>
+          <div class="warning-text">
+            This appointment time may conflict with an existing appointment. Please verify availability.
+          </div>
+        </div>
+
+        <!-- Section B: Appointment Basics -->
+        <div class="details-section">
+          <h4 class="section-title"><i class="fa fa-clock"></i> Appointment Basics</h4>
+          <div class="form-grid">
+            <div class="form-group" [class.has-error]="validationErrors.includes('Appointment date is required')">
+              <label>Appointment Date <span class="required">*</span></label>
+              <input 
+                type="date" 
+                [(ngModel)]="appointment.appointmentDate" 
+                (change)="onDateTimeChange()"
+                class="form-input"
+                data-testid="appointment-date"
+              />
+            </div>
+            <div class="form-group" [class.has-error]="validationErrors.includes('Appointment time is required')">
+              <label>Start Time <span class="required">*</span></label>
+              <input 
+                type="time" 
+                [(ngModel)]="appointment.appointmentTime" 
+                (change)="onDateTimeChange()"
+                class="form-input"
+                data-testid="appointment-time"
+              />
+            </div>
+            <div class="form-group" [class.has-error]="validationErrors.includes('Duration is required') || validationErrors.includes('Duration must be greater than 0')">
+              <label>Duration (minutes) <span class="required">*</span></label>
+              <select 
+                [(ngModel)]="appointment.durationMinutes" 
+                (change)="onDurationChange()"
+                class="form-input"
+                data-testid="appointment-duration"
+              >
+                <option value="15">15 min</option>
+                <option value="30">30 min</option>
+                <option value="45">45 min</option>
+                <option value="60">60 min</option>
+                <option value="90">90 min</option>
+                <option value="120">120 min</option>
+              </select>
+            </div>
+            <div class="form-group" *ngIf="appointment.appointmentDate && appointment.appointmentTime && appointment.durationMinutes">
+              <label>End Time</label>
+              <input 
+                type="text" 
+                [value]="getEndTime()" 
+                class="form-input"
+                readonly
+              />
+            </div>
+            <div class="form-group" [class.has-error]="validationErrors.includes('Visit type is required')">
+              <label>Visit Type <span class="required">*</span></label>
+              <select 
+                [(ngModel)]="appointment.visitType" 
+                (change)="onVisitTypeChange()"
+                class="form-input"
+                data-testid="appointment-visit-type"
+              >
+                <option value="">Select...</option>
+                <option *ngFor="let type of visitTypes" [value]="type">{{ type }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Status</label>
+              <select [(ngModel)]="appointment.status" class="form-input">
+                <option value="Schedule">Schedule</option>
+                <option value="Confirmed">Confirmed</option>
+                <option value="Arrived">Arrived</option>
+                <option value="Checked In">Checked In</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Appointment Type</label>
+              <select [(ngModel)]="appointment.appointmentType" class="form-input">
+                <option value="In Person">In Person</option>
+                <option value="Online">Online</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section D: Reason for Visit -->
+        <div class="details-section">
+          <h4 class="section-title"><i class="fa fa-file-medical"></i> Reason for Visit</h4>
+          <div class="form-group">
+            <label>Visit Reason</label>
+            <input 
+              type="text" 
+              [(ngModel)]="appointment.reason" 
+              placeholder="e.g., Annual physical"
+              class="form-input"
+              data-testid="appointment-reason"
+            />
+          </div>
+          <div class="form-group">
+            <label>Chief Complaint</label>
+            <textarea 
+              [(ngModel)]="appointment.notes" 
+              placeholder="e.g., Knee pain"
+              rows="3"
+              class="form-input"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label>Scheduling Notes</label>
+            <textarea 
+              [(ngModel)]="appointment.notes" 
+              placeholder="Free text notes"
+              rows="2"
+              class="form-input"
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="details-section">
+          <div class="quick-actions">
+            <button class="btn-quick-action" (click)="duplicateAppointment()" title="Duplicate this appointment">
+              <i class="fa fa-copy"></i> Duplicate
+            </button>
+            <button class="btn-quick-action" (click)="saveAsTemplate()" title="Save as template">
+              <i class="fa fa-bookmark"></i> Save Template
+            </button>
+          </div>
+        </div>
+
+        <!-- Step Navigation -->
+        <div class="step-navigation">
+          <button class="btn-secondary" (click)="previousStep()">
+            <i class="fa fa-chevron-left"></i> Previous
+          </button>
+          <button class="btn-primary" (click)="nextStep()" [disabled]="!canProceedToStep(3)">
+            Next <i class="fa fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: Provider & Location -->
+  <div class="step-content" *ngIf="currentStep === 3">
+    <div class="scheduler-layout">
+      <div class="appointment-details-section">
+        <div class="details-header">
+          <h3><i class="fa fa-user-md"></i> Provider & Location</h3>
+      </div>
+
+        <!-- Section C: Provider & Location -->
+        <div class="details-section">
+          <h4 class="section-title"><i class="fa fa-building"></i> Provider & Location</h4>
+          <div class="form-grid">
+            <div class="form-group" [class.has-error]="validationErrors.includes('Provider is required')">
+              <label>Provider <span class="required">*</span></label>
+              <select 
+                [(ngModel)]="appointment.doctorId" 
+                (change)="validateAppointment(); checkConflict()"
+                class="form-input"
+                data-testid="appointment-provider"
+              >
+                <option value="">Select Provider...</option>
+                <option *ngFor="let provider of providers" [value]="provider.id">
+                  {{ provider.firstName }} {{ provider.lastName }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Department</label>
+              <select [(ngModel)]="appointment.departmentId" class="form-input">
+                <option value="">Select Department...</option>
+                <option *ngFor="let dept of departments" [value]="dept.id">
+                  {{ dept.name }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Location</label>
+              <input 
+                type="text" 
+                [(ngModel)]="appointment.location" 
+                placeholder="Room number, address, etc."
+                class="form-input"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Section E: Insurance Snapshot (Read-only) -->
+        <div class="details-section" *ngIf="appointment.insuranceInfo">
+          <h4 class="section-title"><i class="fa fa-shield-alt"></i> Insurance Snapshot</h4>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Primary Insurance:</label>
+              <span>{{ appointment.insuranceInfo.payerName || 'N/A' }}</span>
+            </div>
+            <div class="info-item">
+              <label>Eligibility:</label>
+              <span class="eligibility-status">Active</span>
+            </div>
+            <div class="info-item" *ngIf="appointment.insuranceInfo.copayAmount">
+              <label>Copay:</label>
+              <span>${{ appointment.insuranceInfo.copayAmount }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step Navigation -->
+        <div class="step-navigation">
+          <button class="btn-secondary" (click)="previousStep()">
+            <i class="fa fa-chevron-left"></i> Previous
+          </button>
+          <button class="btn-primary" (click)="nextStep()" [disabled]="!canProceedToStep(4)">
+            Next <i class="fa fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 4: Review & Confirm -->
+  <div class="step-content" *ngIf="currentStep === 4">
+    <div class="scheduler-layout">
+      <div class="appointment-details-section">
+        <div class="details-header">
+          <h3><i class="fa fa-check-circle"></i> Review & Confirm</h3>
+        </div>
+
+        <div class="details-section">
+          <div class="review-section">
+            <div class="review-item">
+              <label>Patient:</label>
+              <span>{{ selectedPatient?.firstName }} {{ selectedPatient?.lastName }}</span>
+            </div>
+            <div class="review-item">
+              <label>MRN:</label>
+              <span>{{ selectedPatient?.patientCode || 'N/A' }}</span>
+            </div>
+            <div class="review-item">
+              <label>Appointment Date:</label>
+              <span>{{ appointment.appointmentDate || 'Not set' }}</span>
+            </div>
+            <div class="review-item">
+              <label>Start Time:</label>
+              <span>{{ appointment.appointmentTime || 'Not set' }}</span>
+            </div>
+            <div class="review-item">
+              <label>End Time:</label>
+              <span>{{ getEndTime() || 'Not set' }}</span>
+            </div>
+            <div class="review-item">
+              <label>Duration:</label>
+              <span>{{ appointment.durationMinutes || 0 }} minutes</span>
+            </div>
+            <div class="review-item">
+              <label>Provider:</label>
+              <span>{{ getProviderName(appointment.doctorId || 0) || 'Not selected' }}</span>
+            </div>
+            <div class="review-item">
+              <label>Department:</label>
+              <span>{{ getDepartmentName(appointment.departmentId || 0) || 'Not selected' }}</span>
+            </div>
+            <div class="review-item">
+              <label>Visit Type:</label>
+              <span>{{ appointment.visitType || 'Not selected' }}</span>
+            </div>
+            <div class="review-item">
+              <label>Status:</label>
+              <span>{{ appointment.status || 'Schedule' }}</span>
+            </div>
+            <div class="review-item">
+              <label>Appointment Type:</label>
+              <span>{{ appointment.appointmentType || 'In Person' }}</span>
+            </div>
+            <div class="review-item" *ngIf="appointment.reason">
+              <label>Visit Reason:</label>
+              <span>{{ appointment.reason }}</span>
+            </div>
+            <div class="review-item" *ngIf="appointment.location">
+              <label>Location:</label>
+              <span>{{ appointment.location }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step Navigation -->
+        <div class="step-navigation">
+          <button class="btn-secondary" (click)="previousStep()">
+            <i class="fa fa-chevron-left"></i> Previous
+          </button>
+          <button class="btn-primary" (click)="saveAppointment()" [disabled]="isSaving || !validateAppointment()">
+            <i class="fa fa-save" *ngIf="!isSaving"></i>
+            <i class="fa fa-spinner fa-spin" *ngIf="isSaving"></i>
+            {{ isSaving ? 'Saving...' : 'Save Appointment' }}
+          </button>
+      </div>
+    </div>
+  </div>
+</div>
+

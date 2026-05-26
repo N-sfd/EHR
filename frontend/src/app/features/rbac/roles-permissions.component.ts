@@ -54,21 +54,21 @@ export class RolesPermissionsComponent implements OnInit {
   loadRoles() {
     this.isLoading = true;
     this.roleService.getAll().subscribe({
-      next: (roles) => {
-        const mapped = roles.map(r => ({
+      next: (roles: RoleDto[]) => {
+        const mapped = roles.map((r: RoleDto) => ({
           ...r,
           roleId: r.roleId || r.id,
           id: r.roleId || r.id,
           status: r.status || 'ACTIVE'
-        }));
+        })) as Role[];
         // Remove duplicates by id
         this.roles = Array.from(
-          new Map(mapped.map(role => [role.id, role])).values()
-        );
+          new Map(mapped.map((role: Role) => [role.id, role])).values()
+        ) as Role[];
         this.loadRolePermissions();
         this.isLoading = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error loading roles:', err);
         this.errorMessage = 'Failed to load roles';
         this.isLoading = false;
@@ -239,7 +239,7 @@ export class RolesPermissionsComponent implements OnInit {
           this.closeModals();
           this.loadRoles();
         },
-        error: (err) => {
+        error: (err: any) => {
           console.error('Error creating role:', err);
           this.isLoading = false;
           
@@ -279,7 +279,7 @@ export class RolesPermissionsComponent implements OnInit {
           this.closeModals();
           this.loadRoles();
         },
-        error: (err) => {
+        error: (err: any) => {
           console.error('Error updating role:', err);
           this.isLoading = false;
           
@@ -315,7 +315,7 @@ export class RolesPermissionsComponent implements OnInit {
         this.closeModals();
         this.loadRoles();
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error deleting role:', err);
         const errorMessage = err?.error?.message || err?.message || 'Error deleting role. Please try again.';
         alert(errorMessage);

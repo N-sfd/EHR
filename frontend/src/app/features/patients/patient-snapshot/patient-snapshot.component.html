@@ -1,0 +1,347 @@
+<div class="patient-snapshot" *ngIf="!isLoading && !error && patient">
+  <!-- Header Strip -->
+  <div class="snapshot-header">
+    <div class="header-left">
+      <h1 class="patient-name">{{ patient.firstName }} {{ patient.lastName }}</h1>
+      <div class="patient-meta">
+        <span class="meta-item">MRN: {{ patient.patientCode || patient.mrn || 'N/A' }}</span>
+        <span class="meta-item" *ngIf="patient.dateOfBirth">
+          DOB: {{ formatDate(patient.dateOfBirth) }} (Age: {{ getAge(patient.dateOfBirth) }})
+        </span>
+        <span class="meta-item" *ngIf="patient.gender || patient.sex">
+          {{ patient.gender || patient.sex }}
+        </span>
+        <span class="status-badge" [ngClass]="'status-' + (patient.status?.toLowerCase() || 'active')">
+          {{ patient.status || 'ACTIVE' }}
+        </span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" (click)="openUpdateDrawer()" *ngIf="canEdit">
+        <i class="fas fa-edit"></i> Update Patient
+      </button>
+      <button class="btn btn-secondary" (click)="addActivity()" *ngIf="canEdit">
+        <i class="fas fa-plus"></i> Add Activity
+      </button>
+      <button class="btn btn-secondary" (click)="print()">
+        <i class="fas fa-print"></i> Print
+      </button>
+      <button class="btn btn-secondary" (click)="close()">
+        <i class="fas fa-times"></i> Close
+      </button>
+    </div>
+  </div>
+
+  <!-- Body: 2-Column Grid -->
+  <div class="snapshot-body">
+    <!-- LEFT COLUMN -->
+    <div class="snapshot-left">
+      <!-- Guarantor Overview -->
+      <div class="panel guarantor-panel">
+        <div class="panel-header">
+          <h3>Guarantor Overview</h3>
+        </div>
+        <div class="panel-content" *ngIf="guarantor">
+          <div class="guarantor-avatar">
+            <img *ngIf="patient && patient.photoUrl" [src]="patient.photoUrl" [alt]="guarantor.firstName + ' ' + guarantor.lastName" title="Guarantor photo">
+            <div *ngIf="!patient || !patient.photoUrl" class="avatar-placeholder">
+              {{ (guarantor.firstName || 'G').charAt(0).toUpperCase() }}
+            </div>
+          </div>
+          <div class="guarantor-info">
+            <div class="guarantor-name">{{ guarantor.firstName }} {{ guarantor.lastName }}</div>
+            <div class="guarantor-details">
+              <div *ngIf="guarantor.dateOfBirth">DOB: {{ formatDate(guarantor.dateOfBirth) }}</div>
+              <div *ngIf="guarantor.addressLine1">
+                {{ guarantor.addressLine1 }}<br>
+                <span *ngIf="guarantor.addressLine2">{{ guarantor.addressLine2 }}<br></span>
+                <span *ngIf="guarantor.city">{{ guarantor.city }}, </span>
+                <span *ngIf="guarantor.state">{{ guarantor.state }} </span>
+                <span *ngIf="guarantor.zipCode">{{ guarantor.zipCode }}</span>
+              </div>
+              <div class="guarantor-phones">
+                <div *ngIf="guarantor.homePhone"><strong>Home:</strong> {{ guarantor.homePhone | phoneFormat }}</div>
+                <div *ngIf="guarantor.workPhone"><strong>Work:</strong> {{ guarantor.workPhone | phoneFormat }}</div>
+                <div *ngIf="guarantor.mobilePhone"><strong>Mobile:</strong> {{ guarantor.mobilePhone | phoneFormat }}</div>
+              </div>
+              <div class="mychart-status" *ngIf="guarantor.myChartStatus">
+                <span class="status-badge" [ngClass]="'mychart-' + guarantor.myChartStatus.toLowerCase()">
+                  MyChart: {{ guarantor.myChartStatus }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Balances -->
+      <div class="panel balances-panel">
+        <div class="panel-header">
+          <h3>Balances</h3>
+        </div>
+        <div class="panel-content" *ngIf="balance">
+          <div class="balance-summary">
+            <div class="balance-item">
+              <label>Insurance Balance:</label>
+              <span class="amount">{{ formatCurrency(balance.insuranceBalance) }}</span>
+            </div>
+            <div class="balance-item">
+              <label>Self-Pay Balance:</label>
+              <span class="amount">{{ formatCurrency(balance.selfPayBalance) }}</span>
+            </div>
+            <div class="balance-item total">
+              <label>Total Balance:</label>
+              <span class="amount">{{ formatCurrency(balance.totalBalance) }}</span>
+            </div>
+          </div>
+          <div class="aging-bars">
+            <h4>Aging Summary</h4>
+            <div class="aging-item">
+              <label>0-30 days:</label>
+              <div class="aging-bar">
+                <div class="aging-fill" [style.width.%]="(balance.aging['0-30'] / balance.totalBalance) * 100" *ngIf="balance.totalBalance > 0"></div>
+              </div>
+              <span class="aging-amount">{{ formatCurrency(balance.aging['0-30']) }}</span>
+            </div>
+            <div class="aging-item">
+              <label>31-60 days:</label>
+              <div class="aging-bar">
+                <div class="aging-fill" [style.width.%]="(balance.aging['31-60'] / balance.totalBalance) * 100" *ngIf="balance.totalBalance > 0"></div>
+              </div>
+              <span class="aging-amount">{{ formatCurrency(balance.aging['31-60']) }}</span>
+            </div>
+            <div class="aging-item">
+              <label>61-90 days:</label>
+              <div class="aging-bar">
+                <div class="aging-fill" [style.width.%]="(balance.aging['61-90'] / balance.totalBalance) * 100" *ngIf="balance.totalBalance > 0"></div>
+              </div>
+              <span class="aging-amount">{{ formatCurrency(balance.aging['61-90']) }}</span>
+            </div>
+            <div class="aging-item">
+              <label>90+ days:</label>
+              <div class="aging-bar">
+                <div class="aging-fill" [style.width.%]="(balance.aging['90+'] / balance.totalBalance) * 100" *ngIf="balance.totalBalance > 0"></div>
+              </div>
+              <span class="aging-amount">{{ formatCurrency(balance.aging['90+']) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Workqueues / Activity -->
+      <div class="panel activity-panel">
+        <div class="panel-header">
+          <h3>Activity</h3>
+        </div>
+        <div class="panel-content">
+          <div class="activity-list">
+            <div class="activity-item" *ngFor="let activity of activities">
+              <div class="activity-header">
+                <span class="activity-type">{{ activity.type }}</span>
+                <span class="activity-time">{{ getTimeAgo(activity.timestamp) }}</span>
+              </div>
+              <div class="activity-comment">{{ activity.comment }}</div>
+              <div class="activity-meta" *ngIf="activity.createdBy">by {{ activity.createdBy }}</div>
+            </div>
+            <div class="no-activities" *ngIf="activities.length === 0">
+              No activities recorded
+            </div>
+          </div>
+          <div class="add-activity" *ngIf="canEdit">
+            <select class="form-select" [(ngModel)]="newActivityType" title="Select activity type" aria-label="Select activity type">
+              <option value="NOTE">Note</option>
+              <option value="CALL">Call</option>
+              <option value="EMAIL">Email</option>
+              <option value="TASK">Task</option>
+              <option value="ALERT">Alert</option>
+            </select>
+            <input 
+              type="text" 
+              class="form-input" 
+              placeholder="Enter new activity..."
+              [(ngModel)]="newActivityComment"
+              (keyup.enter)="addActivity()">
+            <button class="btn btn-primary btn-sm" (click)="addActivity()">Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="snapshot-right">
+      <!-- Patient and Coverages -->
+      <div class="panel coverages-panel">
+        <div class="panel-header">
+          <h3>Patient and Coverages</h3>
+        </div>
+        <div class="panel-content">
+          <div class="patient-summary">
+            <div class="summary-item">
+              <label>Name:</label>
+              <span>{{ patient.firstName }} {{ patient.lastName }}</span>
+            </div>
+            <div class="summary-item" *ngIf="patient.emailAddress">
+              <label>Email:</label>
+              <span>{{ patient.emailAddress }}</span>
+            </div>
+            <div class="summary-item" *ngIf="patient.phoneNumber">
+              <label>Phone:</label>
+              <span>{{ patient.phoneNumber | phoneFormat }}</span>
+            </div>
+          </div>
+          <div class="coverages-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Payer</th>
+                  <th>Plan</th>
+                  <th>Effective From</th>
+                  <th>Effective To</th>
+                  <th>Member ID</th>
+                  <th>Subscriber</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let coverage of coverages">
+                  <td>{{ coverage.payer }}</td>
+                  <td>{{ coverage.groupNumber || 'N/A' }}</td>
+                  <td>{{ coverage.startDate ? formatDate(coverage.startDate) : 'N/A' }}</td>
+                  <td>{{ coverage.endDate ? formatDate(coverage.endDate) : 'N/A' }}</td>
+                  <td>{{ coverage.memberId }}</td>
+                  <td>{{ patient!.firstName }} {{ patient!.lastName }}</td>
+                  <td>
+                    <span class="status-badge" [ngClass]="'status-' + coverage.eligibilityStatus.toLowerCase()">
+                      {{ coverage.eligibilityStatus }}
+                    </span>
+                  </td>
+                </tr>
+                <tr *ngIf="coverages.length === 0">
+                  <td colspan="7" class="no-data">No coverages found</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visits -->
+      <div class="panel visits-panel">
+        <div class="panel-header">
+          <h3>Visits (Last 3)</h3>
+        </div>
+        <div class="panel-content">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Department</th>
+                <th>Provider</th>
+                <th>Copay</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let visit of visits">
+                <td>{{ formatDate(visit.visitDate) }}</td>
+                <td>{{ visit.department }}</td>
+                <td>{{ visit.provider }}</td>
+                <td>{{ visit.copay ? formatCurrency(visit.copay) : 'N/A' }}</td>
+                <td>
+                  <span class="status-badge" [ngClass]="'status-' + visit.status.toLowerCase()">
+                    {{ visit.status }}
+                  </span>
+                </td>
+              </tr>
+              <tr *ngIf="visits.length === 0">
+                <td colspan="5" class="no-data">No visits found</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Statements -->
+      <div class="panel statements-panel">
+        <div class="panel-header">
+          <h3>Statements (Last 5)</h3>
+        </div>
+        <div class="panel-content">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Invoice #</th>
+                <th>Charged</th>
+                <th>Outstanding</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let statement of statements">
+                <td>{{ formatDate(statement.statementDate) }}</td>
+                <td>{{ statement.invoiceNumber }}</td>
+                <td>{{ formatCurrency(statement.charged) }}</td>
+                <td>{{ formatCurrency(statement.outstanding) }}</td>
+              </tr>
+              <tr *ngIf="statements.length === 0">
+                <td colspan="4" class="no-data">No statements found</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Payments -->
+      <div class="panel payments-panel">
+        <div class="panel-header">
+          <h3>Payments (Last 5)</h3>
+        </div>
+        <div class="panel-content">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Method</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let payment of payments">
+                <td>{{ formatDate(payment.paymentDate) }}</td>
+                <td>{{ payment.paymentType }}</td>
+                <td>{{ formatCurrency(payment.amount) }}</td>
+                <td>{{ payment.paymentMethod }}</td>
+              </tr>
+              <tr *ngIf="payments.length === 0">
+                <td colspan="4" class="no-data">No payments found</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="loading-state" *ngIf="isLoading">
+  <div class="spinner"></div>
+  <p>Loading patient snapshot...</p>
+</div>
+
+<div class="error-state" *ngIf="error">
+  <div class="error-message">
+    <i class="fas fa-exclamation-circle"></i>
+    <p>{{ error }}</p>
+    <button class="btn btn-primary" (click)="close()">Back to Patients</button>
+  </div>
+</div>
+
+<app-patient-update-drawer
+  *ngIf="showUpdateDrawer && patient"
+  [isOpen]="showUpdateDrawer"
+  [patient]="patient"
+  (close)="closeUpdateDrawer()"
+  (saved)="closeUpdateDrawer()">
+</app-patient-update-drawer>
+

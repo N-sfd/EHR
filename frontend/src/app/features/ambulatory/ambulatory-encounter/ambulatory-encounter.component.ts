@@ -14,6 +14,7 @@ import { RoomingFormComponent } from '../rooming-form/rooming-form.component';
 import { ProviderEncounterFormComponent } from '../provider-encounter-form/provider-encounter-form.component';
 import { CheckoutFormComponent } from '../checkout-form/checkout-form.component';
 
+// Clinical Encounter - Single encounter view with workflow navigation
 @Component({
   selector: 'app-ambulatory-encounter',
   standalone: true,

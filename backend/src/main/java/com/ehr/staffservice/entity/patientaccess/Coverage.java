@@ -1,6 +1,7 @@
 package com.ehr.staffservice.entity.patientaccess;
 
 import com.ehr.staffservice.entity.BaseAuditEntity;
+import com.ehr.staffservice.entity.Patient;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -25,7 +26,7 @@ public class Coverage extends BaseAuditEntity {
     private Long patientId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "patient_id", insertable = false, updatable = false)
+    @JoinColumn(name = "patient_id", referencedColumnName = "patient_id", insertable = false, updatable = false)
     private Patient patient;
 
     @Column(name = "payer", length = 200, nullable = false)

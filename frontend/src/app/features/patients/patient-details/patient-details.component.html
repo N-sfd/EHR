@@ -1,0 +1,188 @@
+<div class="page-header" *ngIf="patient">
+  <div class="breadcrumb-section">
+    <a routerLink="/admin/patients" class="back-link">
+      <i class="fas fa-chevron-left chevron-icon"></i>
+      <strong>Patients</strong>
+    </a>
+    <span class="breadcrumb-separator">></span>
+    <span class="breadcrumb-item">Patient Details</span>
+    <span class="breadcrumb-separator">></span>
+    <span class="breadcrumb-item active">{{ patient.firstName }} {{ patient.lastName }}</span>
+  </div>
+  <div class="header-actions">
+    <i class="fas fa-bell notification-icon"></i>
+    <i class="fas fa-search search-icon"></i>
+  </div>
+</div>
+
+<div *ngIf="isLoading" class="loading-state">
+  <div class="spinner"></div>
+  <p>Loading patient details...</p>
+</div>
+
+<div *ngIf="errorMessage" class="error-state card">
+  <div class="card-body">
+    <i class="fas fa-exclamation-triangle"></i>
+    <h4>{{ errorMessage }}</h4>
+    <a routerLink="/admin/patients" class="btn btn-outline">Back to Patients</a>
+  </div>
+</div>
+
+<div *ngIf="patient && !isLoading" class="patient-details-layout">
+  <!-- Patient Information Card -->
+  <section class="patient-info-card card">
+    <div class="patient-profile-section">
+      <div class="patient-avatar-large">
+        <img [src]="getAvatar()" [alt]="patient.firstName + ' ' + patient.lastName + ' profile photo'" [title]="patient.firstName + ' ' + patient.lastName" (error)="onImageError($event)" (click)="openImageModal()" class="clickable-avatar">
+      </div>
+      <div class="patient-basic-info">
+        <div class="patient-info-left">
+          <h2 class="patient-name">{{ patient.firstName }} {{ patient.lastName }}</h2>
+          <p class="patient-mrn">MRN: {{ patient.patientCode || 'N/A' }}</p>
+          <p class="patient-email">{{ patient.email || 'No email provided' }}</p>
+          <div class="patient-status-badge" [ngClass]="'status-' + (getStatus().toLowerCase())">
+            {{ getStatus() }}
+          </div>
+        </div>
+        <div class="patient-info-right">
+          <div class="patient-summary">
+            <strong>Primary Provider</strong>
+            <div class="provider-name">{{ getPrimaryProvider() }}</div>
+          </div>
+          <button class="btn btn-primary book-appointment-btn" (click)="bookAppointment()">
+            <i class="fas fa-calendar-plus"></i> Book Appointment
+          </button>
+          <button class="btn btn-secondary edit-patient-btn" (click)="editPatient()">
+            <i class="fas fa-edit"></i> Edit Patient
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="patient-details-grid">
+      <div class="detail-item">
+        <span class="detail-label">Sex</span>
+        <strong class="detail-value">{{ patient.gender || '-' }}</strong>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Age</span>
+        <strong class="detail-value">{{ getAge() }}</strong>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Blood Group</span>
+        <strong class="detail-value">{{ getBloodGroup() }}</strong>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Status</span>
+        <strong class="detail-value status-active">{{ getStatus() }}</strong>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Date of Birth</span>
+        <strong class="detail-value">{{ getFormattedDate(patient.dateOfBirth) }}</strong>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Registered Date</span>
+        <strong class="detail-value">{{ getRegistrationDate() }}</strong>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Appointments</span>
+        <strong class="detail-value">{{ getAppointmentCount() }}</strong>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Phone</span>
+        <strong class="detail-value">{{ patient.phoneNumber || '-' }}</strong>
+      </div>
+    </div>
+  </section>
+
+  <!-- Patient Medical Information -->
+  <section class="patient-medical-card card">
+    <h3 class="card-title">Medical Information</h3>
+    <div class="medical-grid">
+      <div class="medical-item">
+        <span class="medical-label">Allergies</span>
+        <div class="medical-value">
+          <strong>{{ getAllergies() }}</strong>
+          <span class="medical-status" [ngClass]="patient.allergies ? 'has-data' : 'no-data'">
+            {{ patient.allergies ? 'Recorded' : 'Not recorded' }}
+          </span>
+        </div>
+      </div>
+      <div class="medical-item">
+        <span class="medical-label">Medical History</span>
+        <div class="medical-value">
+          <strong>{{ getMedicalHistory() }}</strong>
+          <span class="medical-status" [ngClass]="patient.medicalHistory ? 'has-data' : 'no-data'">
+            {{ patient.medicalHistory ? 'Recorded' : 'Not recorded' }}
+          </span>
+        </div>
+      </div>
+      <div class="medical-item">
+        <span class="medical-label">Primary Provider</span>
+        <div class="medical-value">
+          <strong>{{ getPrimaryProvider() }}</strong>
+          <span class="medical-status" [ngClass]="patient.primaryDoctorId ? 'has-data' : 'no-data'">
+            {{ patient.primaryDoctorId ? 'Assigned' : 'Not assigned' }}
+          </span>
+        </div>
+      </div>
+      <div class="medical-item">
+        <span class="medical-label">Insurance Provider</span>
+        <div class="medical-value">
+          <strong>{{ patient.insuranceProvider || 'Not specified' }}</strong>
+          <span class="medical-status" [ngClass]="patient.insuranceProvider ? 'has-data' : 'no-data'">
+            {{ patient.insuranceProvider ? 'Active' : 'Not set' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Patient Appointment History -->
+  <section class="patient-history-card card">
+    <div class="card-header-section">
+      <h3 class="card-title">Appointment History</h3>
+      <span class="total-count">Total {{ getAppointmentCount() }} Appointments</span>
+    </div>
+    <div class="history-table-container">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Provider</th>
+            <th>Department</th>
+            <th>Type</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let appointment of getAppointmentHistory()">
+            <td>{{ appointment.date }}</td>
+            <td>{{ appointment.provider }}</td>
+            <td>{{ appointment.department }}</td>
+            <td>{{ appointment.type }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="appointment.statusClass">
+                {{ appointment.status }}
+              </span>
+            </td>
+          </tr>
+          <tr *ngIf="getAppointmentHistory().length === 0">
+            <td colspan="5" class="no-data">No appointment history available</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<!-- Image Modal -->
+<div class="image-modal" *ngIf="showImageModal" (click)="closeImageModal()">
+  <div class="image-modal-content" (click)="$event.stopPropagation()">
+    <button class="image-modal-close" (click)="closeImageModal()" aria-label="Close">
+      <i class="fas fa-times"></i>
+    </button>
+    <img [src]="getFullImageUrl()" [alt]="(patient?.firstName || 'Patient') + ' ' + (patient?.lastName || '') + ' photo'" [title]="(patient?.firstName || 'Patient') + ' ' + (patient?.lastName || '') + ' profile photo'" (error)="onImageError($event)">
+  </div>
+</div>
+

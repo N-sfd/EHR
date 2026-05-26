@@ -1,45 +1,136 @@
-<h2 mat-dialog-title>Add New Appointment</h2>
+<h2 mat-dialog-title>{{ isEditMode ? 'Edit Appointment' : 'Add New Appointment' }}</h2>
 
 <form [formGroup]="form" class="appointment-form">
 
   <mat-dialog-content>
+    <div *ngIf="errorMessage" class="error-message">
+      <i class="fas fa-exclamation-circle"></i>
+      {{ errorMessage }}
+    </div>
 
+    <!-- Patient Search -->
     <mat-form-field appearance="outline" style="width:100%;">
-      <mat-label>Patient Name</mat-label>
-      <input matInput formControlName="patientName" required placeholder="Enter Patient Name">
+      <mat-label>Patient *</mat-label>
+      <input 
+        matInput 
+        [formControl]="patientSearchControl"
+        [matAutocomplete]="patientAuto"
+        placeholder="Search by name, MRN, or phone"
+        required>
+      <mat-autocomplete 
+        #patientAuto="matAutocomplete"
+        [displayWith]="displayPatientFn"
+        (optionSelected)="selectPatient($event.option.value)">
+        <mat-option *ngFor="let patient of filteredPatients" [value]="patient">
+          <div class="patient-option">
+            <span class="patient-name">{{ patient.firstName }} {{ patient.lastName }}</span>
+            <span class="patient-meta">
+              {{ getPatientCode(patient) }} • 
+              {{ patient.phoneNumber || 'No phone' }}
+            </span>
+          </div>
+        </mat-option>
+        <mat-option *ngIf="isSearchingPatients" disabled>
+          <mat-spinner diameter="20" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+          Searching...
+        </mat-option>
+        <mat-option *ngIf="!isSearchingPatients && patientSearchControl.value && filteredPatients.length === 0" disabled>
+          No patients found
+        </mat-option>
+      </mat-autocomplete>
+      <mat-error *ngIf="form.get('patientId')?.hasError('required') && form.get('patientId')?.touched">
+        Patient is required
+      </mat-error>
     </mat-form-field>
 
+    <!-- Provider -->
     <mat-form-field appearance="outline" style="width:100%;">
-      <mat-label>Doctor</mat-label>
-      <mat-select formControlName="doctorId" required>
-        <mat-option value="1">Dr. John Smith</mat-option>
-        <mat-option value="2">Dr. Sarah Lee</mat-option>
+      <mat-label>Provider *</mat-label>
+      <mat-select formControlName="providerId" required>
+        <mat-option *ngFor="let provider of providers" [value]="provider.id">
+          {{ getProviderName(provider) }}
+        </mat-option>
       </mat-select>
+      <mat-error *ngIf="form.get('providerId')?.hasError('required')">Provider is required</mat-error>
     </mat-form-field>
 
+    <!-- Department -->
     <mat-form-field appearance="outline" style="width:100%;">
-      <mat-label>Appointment Date</mat-label>
-      <input matInput [matDatepicker]="picker" formControlName="appointmentDate" required placeholder="Select Appointment Date">
-      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-      <mat-datepicker #picker></mat-datepicker>
+      <mat-label>Department *</mat-label>
+      <mat-select formControlName="departmentId" required>
+        <mat-option *ngFor="let dept of departments" [value]="dept.id || dept.departmentId">
+          {{ dept.name }}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="form.get('departmentId')?.hasError('required')">Department is required</mat-error>
     </mat-form-field>
 
+    <!-- Date, Time, Duration -->
+    <div style="display: flex; gap: 12px;">
+      <mat-form-field appearance="outline" style="flex: 1;">
+        <mat-label>Date *</mat-label>
+        <input matInput [matDatepicker]="picker" formControlName="appointmentDate" required>
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+        <mat-error *ngIf="form.get('appointmentDate')?.hasError('required')">Date is required</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" style="flex: 1;">
+        <mat-label>Time *</mat-label>
+        <input matInput type="time" formControlName="appointmentTime" required>
+        <mat-error *ngIf="form.get('appointmentTime')?.hasError('required')">Time is required</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" style="width: 120px;">
+        <mat-label>Duration *</mat-label>
+        <mat-select formControlName="durationMinutes" required>
+          <mat-option [value]="15">15 min</mat-option>
+          <mat-option [value]="30">30 min</mat-option>
+          <mat-option [value]="45">45 min</mat-option>
+          <mat-option [value]="60">60 min</mat-option>
+          <mat-option [value]="90">90 min</mat-option>
+          <mat-option [value]="120">120 min</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Visit Type and Status -->
+    <div style="display: flex; gap: 12px;">
+      <mat-form-field appearance="outline" style="flex: 1;">
+        <mat-label>Visit Type *</mat-label>
+        <mat-select formControlName="visitType" required>
+          <mat-option *ngFor="let type of visitTypes" [value]="type">{{ type }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" style="flex: 1;">
+        <mat-label>Status *</mat-label>
+        <mat-select formControlName="status" required>
+          <mat-option *ngFor="let status of statuses" [value]="status">{{ status }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Reason -->
     <mat-form-field appearance="outline" style="width:100%;">
-      <mat-label>Appointment Time</mat-label>
-      <input matInput type="time" formControlName="appointmentTime" required placeholder="Select Appointment Time">
+      <mat-label>Reason *</mat-label>
+      <input matInput formControlName="reason" required placeholder="Appointment reason">
+      <mat-error *ngIf="form.get('reason')?.hasError('required')">Reason is required</mat-error>
     </mat-form-field>
 
+    <!-- Notes -->
     <mat-form-field appearance="outline" style="width:100%;">
       <mat-label>Notes</mat-label>
-      <textarea matInput rows="3" formControlName="notes" placeholder="Enter Notes" ></textarea>
+      <textarea matInput rows="3" formControlName="notes" placeholder="Additional notes"></textarea>
     </mat-form-field>
 
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">
-    <button mat-button mat-dialog-close>Cancel</button>
-    <button mat-raised-button color="primary" (click)="save()" [disabled]="form.invalid">
-      Save
+    <button mat-button (click)="cancel()" [disabled]="isLoading">Cancel</button>
+    <button mat-raised-button color="primary" (click)="save()" [disabled]="form.invalid || isLoading">
+      <mat-spinner *ngIf="isLoading" diameter="16" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+      {{ isLoading ? 'Saving...' : (isEditMode ? 'Update' : 'Save') }}
     </button>
   </mat-dialog-actions>
 

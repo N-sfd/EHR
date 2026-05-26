@@ -45,5 +45,30 @@ public class AmbulatoryController {
         EncounterDto updated = encounterService.updateEncounter(id, dto);
         return ResponseEntity.ok(ApiResponse.ok(updated, "Encounter updated successfully"));
     }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse> getAllEncounters() {
+        List<EncounterDto> encounters = encounterService.getAllEncounters();
+        return ResponseEntity.ok(ApiResponse.ok(encounters, "Encounters retrieved successfully"));
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<ApiResponse> updateEncounterStatus(
+            @PathVariable Long id,
+            @RequestParam String status) {
+        EncounterDto updated = encounterService.updateEncounterStatus(id, status);
+        return ResponseEntity.ok(ApiResponse.ok(updated, "Encounter status updated successfully"));
+    }
+
+    @GetMapping("/appointment/{appointmentId}")
+    public ResponseEntity<ApiResponse> getEncounterByAppointmentId(
+            @PathVariable Long appointmentId) {
+        EncounterDto encounter = encounterService.getEncounterByAppointmentId(appointmentId)
+                .orElse(null);
+        if (encounter == null) {
+            return ResponseEntity.ok(ApiResponse.ok(null, "No encounter found for appointment"));
+        }
+        return ResponseEntity.ok(ApiResponse.ok(encounter, "Encounter retrieved successfully"));
+    }
 }
 

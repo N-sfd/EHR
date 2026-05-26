@@ -3,10 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StaffService } from '../../../core/services/staff.service';
 import { RoleService } from '../../../core/services/role.service';
-import { DepartmentService } from '../../../core/services/department.service';
+import { MasterDataService } from '../../../core/services/master-data.service';
 import { Staff } from '../../../core/models/staff.model';
 import { RoleDto } from '../../../core/models/role.model';
 import { DepartmentDto } from '../../../core/models/department.model';
+import { MasterDepartment } from '../../../core/models/master-data.model';
 import { firstValueFrom } from 'rxjs';
 
 interface StaffAssignment {
@@ -59,7 +60,7 @@ export class RoleAssignmentsComponent implements OnInit {
   constructor(
     private staffService: StaffService,
     private roleService: RoleService,
-    private departmentService: DepartmentService
+    private masterDataService: MasterDataService
   ) {}
 
   ngOnInit(): void {
@@ -83,24 +84,31 @@ export class RoleAssignmentsComponent implements OnInit {
     });
     
     this.roleService.getAll().subscribe({
-      next: (roles) => {
-        const mapped = roles.map(r => ({
+      next: (roles: RoleDto[]) => {
+        const mapped = roles.map((r: RoleDto) => ({
           ...r,
           roleId: r.roleId || r.id,
           id: r.roleId || r.id
         }));
         this.roles = Array.from(
-          new Map(mapped.map(role => [role.id, role])).values()
-        );
+          new Map(mapped.map((role: RoleDto) => [role.id, role])).values()
+        ) as RoleDto[];
       },
-      error: (err) => console.error('Error loading roles:', err)
+      error: (err: any) => console.error('Error loading roles:', err)
     });
     
-    this.departmentService.getAll().subscribe({
-      next: (depts) => {
-        this.departments = Array.from(
-          new Map(depts.map(dept => [dept.departmentId || dept.id, dept])).values()
-        );
+    this.masterDataService.getDepartments().subscribe({
+      next: (masterDepts: MasterDepartment[]) => {
+        this.departments = masterDepts.map(dept => ({
+          id: dept.id,
+          departmentId: Number(dept.id) || undefined,
+          name: dept.name,
+          code: dept.code,
+          description: dept.description,
+          active: dept.active,
+          status: dept.active ? 'ACTIVE' : 'INACTIVE',
+          specialtyGroup: dept.specialtyGroup
+        } as DepartmentDto));
       },
       error: (err) => console.error('Error loading departments:', err)
     });
@@ -183,10 +191,11 @@ export class RoleAssignmentsComponent implements OnInit {
     this.selectedRoles = new Set(
       (staff.roles || []).map(r => r.roleId || r.id!).filter(id => id !== undefined)
     );
-    this.selectedDepartment = staff.departmentId ?? 
+    const deptIdRaw = staff.departmentId ?? 
       (staff.department && typeof staff.department === 'object' 
         ? (staff.department.departmentId || staff.department.id || null) 
         : null);
+    this.selectedDepartment = deptIdRaw !== null ? (typeof deptIdRaw === 'string' ? Number(deptIdRaw) : deptIdRaw) : null;
     this.showAssignModal = true;
   }
 

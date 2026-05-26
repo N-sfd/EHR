@@ -3,23 +3,30 @@ package com.ehr.staffservice.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.OptimisticLocking;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
+/**
+ * Appointment Entity (Production-Grade)
+ * Uses startAt/endAt timestamps, optimistic locking, and proper relationships
+ */
 @Entity
-@Table(name = "appointments")
+@Table(name = "appointment", indexes = {
+    @Index(name = "idx_appointment_doctor_start", columnList = "doctor_id,start_datetime"),
+    @Index(name = "idx_appointment_patient_start", columnList = "patient_id,start_datetime"),
+    @Index(name = "idx_appointment_start_datetime", columnList = "start_datetime"),
+    @Index(name = "idx_appointment_status", columnList = "status")
+})
 @Data
 @EqualsAndHashCode(callSuper = false)
+@OptimisticLocking
 public class Appointment extends BaseAuditEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "appointment_id")
-    private Long appointmentId;
-
-    @Column(name = "appointment_code", unique = true, length = 20, nullable = false)
-    private String appointmentCode; // e.g., "AP544658"
+    @Column(name = "id")
+    private Long id;
 
     @Column(name = "patient_id", nullable = false)
     private Long patientId;
@@ -30,68 +37,84 @@ public class Appointment extends BaseAuditEntity {
     @Column(name = "department_id")
     private Long departmentId;
 
-    @Column(name = "appointment_type", length = 20, nullable = false)
-    private String appointmentType; // "In Person" or "Online"
+    @Column(name = "location_id")
+    private Long locationId;
+
+    @Column(name = "room_id")
+    private Long roomId;
+
+    @Column(name = "start_datetime", nullable = false)
+    private LocalDateTime startAt;
+
+    @Column(name = "end_datetime", nullable = false)
+    private LocalDateTime endAt;
+
+    @Column(name = "duration_minutes", nullable = false)
+    private Integer durationMinutes;
+
+    @Column(name = "visit_type_id")
+    private Long visitTypeId;
 
     @Column(name = "visit_type", length = 50)
-    private String visitType; // "New", "Follow-up", "Consultation", "Procedure", etc.
+    private String visitType; // String fallback if visit_type_id is null
 
-    @Column(name = "appointment_date", nullable = false)
-    private LocalDate appointmentDate;
+    @Column(name = "appointment_type", length = 30)
+    private String appointmentType = "IN_PERSON"; // Store as string, not enum
 
-    @Column(name = "appointment_time", nullable = false)
-    private LocalTime appointmentTime;
+    @Column(name = "status", length = 30, nullable = false)
+    private String status = "SCHEDULED"; // Store as string, not enum
 
-    @Column(name = "end_time")
-    private LocalTime endTime;
+    @Column(name = "priority", length = 20, nullable = false)
+    private String priority = "NORMAL"; // Store as string, not enum
 
-    @Column(name = "duration_minutes")
-    private Integer durationMinutes; // 15, 30, 45, 60 minutes
-
-    @Column(name = "slot_status", length = 20)
-    private String slotStatus; // "AVAILABLE", "BOOKED", "OVERBOOK", "BLOCKED"
-
-    @Column(name = "reason", columnDefinition = "TEXT")
+    @Column(name = "reason", length = 255)
     private String reason;
-
-    @Column(name = "status", length = 20, nullable = false)
-    private String status; // "Schedule", "Confirmed", "Checked In", "Checked Out", "Cancelled"
-
-    @Column(name = "color_code", length = 20)
-    private String colorCode; // For calendar color coding - "blue", "red", "yellow", "green"
-
-    @Column(name = "location", length = 100)
-    private String location; // Room number, address, etc.
 
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 
-    // Recurrence fields
-    @Column(name = "is_recurring")
-    private Boolean isRecurring = false;
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version = 0L;
 
-    @Column(name = "recurrence_pattern", length = 50)
-    private String recurrencePattern; // DAILY, WEEKLY, MONTHLY, YEARLY
-
-    @Column(name = "recurrence_end_date")
-    private LocalDate recurrenceEndDate;
-
-    @Column(name = "recurrence_interval")
-    private Integer recurrenceInterval; // Every N days/weeks/months
-
-    @Column(name = "parent_appointment_id")
-    private Long parentAppointmentId; // For recurring series
-
-    // Optional: Many-to-One relationships for joins (read-only)
+    // Relationships (read-only for joins)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "doctor_id", insertable = false, updatable = false)
-    private Staff doctor;
+    @JoinColumn(name = "patient_id", insertable = false, updatable = false)
+    private Patient patient;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "doctor_id", insertable = false, updatable = false, referencedColumnName = "staff_id")
+    private Doctor doctor;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id", insertable = false, updatable = false)
     private Department department;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "patient_id", insertable = false, updatable = false)
-    private Patient patient;
+    @JoinColumn(name = "visit_type_id", insertable = false, updatable = false)
+    private com.ehr.staffservice.entity.admin.VisitType visitTypeEntity;
+
+    // Enum constants for validation (not stored as enum in DB)
+    public static class AppointmentType {
+        public static final String IN_PERSON = "IN_PERSON";
+        public static final String TELEHEALTH = "TELEHEALTH";
+    }
+
+    public static class AppointmentStatus {
+        public static final String SCHEDULED = "SCHEDULED";
+        public static final String CONFIRMED = "CONFIRMED";
+        public static final String PRECHECKIN_COMPLETE = "PRECHECKIN_COMPLETE";
+        public static final String ARRIVED = "ARRIVED";
+        public static final String CHECKED_IN = "CHECKED_IN";
+        public static final String CHECKED_OUT = "CHECKED_OUT";
+        public static final String CANCELLED = "CANCELLED";
+        public static final String NO_SHOW = "NO_SHOW";
+    }
+
+    public static class AppointmentPriority {
+        public static final String NORMAL = "NORMAL";
+        public static final String HIGH = "HIGH";
+        public static final String URGENT = "URGENT";
+    }
 }
+

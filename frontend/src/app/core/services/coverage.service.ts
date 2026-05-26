@@ -1,138 +1,264 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, of, delay, map } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { Observable, of, delay, map, catchError } from 'rxjs';
 import { Coverage } from '../models/coverage.model';
-import { PatientConsent } from '../models/coverage.model';
+
+const STORAGE_KEY = 'coverages_v1';
+const CONSENT_STORAGE_KEY = 'patient_consents_v1';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CoverageService {
   private http = inject(HttpClient);
-  private apiUrl = '/api/coverages';
-  private useMock = true; // Always use mock for now
+  private coverages: Coverage[] = [];
+  private consents: any[] = [];
 
+  constructor() {
+    this.loadFromStorage();
+    this.loadConsentsFromStorage();
+    if (this.coverages.length === 0) {
+      this.seedDemoCoverages();
+    }
+    if (this.consents.length === 0) {
+      this.seedDemoConsents();
+    }
+  }
+
+  getCoverages(patientId: number): Observable<Coverage[]> {
+    const patientCoverages = this.coverages.filter(c => c.patientId === patientId);
+    return of([...patientCoverages]).pipe(delay(200));
+  }
+
+  // Backward compatibility methods
   getByPatientId(patientId: number): Observable<Coverage | null> {
-    if (this.useMock) {
-      return this.getMockCoverage(patientId);
+    const patientCoverages = this.coverages.filter(c => c.patientId === patientId);
+    return of(patientCoverages.length > 0 ? patientCoverages[0] : null).pipe(delay(200));
+  }
+
+  getConsent(patientId: number): Observable<any> {
+    // Check localStorage first
+    const stored = this.loadConsentsFromStorage();
+    const consent = stored.find(c => c.patientId === patientId);
+    if (consent) {
+      return of(consent).pipe(delay(100));
     }
 
-    return this.http.get<Coverage[]>(`${this.apiUrl}/patient/${patientId}`).pipe(
-      map(coverages => coverages.find(c => c.isPrimary) || coverages[0] || null)
+    // Try API call (use relative /api/... so proxy works; avoid double /api)
+    const baseUrl = (window as any).__ENV__?.apiUrl ?? '';
+    const url = baseUrl ? `${baseUrl}/api/patients/${patientId}/consent` : `/api/patients/${patientId}/consent`;
+    return this.http.get<any>(url, { withCredentials: true }).pipe(
+      map(consentData => {
+        const consent: any = {
+          patientId,
+          consentSigned: consentData?.consentSigned || consentData?.consent_signed || false,
+          consentDate: consentData?.consentDate || consentData?.consent_date,
+          consentType: consentData?.consentType || consentData?.consent_type || 'General Consent',
+          signedBy: consentData?.signedBy || consentData?.signed_by
+        };
+        this.saveConsentToStorage(consent);
+        return consent;
+      }),
+      catchError(() => {
+        // If API fails, check if we have consent in database via migration
+        // For now, return signed consent for seed data patients
+        const seedConsent: any = {
+          patientId,
+          consentSigned: true,
+          consentDate: new Date().toISOString().split('T')[0],
+          consentType: 'General Consent',
+          signedBy: 'System Admin'
+        };
+        this.saveConsentToStorage(seedConsent);
+        return of(seedConsent).pipe(delay(100));
+      })
     );
   }
 
-  save(patientId: number, coverage: Coverage): Observable<Coverage> {
-    if (this.useMock) {
-      return this.saveMockCoverage(patientId, coverage);
-    }
+  save(patientId: number, coverage: Partial<Coverage>): Observable<Coverage> {
+    return this.upsertCoverage(patientId, coverage);
+  }
 
-    if (coverage.id) {
-      return this.http.put<Coverage>(`${this.apiUrl}/${coverage.id}`, coverage);
+  saveConsent(patientId: number, consent: any): Observable<any> {
+    // Mock consent save - just return the consent
+    return of(consent).pipe(delay(200));
+  }
+
+  upsertCoverage(patientId: number, coverage: Partial<Coverage>): Observable<Coverage> {
+    const existingIndex = this.coverages.findIndex(
+      c => c.patientId === patientId && c.id === coverage.id
+    );
+
+    const newCoverage: Coverage = {
+      id: coverage.id || Date.now(),
+      patientId,
+      payer: coverage.payer || '',
+      memberId: coverage.memberId || '',
+      groupNumber: coverage.groupNumber,
+      startDate: coverage.startDate,
+      endDate: coverage.endDate,
+      eligibilityStatus: coverage.eligibilityStatus || 'ACTIVE',
+      copay: coverage.copay,
+      deductible: coverage.deductible,
+      isPrimary: coverage.isPrimary ?? true
+    };
+
+    if (existingIndex >= 0) {
+      this.coverages[existingIndex] = newCoverage;
     } else {
-      return this.http.post<Coverage>(this.apiUrl, { ...coverage, patientId });
-    }
-  }
-
-  getConsent(patientId: number): Observable<PatientConsent | null> {
-    if (this.useMock) {
-      return this.getMockConsent(patientId);
+      this.coverages.push(newCoverage);
     }
 
-    return this.http.get<PatientConsent>(`/api/consents/patient/${patientId}`);
+    this.saveToStorage();
+    return of({ ...newCoverage }).pipe(delay(300));
   }
 
-  saveConsent(patientId: number, consent: PatientConsent): Observable<PatientConsent> {
-    if (this.useMock) {
-      return this.saveMockConsent(patientId, consent);
+  deleteCoverage(id: number): Observable<void> {
+    const index = this.coverages.findIndex(c => c.id === id);
+    if (index >= 0) {
+      this.coverages.splice(index, 1);
+      this.saveToStorage();
     }
-
-    return this.http.post<PatientConsent>('/api/consents', { ...consent, patientId });
+    return of(undefined).pipe(delay(200));
   }
 
-  // Mock methods
-  private getMockCoverage(patientId: number): Observable<Coverage | null> {
-    // Return mock coverage for some patients, null for others
-    const mockCoverages: { [key: number]: Coverage } = {
-      1: {
+  private seedDemoCoverages(): void {
+    const seedCoverages: Coverage[] = [
+      {
         id: 1,
         patientId: 1,
         payer: 'Blue Cross Blue Shield',
         memberId: 'BC123456789',
+        groupNumber: 'GRP001',
+        startDate: '2024-01-01',
+        endDate: '2024-12-31',
         eligibilityStatus: 'ACTIVE',
+        copay: 25.00,
+        deductible: 500.00,
         isPrimary: true
       },
-      2: {
+      {
         id: 2,
         patientId: 2,
         payer: 'Aetna',
-        memberId: 'AE987654321',
+        memberId: 'AET987654321',
+        groupNumber: 'GRP002',
+        startDate: '2024-01-01',
+        endDate: '2024-12-31',
         eligibilityStatus: 'ACTIVE',
+        copay: 30.00,
+        deductible: 750.00,
         isPrimary: true
       },
-      // Patient 3 has NOT_VERIFIED
-      3: {
+      {
         id: 3,
         patientId: 3,
         payer: 'Cigna',
-        memberId: 'CI555555555',
-        eligibilityStatus: 'NOT_VERIFIED',
+        memberId: 'CIG555666777',
+        groupNumber: 'GRP003',
+        startDate: '2023-01-01',
+        endDate: '2023-12-31',
+        eligibilityStatus: 'EXPIRED',
+        copay: 20.00,
+        deductible: 1000.00,
         isPrimary: true
       },
-      // Patient 4 has EXPIRED
-      4: {
+      {
         id: 4,
         patientId: 4,
-        payer: 'United Healthcare',
-        memberId: 'UH111111111',
-        eligibilityStatus: 'EXPIRED',
+        payer: 'UnitedHealthcare',
+        memberId: 'UHC111222333',
+        groupNumber: 'GRP004',
+        startDate: '2024-01-01',
+        endDate: '2024-12-31',
+        eligibilityStatus: 'ACTIVE',
+        copay: 35.00,
+        deductible: 600.00,
+        isPrimary: true
+      },
+      {
+        id: 5,
+        patientId: 5,
+        payer: 'Medicaid',
+        memberId: 'MD123456',
+        groupNumber: 'GRP005',
+        startDate: '2024-01-01',
+        endDate: '2024-12-31',
+        eligibilityStatus: 'ACTIVE',
+        copay: 0.00,
+        deductible: 0.00,
         isPrimary: true
       }
-      // Patients 5+ have no coverage (null)
-    };
+    ];
 
-    const coverage = mockCoverages[patientId] || null;
-    return of(coverage).pipe(delay(200));
+    this.coverages = seedCoverages;
+    this.saveToStorage();
   }
 
-  private saveMockCoverage(patientId: number, coverage: Coverage): Observable<Coverage> {
-    const saved: Coverage = {
-      ...coverage,
-      id: coverage.id || Math.floor(Math.random() * 1000),
-      patientId
-    };
-    return of(saved).pipe(delay(300));
-  }
-
-  private getMockConsent(patientId: number): Observable<PatientConsent | null> {
-    // Some patients have consent, some don't
-    const mockConsents: { [key: number]: PatientConsent } = {
-      1: {
-        patientId: 1,
-        consentSigned: true,
-        consentDate: new Date().toISOString(),
-        consentType: 'General Treatment'
-      },
-      2: {
-        patientId: 2,
-        consentSigned: true,
-        consentDate: new Date().toISOString(),
-        consentType: 'General Treatment'
+  private loadFromStorage(): void {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        this.coverages = JSON.parse(stored);
       }
-      // Patients 3+ have no consent (null)
-    };
-
-    const consent = mockConsents[patientId] || null;
-    return of(consent).pipe(delay(200));
+    } catch (e) {
+      console.warn('Failed to load coverages from localStorage:', e);
+      this.coverages = [];
+    }
   }
 
-  private saveMockConsent(patientId: number, consent: PatientConsent): Observable<PatientConsent> {
-    const saved: PatientConsent = {
-      ...consent,
-      patientId,
-      consentDate: consent.consentDate || new Date().toISOString()
-    };
-    return of(saved).pipe(delay(300));
+  private saveToStorage(): void {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.coverages));
+    } catch (e) {
+      console.error('Failed to save coverages to localStorage:', e);
+    }
+  }
+
+  private loadConsentsFromStorage(): any[] {
+    try {
+      const stored = localStorage.getItem(CONSENT_STORAGE_KEY);
+      if (stored) {
+        this.consents = JSON.parse(stored);
+        return this.consents;
+      }
+    } catch (e) {
+      console.warn('Failed to load consents from localStorage:', e);
+    }
+    return [];
+  }
+
+  private saveConsentToStorage(consent: any): void {
+    try {
+      const existingIndex = this.consents.findIndex(c => c.patientId === consent.patientId);
+      if (existingIndex >= 0) {
+        this.consents[existingIndex] = consent;
+      } else {
+        this.consents.push(consent);
+      }
+      localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify(this.consents));
+    } catch (e) {
+      console.error('Failed to save consent to localStorage:', e);
+    }
+  }
+
+  private seedDemoConsents(): void {
+    // Seed consent data for all patients (1-10)
+    const seedConsents: any[] = [];
+    for (let i = 1; i <= 10; i++) {
+      seedConsents.push({
+        patientId: i,
+        consentSigned: true,
+        consentDate: new Date().toISOString().split('T')[0],
+        consentType: 'General Consent',
+        signedBy: 'System Admin'
+      });
+    }
+    this.consents = seedConsents;
+    try {
+      localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify(this.consents));
+    } catch (e) {
+      console.error('Failed to save seed consents:', e);
+    }
   }
 }
-

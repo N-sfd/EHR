@@ -1,0 +1,45 @@
+<div class="patient-wrapper">
+  <header class="patient-header">
+    <div class="patient-header-content">
+
+      <div class="header-left">
+        <!-- Back to admin -->
+        <a routerLink="/admin/dashboard" class="back-to-admin" title="Back to Hospital Management System">
+          <i class="fas fa-th-large"></i>
+          <span class="back-label">HMS</span>
+        </a>
+
+        <div class="divider-v"></div>
+
+        <div class="portal-logo">
+          <i class="fas fa-heartbeat"></i>
+          <span>MyChart</span>
+        </div>
+
+        <nav class="portal-nav">
+          <a routerLink="/patient/home" routerLinkActive="active" class="nav-link">
+            <i class="fas fa-home"></i> Home
+          </a>
+          <a routerLink="/patient/appointments" routerLinkActive="active" class="nav-link">
+            <i class="fas fa-calendar-alt"></i> Appointments
+          </a>
+        </nav>
+      </div>
+
+      <button
+        type="button"
+        class="btn-sign-out"
+        (click)="logout()"
+        [disabled]="isLoggingOut"
+        title="Sign out">
+        <i class="fas fa-sign-out-alt" *ngIf="!isLoggingOut"></i>
+        <i class="fas fa-spinner fa-spin" *ngIf="isLoggingOut"></i>
+        <span>{{ isLoggingOut ? 'Signing out...' : 'Sign out' }}</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="patient-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

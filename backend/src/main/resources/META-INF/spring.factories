@@ -1,0 +1,4 @@
+# EnvironmentPostProcessor must be registered here for Spring Boot 3.x (SpringFactoriesLoader);
+# META-INF/spring/org.springframework.boot.env.EnvironmentPostProcessor is not consulted by default.
+org.springframework.boot.env.EnvironmentPostProcessor=\
+com.ehr.staffservice.config.AiToggleEnvironmentPostProcessor

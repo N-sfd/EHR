@@ -15,13 +15,43 @@
     </div>
 
     <div class="header-right">
-      <div class="notification">
+      <div class="notification" (click)="openNotificationsDrawer()" [title]="(unreadCount$ | async)! > 0 ? (unreadCount$ | async)! + ' unread notifications' : 'Notifications'">
         <i class="fas fa-bell"></i>
+        <ng-container *ngIf="unreadCount$ | async as count">
+          <span class="notification-badge" *ngIf="count > 0">{{ count > 99 ? '99+' : count }}</span>
+        </ng-container>
       </div>
 
-      <div class="user-chip">
-        <img src="https://i.pravatar.cc/80?img=5" alt="Jimmy Anderson">
+      <div class="user-chip" (click)="openProfileDrawer()" [title]="(profile$ | async)?.fullName || 'Admin Profile'">
+        <ng-container *ngIf="profile$ | async as profile">
+          <img *ngIf="profile.avatarUrl" [src]="profile.avatarUrl" [alt]="profile.fullName" [title]="profile.fullName">
+          <div *ngIf="!profile.avatarUrl" class="avatar-placeholder">
+            {{ (profile.fullName || 'A').charAt(0).toUpperCase() }}
+          </div>
+        </ng-container>
       </div>
+
+      <!-- Logout button - visible when user is authenticated -->
+      <button 
+        *ngIf="isAuthenticated"
+        class="logout-btn" 
+        (click)="logout()" 
+        title="Logout"
+        aria-label="Logout">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+      
+      <app-admin-profile-drawer 
+        *ngIf="showProfileDrawer"
+        [isOpen]="showProfileDrawer"
+        (close)="closeProfileDrawer()">
+      </app-admin-profile-drawer>
+      
+      <app-notifications-drawer 
+        *ngIf="showNotificationsDrawer"
+        [isOpen]="showNotificationsDrawer"
+        (close)="closeNotificationsDrawer()">
+      </app-notifications-drawer>
     </div>
   </div>
 </header>

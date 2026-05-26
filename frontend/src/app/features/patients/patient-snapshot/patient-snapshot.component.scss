@@ -1,0 +1,479 @@
+.patient-snapshot {
+  padding: 20px;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+.snapshot-header {
+  background: white;
+  padding: 15px 20px;
+  border-bottom: 2px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+  .header-left {
+    .patient-name {
+      margin: 0 0 8px 0;
+      font-size: 24px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .patient-meta {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+
+      .meta-item {
+        font-size: 14px;
+        color: #666;
+      }
+
+      .status-badge {
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+
+        &.status-active {
+          background: #d4edda;
+          color: #155724;
+        }
+
+        &.status-inactive {
+          background: #f8d7da;
+          color: #721c24;
+        }
+      }
+    }
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 10px;
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      &.btn-primary {
+        background: #007bff;
+        color: white;
+
+        &:hover {
+          background: #0056b3;
+        }
+      }
+
+      &.btn-secondary {
+        background: #6c757d;
+        color: white;
+
+        &:hover {
+          background: #545b62;
+        }
+      }
+    }
+  }
+}
+
+.snapshot-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.snapshot-left,
+.snapshot-right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel {
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  overflow: hidden;
+
+  .panel-header {
+    background: #f8f9fa;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e0e0e0;
+
+    h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+    }
+  }
+
+  .panel-content {
+    padding: 16px;
+  }
+}
+
+.guarantor-panel {
+  .guarantor-avatar {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+
+    img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .avatar-placeholder {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #007bff;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: 600;
+    }
+  }
+
+  .guarantor-info {
+    text-align: center;
+
+    .guarantor-name {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #333;
+    }
+
+    .guarantor-details {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+
+      .guarantor-phones {
+        margin: 12px 0;
+      }
+
+      .mychart-status {
+        margin-top: 12px;
+
+        .status-badge {
+          padding: 4px 12px;
+          border-radius: 12px;
+          font-size: 12px;
+          font-weight: 600;
+
+          &.mychart-enrolled {
+            background: #d4edda;
+            color: #155724;
+          }
+
+          &.mychart-not_enrolled {
+            background: #fff3cd;
+            color: #856404;
+          }
+        }
+      }
+    }
+  }
+}
+
+.balances-panel {
+  .balance-summary {
+    margin-bottom: 20px;
+
+    .balance-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #e0e0e0;
+
+      &.total {
+        border-top: 2px solid #333;
+        border-bottom: 2px solid #333;
+        font-weight: 600;
+        margin-top: 8px;
+        padding-top: 12px;
+      }
+
+      label {
+        font-weight: 500;
+        color: #666;
+      }
+
+      .amount {
+        font-weight: 600;
+        color: #333;
+      }
+    }
+  }
+
+  .aging-bars {
+    h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #333;
+    }
+
+    .aging-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+
+      label {
+        width: 80px;
+        font-size: 12px;
+        color: #666;
+      }
+
+      .aging-bar {
+        flex: 1;
+        height: 20px;
+        background: #e0e0e0;
+        border-radius: 10px;
+        overflow: hidden;
+        position: relative;
+
+        .aging-fill {
+          height: 100%;
+          background: #007bff;
+          transition: width 0.3s;
+        }
+      }
+
+      .aging-amount {
+        width: 80px;
+        text-align: right;
+        font-size: 12px;
+        font-weight: 600;
+        color: #333;
+      }
+    }
+  }
+}
+
+.activity-panel {
+  .activity-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+
+    .activity-item {
+      padding: 12px;
+      border-bottom: 1px solid #e0e0e0;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .activity-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 6px;
+
+        .activity-type {
+          font-weight: 600;
+          color: #007bff;
+          font-size: 12px;
+          text-transform: uppercase;
+        }
+
+        .activity-time {
+          font-size: 12px;
+          color: #999;
+        }
+      }
+
+      .activity-comment {
+        font-size: 14px;
+        color: #333;
+        margin-bottom: 4px;
+      }
+
+      .activity-meta {
+        font-size: 12px;
+        color: #999;
+      }
+    }
+
+    .no-activities {
+      text-align: center;
+      padding: 20px;
+      color: #999;
+      font-style: italic;
+    }
+  }
+
+  .add-activity {
+    display: flex;
+    gap: 8px;
+    padding-top: 16px;
+    border-top: 1px solid #e0e0e0;
+
+    .form-select {
+      width: 120px;
+      padding: 6px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .form-input {
+      flex: 1;
+      padding: 6px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .btn-sm {
+      padding: 6px 16px;
+      font-size: 14px;
+    }
+  }
+}
+
+.coverages-panel {
+  .patient-summary {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e0e0e0;
+
+    .summary-item {
+      display: flex;
+      margin-bottom: 8px;
+
+      label {
+        width: 80px;
+        font-weight: 500;
+        color: #666;
+      }
+
+      span {
+        color: #333;
+      }
+    }
+  }
+
+  .coverages-table {
+    overflow-x: auto;
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+
+      th {
+        background: #f8f9fa;
+        padding: 8px;
+        text-align: left;
+        font-weight: 600;
+        color: #333;
+        border-bottom: 2px solid #e0e0e0;
+      }
+
+      td {
+        padding: 8px;
+        border-bottom: 1px solid #e0e0e0;
+        color: #666;
+      }
+
+      .no-data {
+        text-align: center;
+        padding: 20px;
+        color: #999;
+        font-style: italic;
+      }
+    }
+  }
+}
+
+.visits-panel,
+.statements-panel,
+.payments-panel {
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+
+    th {
+      background: #f8f9fa;
+      padding: 8px;
+      text-align: left;
+      font-weight: 600;
+      color: #333;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    td {
+      padding: 8px;
+      border-bottom: 1px solid #e0e0e0;
+      color: #666;
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 20px;
+      color: #999;
+      font-style: italic;
+    }
+  }
+}
+
+.loading-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  .error-message {
+    text-align: center;
+
+    i {
+      font-size: 48px;
+      color: #dc3545;
+      margin-bottom: 16px;
+    }
+
+    p {
+      font-size: 18px;
+      color: #333;
+      margin-bottom: 20px;
+    }
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+

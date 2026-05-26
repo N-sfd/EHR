@@ -3,11 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { StaffService } from '../../../core/services/staff.service';
-import { DepartmentService } from '../../../core/services/department.service';
-import { DesignationService } from '../../../core/services/designation.service';
+import { MasterDataService } from '../../../core/services/master-data.service';
 import { Staff } from '../../../core/models/staff.model';
 import { DepartmentDto } from '../../../core/models/department.model';
 import { DesignationDto } from '../../../core/models/designation.model';
+import { MasterDepartment, MasterDesignation } from '../../../core/models/master-data.model';
 
 @Component({
   selector: 'app-staff-directory',
@@ -43,8 +43,7 @@ export class StaffDirectoryComponent implements OnInit {
 
   constructor(
     private staffService: StaffService,
-    private departmentService: DepartmentService,
-    private designationService: DesignationService,
+    private masterDataService: MasterDataService,
     private router: Router
   ) {}
 
@@ -71,21 +70,36 @@ export class StaffDirectoryComponent implements OnInit {
     });
     
     // Load departments
-    this.departmentService.getAll().subscribe({
-      next: (depts) => {
-        this.departments = Array.from(
-          new Map(depts.map(dept => [dept.departmentId || dept.id, dept])).values()
-        );
+    this.masterDataService.getDepartments().subscribe({
+      next: (masterDepts: MasterDepartment[]) => {
+        this.departments = masterDepts.map(dept => ({
+          id: dept.id,
+          departmentId: Number(dept.id) || undefined,
+          name: dept.name,
+          code: dept.code,
+          description: dept.description,
+          active: dept.active,
+          status: dept.active ? 'ACTIVE' : 'INACTIVE',
+          specialtyGroup: dept.specialtyGroup
+        } as DepartmentDto));
       },
-      error: (err) => console.error('Error loading departments:', err)
+      error: (err) => {
+        console.error('Error loading departments:', err);
+        this.departments = [];
+      }
     });
     
     // Load designations
-    this.designationService.getAll().subscribe({
-      next: (des) => {
-        const mapped = des.map(d => ({
-          ...d,
-          id: d.designationId || d.id
+    this.masterDataService.getDesignations().subscribe({
+      next: (masterDes: MasterDesignation[]) => {
+        const mapped = masterDes.map(d => ({
+          id: Number(d.id) || undefined,
+          designationId: Number(d.id) || undefined,
+          title: d.name,
+          code: d.code,
+          description: d.description,
+          status: d.active ? 'ACTIVE' : 'INACTIVE',
+          active: d.active
         }));
         this.designations = Array.from(
           new Map(mapped.map(d => [d.id, d])).values()

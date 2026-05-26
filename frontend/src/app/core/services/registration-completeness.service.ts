@@ -17,7 +17,8 @@ export class RegistrationCompletenessService {
       'address1', // addressLine1
       'city',
       'state',
-      'zip' // pincode or zipCode
+      'zip', // pincode or zipCode
+      'email' // WARN severity but included in % denominator so progress matches the banner list
     ],
     coverageRequired: [
       'primaryInsurancePayer', // payer from primary coverage
@@ -41,7 +42,7 @@ export class RegistrationCompletenessService {
         field: 'legalName',
         label: 'Legal Name (First & Last)',
         severity: 'CRITICAL',
-        section: 'Demographics'
+        section: 'DEMOGRAPHICS'
       });
     }
 
@@ -51,7 +52,7 @@ export class RegistrationCompletenessService {
         field: 'dateOfBirth',
         label: 'Date of Birth',
         severity: 'CRITICAL',
-        section: 'Demographics'
+        section: 'DEMOGRAPHICS'
       });
     }
 
@@ -61,7 +62,7 @@ export class RegistrationCompletenessService {
         field: 'birthSex',
         label: 'Birth Sex',
         severity: 'CRITICAL',
-        section: 'Demographics'
+        section: 'DEMOGRAPHICS'
       });
     }
 
@@ -71,58 +72,66 @@ export class RegistrationCompletenessService {
         field: 'phone',
         label: 'Phone Number',
         severity: 'CRITICAL',
-        section: 'Demographics'
+        section: 'DEMOGRAPHICS'
       });
     }
 
-    if (!patient.addressLine1 && !patient.address) {
+    // Check addressLine1 (or address for backward compatibility)
+    const addressLine1 = patient.addressLine1 || patient.address || '';
+    if (!addressLine1 || addressLine1.trim().length === 0) {
       missing.push({
         key: 'address1',
         field: 'address1',
         label: 'Address Line 1',
         severity: 'CRITICAL',
-        section: 'Demographics'
+        section: 'DEMOGRAPHICS'
       });
     }
 
-    if (!patient.city) {
+    // Check city
+    const city = patient.city || '';
+    if (!city || city.trim().length === 0) {
       missing.push({
         key: 'city',
         field: 'city',
         label: 'City',
         severity: 'CRITICAL',
-        section: 'Demographics'
+        section: 'DEMOGRAPHICS'
       });
     }
 
-    if (!patient.state) {
+    // Check state
+    const state = patient.state || '';
+    if (!state || state.trim().length === 0) {
       missing.push({
         key: 'state',
         field: 'state',
         label: 'State',
         severity: 'CRITICAL',
-        section: 'Demographics'
+        section: 'DEMOGRAPHICS'
       });
     }
 
-    if (!patient.pincode && !patient.zipCode) {
+    // Check zipCode (or pincode for backward compatibility)
+    const zipCode = patient.zipCode || patient.pincode || '';
+    if (!zipCode || zipCode.trim().length === 0) {
       missing.push({
         key: 'zip',
         field: 'zip',
         label: 'ZIP Code',
         severity: 'CRITICAL',
-        section: 'Demographics'
+        section: 'DEMOGRAPHICS'
       });
     }
 
-    // Check email (WARN)
+    // Check email (WARN — still counted in demographicsRequired for consistent %)
     if (!patient.emailAddress && !patient.email) {
       missing.push({
         key: 'email',
         field: 'email',
         label: 'Email Address',
         severity: 'WARN',
-        section: 'Demographics'
+        section: 'DEMOGRAPHICS'
       });
     }
 
@@ -133,7 +142,7 @@ export class RegistrationCompletenessService {
         field: 'primaryInsurancePayer',
         label: 'Primary Insurance Payer',
         severity: 'WARN', // Can be configured to CRITICAL
-        section: 'Coverage'
+        section: 'COVERAGE'
       });
     }
 
@@ -143,7 +152,7 @@ export class RegistrationCompletenessService {
         field: 'memberId',
         label: 'Insurance Member ID',
         severity: 'WARN', // Can be configured to CRITICAL
-        section: 'Coverage'
+        section: 'COVERAGE'
       });
     }
 
@@ -154,7 +163,7 @@ export class RegistrationCompletenessService {
           field: 'eligibilityStatus',
           label: 'Insurance Eligibility (Not Verified)',
           severity: 'WARN',
-          section: 'Coverage'
+          section: 'COVERAGE'
         });
       } else if (coverage.eligibilityStatus === 'EXPIRED' || coverage.eligibilityStatus === 'INACTIVE') {
         missing.push({
@@ -162,7 +171,7 @@ export class RegistrationCompletenessService {
           field: 'eligibilityStatus',
           label: `Insurance Eligibility (${coverage.eligibilityStatus})`,
           severity: 'CRITICAL',
-          section: 'Coverage'
+          section: 'COVERAGE'
         });
       }
     }
@@ -175,7 +184,7 @@ export class RegistrationCompletenessService {
           field: 'consentSigned',
           label: 'Consent Not Signed',
           severity: 'CRITICAL',
-          section: 'Consent'
+          section: 'CONSENT'
         });
       }
     }

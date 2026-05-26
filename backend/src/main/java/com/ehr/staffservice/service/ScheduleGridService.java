@@ -5,8 +5,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface ScheduleGridService {
-    ScheduleGridDto getProviderScheduleGrid(Long providerId, LocalDate date);
-    List<ScheduleGridDto> getProviderScheduleGridRange(Long providerId, LocalDate startDate, LocalDate endDate);
-    List<ScheduleGridDto> getMultiProviderScheduleGrid(List<Long> providerIds, LocalDate date);
+    ScheduleGridDto getDoctorScheduleGrid(Long doctorId, LocalDate date);
+    List<ScheduleGridDto> getDoctorScheduleGridRange(Long doctorId, LocalDate startDate, LocalDate endDate);
+    List<ScheduleGridDto> getMultiDoctorScheduleGrid(List<Long> doctorIds, LocalDate date);
 }
 

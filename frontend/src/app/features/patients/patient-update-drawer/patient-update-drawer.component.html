@@ -1,0 +1,455 @@
+<div class="drawer-backdrop" *ngIf="isOpen" (click)="onBackdropClick()">
+  <div class="drawer-panel" (click)="onDrawerClick($event)">
+    <div class="drawer-header">
+      <h2>Update Patient</h2>
+      <button class="close-btn" (click)="closeDrawer()" aria-label="Close drawer">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="drawer-tabs">
+      <button
+        *ngFor="let tab of tabs"
+        class="tab-btn"
+        [class.active]="activeTab === tab.id"
+        (click)="setTab(tab.id)">
+        {{ tab.label }}
+      </button>
+    </div>
+
+    <div class="drawer-content" *ngIf="patientForm" [formGroup]="patientForm">
+      <!-- Demographics Tab -->
+      <div class="tab-content" *ngIf="activeTab === 'demographics'">
+        <div class="form-group">
+          <label class="form-label" for="firstName">Legal First Name *</label>
+          <input
+            type="text"
+            id="firstName"
+            formControlName="firstName"
+            class="form-input"
+            [class.error]="patientForm.get('firstName')?.invalid && patientForm.get('firstName')?.touched">
+          <div class="error-message" *ngIf="patientForm.get('firstName')?.invalid && patientForm.get('firstName')?.touched">
+            First name is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="lastName">Legal Last Name *</label>
+          <input
+            type="text"
+            id="lastName"
+            formControlName="lastName"
+            class="form-input"
+            [class.error]="patientForm.get('lastName')?.invalid && patientForm.get('lastName')?.touched">
+          <div class="error-message" *ngIf="patientForm.get('lastName')?.invalid && patientForm.get('lastName')?.touched">
+            Last name is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="preferredName">Preferred Name</label>
+          <input
+            type="text"
+            id="preferredName"
+            formControlName="preferredName"
+            class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="dateOfBirth">Date of Birth *</label>
+          <input
+            type="date"
+            id="dateOfBirth"
+            formControlName="dateOfBirth"
+            class="form-input"
+            [class.error]="patientForm.get('dateOfBirth')?.invalid && patientForm.get('dateOfBirth')?.touched">
+          <div class="error-message" *ngIf="patientForm.get('dateOfBirth')?.invalid && patientForm.get('dateOfBirth')?.touched">
+            Date of birth is required
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="sex">Sex *</label>
+            <select id="sex" formControlName="sex" class="form-select">
+              <option value="MALE">Male</option>
+              <option value="FEMALE">Female</option>
+              <option value="INTERSEX">Intersex</option>
+              <option value="UNKNOWN">Unknown</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="genderIdentity">Gender Identity</label>
+            <select id="genderIdentity" formControlName="genderIdentity" class="form-select">
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="ssn">SSN (Optional)</label>
+          <input
+            type="text"
+            id="ssn"
+            formControlName="ssn"
+            class="form-input"
+            placeholder="XXX-XX-XXXX">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="language">Language</label>
+          <select id="language" formControlName="language" class="form-select">
+            <option value="English">English</option>
+            <option value="Spanish">Spanish</option>
+            <option value="French">French</option>
+            <option value="German">German</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Contact Tab -->
+      <div class="tab-content" *ngIf="activeTab === 'contact'">
+        <div class="form-group">
+          <label class="form-label" for="phoneNumber">Phone Number *</label>
+          <input
+            type="tel"
+            id="phoneNumber"
+            formControlName="phoneNumber"
+            class="form-input"
+            [class.error]="patientForm.get('phoneNumber')?.invalid && patientForm.get('phoneNumber')?.touched">
+          <div class="error-message" *ngIf="patientForm.get('phoneNumber')?.invalid && patientForm.get('phoneNumber')?.touched">
+            Phone number is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="emailAddress">Email Address</label>
+          <input
+            type="email"
+            id="emailAddress"
+            formControlName="emailAddress"
+            class="form-input"
+            [class.error]="patientForm.get('emailAddress')?.invalid && patientForm.get('emailAddress')?.touched">
+          <div class="error-message" *ngIf="patientForm.get('emailAddress')?.invalid && patientForm.get('emailAddress')?.touched">
+            Invalid email format
+          </div>
+        </div>
+      </div>
+
+      <!-- Address Tab -->
+      <div class="tab-content" *ngIf="activeTab === 'address'">
+        <div class="form-group">
+          <label class="form-label" for="addressLine1">Address Line 1 *</label>
+          <input
+            type="text"
+            id="addressLine1"
+            formControlName="addressLine1"
+            class="form-input"
+            [class.error]="patientForm.get('addressLine1')?.invalid && patientForm.get('addressLine1')?.touched">
+          <div class="error-message" *ngIf="patientForm.get('addressLine1')?.invalid && patientForm.get('addressLine1')?.touched">
+            Address is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="addressLine2">Address Line 2</label>
+          <input
+            type="text"
+            id="addressLine2"
+            formControlName="addressLine2"
+            class="form-input">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="state">State *</label>
+            <select
+              id="state"
+              formControlName="state"
+              class="form-input"
+              [class.error]="patientForm.get('state')?.invalid && patientForm.get('state')?.touched">
+              <option value="">Select State</option>
+              <option *ngFor="let state of states" [value]="state">{{ state }}</option>
+            </select>
+            <div class="error-message" *ngIf="patientForm.get('state')?.invalid && patientForm.get('state')?.touched">
+              State is required
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="city">City *</label>
+            <select
+              id="city"
+              formControlName="city"
+              class="form-input"
+              [class.error]="patientForm.get('city')?.invalid && patientForm.get('city')?.touched"
+              [disabled]="!patientForm.get('state')?.value || cities.length === 0">
+              <option value="">{{ patientForm.get('state')?.value ? 'Select City' : 'Select State First' }}</option>
+              <option *ngFor="let city of cities" [value]="city">{{ city }}</option>
+            </select>
+            <div class="error-message" *ngIf="patientForm.get('city')?.invalid && patientForm.get('city')?.touched">
+              City is required
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="zipCode">Zip Code *</label>
+            <select
+              id="zipCode"
+              formControlName="zipCode"
+              class="form-input"
+              [class.error]="patientForm.get('zipCode')?.invalid && patientForm.get('zipCode')?.touched"
+              [disabled]="!patientForm.get('city')?.value || zipCodes.length === 0">
+              <option value="">{{ patientForm.get('city')?.value ? 'Select Zip Code' : 'Select City First' }}</option>
+              <option *ngFor="let zip of zipCodes" [value]="zip">{{ zip }}</option>
+            </select>
+            <div class="error-message" *ngIf="patientForm.get('zipCode')?.invalid && patientForm.get('zipCode')?.touched">
+              Zip code is required
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coverage Tab -->
+      <div class="tab-content" *ngIf="activeTab === 'coverage'">
+        <div class="coverage-form" *ngIf="coverageForm" [formGroup]="coverageForm">
+          <h3>Add New Coverage</h3>
+          <div class="form-group">
+            <label class="form-label" for="payer">Payer *</label>
+            <input
+              type="text"
+              id="payer"
+              formControlName="payer"
+              class="form-input"
+              [class.error]="coverageForm.get('payer')?.invalid && coverageForm.get('payer')?.touched">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="memberId">Member ID *</label>
+            <input
+              type="text"
+              id="memberId"
+              formControlName="memberId"
+              class="form-input"
+              [class.error]="coverageForm.get('memberId')?.invalid && coverageForm.get('memberId')?.touched">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="groupNumber">Group Number</label>
+            <input
+              type="text"
+              id="groupNumber"
+              formControlName="groupNumber"
+              class="form-input">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="startDate">Effective From</label>
+              <input
+                type="date"
+                id="startDate"
+                formControlName="startDate"
+                class="form-input">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="endDate">Effective To</label>
+              <input
+                type="date"
+                id="endDate"
+                formControlName="endDate"
+                class="form-input">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="eligibilityStatus">Eligibility Status *</label>
+            <select id="eligibilityStatus" formControlName="eligibilityStatus" class="form-select">
+              <option value="ACTIVE">Active</option>
+              <option value="NOT_VERIFIED">Not Verified</option>
+              <option value="EXPIRED">Expired</option>
+              <option value="INACTIVE">Inactive</option>
+            </select>
+          </div>
+
+          <button type="button" class="btn btn-primary" (click)="saveCoverage()">Add Coverage</button>
+        </div>
+
+        <div class="coverages-list" *ngIf="coverages.length > 0">
+          <h3>Existing Coverages</h3>
+          <div class="coverage-item" *ngFor="let coverage of coverages">
+            <div class="coverage-info">
+              <strong>{{ coverage.payer }}</strong>
+              <span>Member ID: {{ coverage.memberId }}</span>
+              <span class="status-badge" [ngClass]="'status-' + coverage.eligibilityStatus.toLowerCase()">
+                {{ coverage.eligibilityStatus }}
+              </span>
+            </div>
+            <button type="button" class="btn btn-danger btn-sm" (click)="deleteCoverage(coverage)">Delete</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Guarantor Tab -->
+      <div class="tab-content" *ngIf="activeTab === 'guarantor' && guarantorForm" [formGroup]="guarantorForm">
+        <div class="form-group">
+          <label class="form-label" for="guarantorRelationship">Relationship</label>
+          <select id="guarantorRelationship" formControlName="relationship" class="form-select">
+            <option value="Self">Self</option>
+            <option value="Spouse">Spouse</option>
+            <option value="Parent">Parent</option>
+            <option value="Child">Child</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="guarantorFirstName">First Name</label>
+            <input
+              type="text"
+              id="guarantorFirstName"
+              formControlName="firstName"
+              class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="guarantorLastName">Last Name</label>
+            <input
+              type="text"
+              id="guarantorLastName"
+              formControlName="lastName"
+              class="form-input">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="guarantorDOB">Date of Birth</label>
+          <input
+            type="date"
+            id="guarantorDOB"
+            formControlName="dateOfBirth"
+            class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="guarantorAddress1">Address Line 1</label>
+          <input
+            type="text"
+            id="guarantorAddress1"
+            formControlName="addressLine1"
+            class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="guarantorAddress2">Address Line 2</label>
+          <input
+            type="text"
+            id="guarantorAddress2"
+            formControlName="addressLine2"
+            class="form-input">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="guarantorState">State</label>
+            <select
+              id="guarantorState"
+              formControlName="state"
+              class="form-input">
+              <option value="">Select State</option>
+              <option *ngFor="let state of states" [value]="state">{{ state }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="guarantorCity">City</label>
+            <select
+              id="guarantorCity"
+              formControlName="city"
+              class="form-input"
+              [disabled]="!guarantorForm.get('state')?.value || guarantorCities.length === 0">
+              <option value="">{{ guarantorForm.get('state')?.value ? 'Select City' : 'Select State First' }}</option>
+              <option *ngFor="let city of guarantorCities" [value]="city">{{ city }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="guarantorZipCode">Zip Code</label>
+            <select
+              id="guarantorZipCode"
+              formControlName="zipCode"
+              class="form-input"
+              [disabled]="!guarantorForm.get('city')?.value || guarantorZipCodes.length === 0">
+              <option value="">{{ guarantorForm.get('city')?.value ? 'Select Zip Code' : 'Select City First' }}</option>
+              <option *ngFor="let zip of guarantorZipCodes" [value]="zip">{{ zip }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="guarantorHomePhone">Home Phone</label>
+            <input
+              type="tel"
+              id="guarantorHomePhone"
+              formControlName="homePhone"
+              class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="guarantorWorkPhone">Work Phone</label>
+            <input
+              type="tel"
+              id="guarantorWorkPhone"
+              formControlName="workPhone"
+              class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="guarantorMobilePhone">Mobile Phone</label>
+            <input
+              type="tel"
+              id="guarantorMobilePhone"
+              formControlName="mobilePhone"
+              class="form-input">
+          </div>
+        </div>
+      </div>
+
+      <!-- Alerts Tab -->
+      <div class="tab-content" *ngIf="activeTab === 'alerts' && alertsForm" [formGroup]="alertsForm">
+        <div class="form-group">
+          <label class="form-label" for="allergies">Allergies</label>
+          <textarea
+            id="allergies"
+            formControlName="allergies"
+            class="form-textarea"
+            rows="4"
+            placeholder="Enter known allergies..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="flags">Flags</label>
+          <textarea
+            id="flags"
+            formControlName="flags"
+            class="form-textarea"
+            rows="4"
+            placeholder="Enter patient flags or alerts..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-footer">
+      <button type="button" class="btn btn-secondary" (click)="closeDrawer()">Cancel</button>
+      <button type="button" class="btn btn-primary" (click)="save()">Save</button>
+    </div>
+  </div>
+</div>
+

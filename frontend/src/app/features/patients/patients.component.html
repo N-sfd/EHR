@@ -1,139 +1,235 @@
-<div class="page-header">
-  <div class="header-top">
-    <div class="header-left">
+<div class="pm-page">
+
+  <!-- ── Page Header ─────────────────────────────────────── -->
+  <div class="pm-header">
+    <div class="pm-header-left">
+      <h1><i class="fas fa-users"></i> Patient Management</h1>
+      <p class="pm-subtitle">{{ patients.length }} total patients</p>
     </div>
-    <div class="header-actions">
-      <a [routerLink]="['/admin/patients/add']" class="btn btn-primary">
+    <div class="pm-header-right">
+      <button type="button" class="btn-icon" (click)="reload()" [disabled]="isLoading" title="Refresh">
+        <i class="fas fa-sync-alt" [class.fa-spin]="isLoading"></i>
+      </button>
+      <button type="button" class="btn-outline" (click)="exportCsv()" [disabled]="filtered.length === 0">
+        <i class="fas fa-download"></i> Export
+      </button>
+      <a routerLink="/admin/patients/add" class="btn-primary">
         <i class="fas fa-plus"></i> Add Patient
       </a>
     </div>
   </div>
-</div>
 
-<div class="search-section">
-  <div class="search-container">
-    <div class="search-bar">
-      <i class="fas fa-magnifying-glass search-icon"></i>
-      <input 
-        type="text" 
-        class="search-input" 
-        placeholder="Search patients by name, MRN, phone, or DOB..." 
-        [(ngModel)]="searchTerm" 
-        (input)="onSearchChange()"
-      >
-      <button class="search-clear" *ngIf="searchTerm" (click)="clearSearch()">
+  <!-- ── Stats Row ───────────────────────────────────────── -->
+  <div class="pm-stats">
+    <div class="stat" (click)="statusFilter='all'; onFilterChange()" [class.active]="statusFilter==='all'">
+      <span class="stat-num">{{ patients.length }}</span>
+      <span class="stat-lbl">Total</span>
+    </div>
+    <div class="stat" (click)="statusFilter='ACTIVE'; onFilterChange()" [class.active]="statusFilter==='ACTIVE'">
+      <span class="stat-num active-num">{{ activeCount }}</span>
+      <span class="stat-lbl">Active</span>
+    </div>
+    <div class="stat" (click)="statusFilter='INACTIVE'; onFilterChange()" [class.active]="statusFilter==='INACTIVE'">
+      <span class="stat-num inactive-num">{{ inactiveCount }}</span>
+      <span class="stat-lbl">Inactive</span>
+    </div>
+  </div>
+
+  <!-- ── Toolbar ─────────────────────────────────────────── -->
+  <div class="pm-toolbar">
+    <div class="search-wrap">
+      <i class="fas fa-search"></i>
+      <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onSearch()"
+        placeholder="Search by name, MRN, phone or email…" class="search-input" />
+      <button type="button" *ngIf="searchTerm" (click)="clearSearch()" class="search-clear" aria-label="Clear">
         <i class="fas fa-times"></i>
       </button>
     </div>
-    <div class="search-filters">
-      <select class="filter-select" [(ngModel)]="statusFilter" (change)="onFilterChange()">
-        <option value="all">All Status</option>
-        <option value="ACTIVE">Active</option>
-        <option value="INACTIVE">Inactive</option>
+    <div class="toolbar-right">
+      <select class="select-filter" [(ngModel)]="pageSize" (ngModelChange)="setPageSize($event)" title="Page size">
+        <option *ngFor="let s of pageSizeOptions" [value]="s">{{ s }} / page</option>
       </select>
-      <span class="results-count">{{ filteredPatients.length }} patient(s) found</span>
     </div>
   </div>
-</div>
 
-<div class="content-area">
-  <div *ngIf="isLoading" class="loading-state">
-    <p>Loading patients...</p>
+  <!-- ── Error ──────────────────────────────────────────── -->
+  <div class="pm-error" *ngIf="errorMessage">
+    <i class="fas fa-exclamation-circle"></i> {{ errorMessage }}
+    <button type="button" (click)="reload()" class="retry-btn">Retry</button>
   </div>
 
-  <div *ngIf="errorMessage" class="error-state">
-    <p>{{ errorMessage }}</p>
+  <!-- ── Loading skeleton ───────────────────────────────── -->
+  <div class="pm-skeleton" *ngIf="isLoading">
+    <div class="sk-row" *ngFor="let i of [1,2,3,4,5]">
+      <div class="sk-avatar"></div>
+      <div class="sk-lines">
+        <div class="sk-line sk-w60"></div>
+        <div class="sk-line sk-w40"></div>
+      </div>
+      <div class="sk-cell sk-w30"></div>
+      <div class="sk-cell sk-w20"></div>
+      <div class="sk-cell sk-w20"></div>
+      <div class="sk-cell sk-w20"></div>
+    </div>
   </div>
 
-  <div *ngIf="!isLoading && !errorMessage" class="patients-table-container">
-    <table class="patients-table">
+  <!-- ── Table ──────────────────────────────────────────── -->
+  <div class="pm-table-wrap" *ngIf="!isLoading">
+    <table class="pm-table">
       <thead>
         <tr>
-          <th>Patient Code</th>
-          <th>Name</th>
-          <th>Contact</th>
-          <th>Date of Birth</th>
-          <th>Gender</th>
-          <th>Status</th>
-          <th>Missing Info</th>
-          <th>Actions</th>
+          <th class="th-code sortable" (click)="setSort('code')">
+            MRN <i class="fas" [ngClass]="getSortIcon('code')"></i>
+          </th>
+          <th class="th-name sortable" (click)="setSort('name')">
+            Patient <i class="fas" [ngClass]="getSortIcon('name')"></i>
+          </th>
+          <th class="th-contact">Contact</th>
+          <th class="th-dob sortable" (click)="setSort('dob')">
+            DOB / Age <i class="fas" [ngClass]="getSortIcon('dob')"></i>
+          </th>
+          <th class="th-gender">Gender</th>
+          <th class="th-status sortable" (click)="setSort('status')">
+            Status <i class="fas" [ngClass]="getSortIcon('status')"></i>
+          </th>
+          <th class="th-actions">Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngIf="filteredPatients.length === 0">
-          <td colspan="8" class="text-center">No patients found</td>
+        <!-- Empty state -->
+        <tr *ngIf="paginated.length === 0 && !isLoading">
+          <td colspan="7">
+            <div class="empty-state">
+              <i class="fas fa-user-slash"></i>
+              <h3>No patients found</h3>
+              <p *ngIf="searchTerm">No results for "{{ searchTerm }}". <button type="button" class="link-btn" (click)="clearSearch()">Clear search</button></p>
+              <p *ngIf="!searchTerm && statusFilter !== 'all'">No {{ statusFilter.toLowerCase() }} patients. <button type="button" class="link-btn" (click)="statusFilter='all'; onFilterChange()">Show all</button></p>
+              <p *ngIf="!searchTerm && statusFilter === 'all'">No patients yet. <a routerLink="/admin/patients/add" class="link-btn">Add the first patient</a></p>
+            </div>
+          </td>
         </tr>
-        <ng-container *ngFor="let patient of filteredPatients">
-          <tr>
-            <td>
-              <span class="patient-code">{{ patient.patientCode || 'N/A' }}</span>
-            </td>
-            <td>
-              <div class="patient-info">
-                <img 
-                  [src]="getPatientImage(patient)" 
-                  [alt]="patient.firstName + ' ' + patient.lastName"
-                  class="patient-avatar"
-                  (error)="onImageError($event)"
-                />
-                <div class="patient-details">
-                  <div class="patient-name">{{ patient.firstName }} {{ patient.lastName }}</div>
-                </div>
+
+        <!-- Patient rows -->
+        <tr *ngFor="let p of paginated; trackBy: trackById" class="patient-row">
+          <!-- MRN -->
+          <td class="td-code">
+            <span class="mrn-badge">{{ p.patientCode || '—' }}</span>
+          </td>
+
+          <!-- Patient info -->
+          <td class="td-name">
+            <div class="patient-cell">
+              <img [src]="getAvatar(p)" [alt]="(p.firstName || '') + ' ' + (p.lastName || '')" [title]="(p.firstName || '') + ' ' + (p.lastName || '')" class="patient-avatar" (error)="onImgError($event)" />
+              <div>
+                <a [routerLink]="['/admin/patients/profile', p.id]" class="patient-name">
+                  {{ p.firstName }} {{ p.lastName }}
+                </a>
+                <div class="patient-id" *ngIf="p.id">ID: {{ p.id }}</div>
               </div>
-            </td>
-            <td>
-            <div>{{ patient.phoneNumber || 'N/A' }}</div>
-            <div class="text-muted">{{ patient.emailAddress || '' }}</div>
+            </div>
           </td>
-          <td>{{ patient.dateOfBirth || 'N/A' }}</td>
-          <td>{{ patient.gender || 'N/A' }}</td>
-          <td>
-            <span class="status-badge" [ngClass]="'status-' + (patient.status?.toLowerCase() || 'active')">
-              {{ patient.status || 'ACTIVE' }}
+
+          <!-- Contact -->
+          <td class="td-contact">
+            <div class="contact-stack">
+              <span *ngIf="p.phoneNumber"><i class="fas fa-phone"></i> {{ p.phoneNumber }}</span>
+              <span *ngIf="p.emailAddress || p.email" class="email-text">
+                <i class="fas fa-envelope"></i> {{ p.emailAddress || p.email }}
+              </span>
+              <span *ngIf="!p.phoneNumber && !p.emailAddress && !p.email" class="muted">—</span>
+            </div>
+          </td>
+
+          <!-- DOB / Age -->
+          <td class="td-dob">
+            <span *ngIf="p.dateOfBirth">{{ p.dateOfBirth }}</span>
+            <span class="age-badge" *ngIf="p.dateOfBirth">{{ getAge(p.dateOfBirth) }}</span>
+            <span *ngIf="!p.dateOfBirth" class="muted">—</span>
+          </td>
+
+          <!-- Gender -->
+          <td class="td-gender">
+            <span class="gender-icon" *ngIf="p.gender">
+              <i class="fas" [ngClass]="(p.gender || '').toLowerCase().includes('female') ? 'fa-venus' : (p.gender || '').toLowerCase().includes('male') ? 'fa-mars' : 'fa-genderless'"></i>
+              {{ p.gender }}
+            </span>
+            <span *ngIf="!p.gender" class="muted">—</span>
+          </td>
+
+          <!-- Status -->
+          <td class="td-status">
+            <span class="status-pill" [ngClass]="'status-' + (p.status || 'ACTIVE').toLowerCase()">
+              {{ p.status || 'ACTIVE' }}
             </span>
           </td>
-          <td>
-            <span class="completeness-badge" 
-                  [ngClass]="'badge-' + getCompletenessStatus(patient).toLowerCase()"
-                  [title]="getCompletenessTooltip(patient)">
-              {{ getCompletenessStatus(patient) }}
-            </span>
-          </td>
-          <td>
-            <div class="action-buttons">
-              <button class="btn-icon" [routerLink]="['/admin/patients/edit', patient.id]" title="Edit">
-                <i class="fas fa-edit"></i>
+
+          <!-- Actions -->
+          <td class="td-actions">
+            <!-- Normal actions -->
+            <div class="actions-group" *ngIf="deletingId !== p.id">
+              <button type="button" class="action-btn" title="View Profile"
+                (click)="router.navigate(['/admin/patients/profile', p.id])">
+                <i class="fas fa-eye"></i>
               </button>
-              <button class="btn-icon" (click)="onUpdateRequested(patient)" title="Update Registration">
-                <i class="fas fa-clipboard-check"></i>
+              <button type="button" class="action-btn" title="Edit"
+                (click)="router.navigate(['/admin/patients/edit', p.id])">
+                <i class="fas fa-pen"></i>
               </button>
-              <button class="btn-icon btn-danger" (click)="deletePatient(patient)" title="Delete">
+              <button type="button" class="action-btn" title="Quick Update"
+                (click)="openDrawer(p)">
+                <i class="fas fa-sliders-h"></i>
+              </button>
+              <button type="button" class="action-btn action-delete" title="Delete"
+                (click)="confirmDelete(p)">
                 <i class="fas fa-trash"></i>
               </button>
             </div>
+
+            <!-- Delete confirmation inline -->
+            <div class="delete-confirm" *ngIf="deletingId === p.id">
+              <span>Delete?</span>
+              <button type="button" class="btn-confirm-del" (click)="deletePatient(p)">Yes</button>
+              <button type="button" class="btn-cancel-del" (click)="cancelDelete()">No</button>
+            </div>
           </td>
-          </tr>
-          <!-- Registration Completeness Banner Row -->
-          <tr *ngIf="patient" class="banner-row">
-            <td colspan="8" class="banner-cell">
-              <app-registration-completeness-banner 
-                [patient]="patient"
-                (updateRequested)="onUpdateRequested(patient)"
-              ></app-registration-completeness-banner>
-            </td>
-          </tr>
-        </ng-container>
+        </tr>
       </tbody>
     </table>
   </div>
+
+  <!-- ── Pagination ─────────────────────────────────────── -->
+  <div class="pm-pagination" *ngIf="!isLoading && filtered.length > 0">
+    <span class="pag-info">
+      Showing {{ (page-1)*pageSize + 1 }}–{{ page*pageSize < filtered.length ? page*pageSize : filtered.length }}
+      of {{ filtered.length }}
+    </span>
+    <div class="pag-controls">
+      <button type="button" class="pag-btn" (click)="goToPage(1)" [disabled]="page===1" title="First">
+        <i class="fas fa-angle-double-left"></i>
+      </button>
+      <button type="button" class="pag-btn" (click)="goToPage(page-1)" [disabled]="page===1" title="Previous">
+        <i class="fas fa-angle-left"></i>
+      </button>
+      <button type="button" class="pag-btn pag-num"
+        *ngFor="let n of getPageNumbers()"
+        [class.active]="n === page"
+        (click)="goToPage(n)">{{ n }}</button>
+      <button type="button" class="pag-btn" (click)="goToPage(page+1)" [disabled]="page===totalPages" title="Next">
+        <i class="fas fa-angle-right"></i>
+      </button>
+      <button type="button" class="pag-btn" (click)="goToPage(totalPages)" [disabled]="page===totalPages" title="Last">
+        <i class="fas fa-angle-double-right"></i>
+      </button>
+    </div>
+  </div>
+
 </div>
 
-<!-- Patient Update Drawer -->
+<!-- ── Update Drawer ──────────────────────────────────────── -->
 <app-patient-update-drawer
-  *ngIf="selectedPatient"
-  [patient]="selectedPatient"
-  [isOpen]="showUpdateDrawer"
-  (close)="onDrawerClose()"
-  (saved)="onPatientSaved($event)"
-></app-patient-update-drawer>
-
+  *ngIf="showDrawer && selectedPatient"
+  [patient]="selectedPatient!"
+  [isOpen]="showDrawer"
+  (close)="closeDrawer()"
+  (saved)="onPatientSaved($event)">
+</app-patient-update-drawer>

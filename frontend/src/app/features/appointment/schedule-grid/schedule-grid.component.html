@@ -1,0 +1,627 @@
+<div class="sched-wrap epic-style">
+  <!-- 3-Pane Layout: Left (Actions/Filters) | Center (Grid) | Right (Calendar+Waitlist) -->
+  <div class="three-pane-layout">
+    <!-- LEFT PANE: Actions + View Controls + Filters -->
+    <div class="left-pane">
+      <div class="pane-content">
+        <!-- View Mode Toggle -->
+        <div class="pane-section">
+          <h3 class="pane-section-title">View</h3>
+          <div class="view-mode-toggle">
+            <button 
+              class="btn-view-mode" 
+              [class.active]="viewMode === 'WEEK'"
+              (click)="setViewMode('WEEK')"
+              title="Week View (W)">
+              <i class="fa fa-calendar-week"></i> Week
+            </button>
+            <button 
+              class="btn-view-mode" 
+              [class.active]="viewMode === 'DAY'"
+              (click)="setViewMode('DAY')"
+              title="Day View (D)">
+              <i class="fa fa-calendar-day"></i> Day
+            </button>
+            <button 
+              class="btn-view-mode" 
+              [class.active]="viewMode === 'MONTH'"
+              (click)="setViewMode('MONTH')"
+              title="Month View (M)">
+              <i class="fa fa-calendar"></i> Month
+            </button>
+          </div>
+        </div>
+
+        <!-- Date Navigation -->
+        <div class="pane-section">
+          <h3 class="pane-section-title">Date</h3>
+          <div class="date-nav">
+            <button class="btn-nav" (click)="prevPeriod()" title="Previous (←)">
+              <i class="fa fa-chevron-left"></i>
+            </button>
+            <button class="btn-nav btn-today" (click)="goToday()" title="Today (T)">
+              <i class="fa fa-calendar-check"></i> Today
+            </button>
+            <button class="btn-nav" (click)="nextPeriod()" title="Next (→)">
+              <i class="fa fa-chevron-right"></i>
+            </button>
+          </div>
+          <div class="date-range">
+            <span class="range-text">{{ dateLabel }}</span>
+            <button class="btn-date-picker" (click)="openDatePicker()" title="Pick Date">
+              <i class="fa fa-calendar-alt"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- View Type Toggle -->
+        <div class="pane-section">
+          <h3 class="pane-section-title">Display</h3>
+          <div class="view-toggle epic-toggle">
+            <button 
+              class="btn-toggle" 
+              [class.active]="columnType === 'PROVIDERS'"
+              (click)="columnType = 'PROVIDERS'; onColumnTypeChange()"
+              title="Providers View">
+              <i class="fa fa-user-md"></i> Providers
+            </button>
+            <button 
+              class="btn-toggle" 
+              [class.active]="columnType === 'ROOMS'"
+              [class.disabled]="roomColumns.length === 0"
+              (click)="columnType = 'ROOMS'; onColumnTypeChange()"
+              [title]="roomColumns.length === 0 ? 'Rooms not configured yet' : 'Rooms View'"
+              [attr.disabled]="roomColumns.length === 0 ? '' : null">
+              <i class="fa fa-door-open"></i> Rooms
+            </button>
+          </div>
+          <div class="rooms-notice" *ngIf="columnType === 'ROOMS' && roomColumns.length === 0">
+            <i class="fa fa-info-circle"></i>
+            <span>Rooms not configured yet</span>
+          </div>
+        </div>
+
+        <!-- Provider/Room Selector -->
+        <div class="pane-section">
+          <h3 class="pane-section-title">
+            Select {{ columnType === 'PROVIDERS' ? 'Providers' : 'Rooms' }}
+            <span class="selected-count">({{ selectedColumnIds.length }})</span>
+          </h3>
+          <div class="selector-search" *ngIf="columnType === 'PROVIDERS'">
+            <input 
+              type="text" 
+              class="selector-search-input" 
+              [(ngModel)]="providerSearchQuery"
+              (input)="onProviderSearchChange()"
+              placeholder="Search...">
+          </div>
+          <select 
+            class="sel epic-multi-select" 
+            multiple 
+            [(ngModel)]="selectedColumnIds" 
+            (change)="onColumnSelectionChange()" 
+            aria-label="Select columns" 
+            title="Select columns to display">
+            <option *ngFor="let col of getFilteredColumns()" [ngValue]="col.id">
+              {{ getColumnName(col) }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Filters -->
+        <div class="pane-section" *ngIf="columnType === 'PROVIDERS'">
+          <h3 class="pane-section-title">Filters</h3>
+          <div class="filters epic-filters">
+            <div class="filter-group">
+              <label class="filter-label">Department</label>
+              <select 
+                class="filter-select epic-select" 
+                [(ngModel)]="filterDepartmentId" 
+                (change)="onFilterChange()"
+                title="Filter by Department">
+                <option [ngValue]="null">All Departments</option>
+                <option *ngFor="let dept of departments" [ngValue]="dept.id">
+                  {{ dept.name }}
+                </option>
+              </select>
+              <span class="filter-chip" *ngIf="filterDepartmentId" (click)="clearFilter('department')">
+                {{ getDepartmentName(filterDepartmentId) }} <i class="fa fa-times"></i>
+              </span>
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-label">Specialization</label>
+              <select 
+                class="filter-select epic-select" 
+                [(ngModel)]="filterSpecializationId" 
+                (change)="onFilterChange()"
+                title="Filter by Specialization">
+                <option [ngValue]="null">All Specializations</option>
+                <option *ngFor="let spec of specializations" [ngValue]="spec.id">
+                  {{ spec.name }}
+                </option>
+              </select>
+              <span class="filter-chip" *ngIf="filterSpecializationId" (click)="clearFilter('specialization')">
+                {{ getSpecializationName(filterSpecializationId) }} <i class="fa fa-times"></i>
+              </span>
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-label">Designation</label>
+              <select 
+                class="filter-select epic-select" 
+                [(ngModel)]="filterDesignationId" 
+                (change)="onFilterChange()"
+                title="Filter by Designation">
+                <option [ngValue]="null">All Designations</option>
+                <option *ngFor="let desig of designations" [ngValue]="desig.id">
+                  {{ desig.name }}
+                </option>
+              </select>
+              <span class="filter-chip" *ngIf="filterDesignationId" (click)="clearFilter('designation')">
+                {{ getDesignationName(filterDesignationId) }} <i class="fa fa-times"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="pane-section">
+          <h3 class="pane-section-title">Actions</h3>
+          <div class="quick-actions">
+            <button class="btn-action" (click)="refreshData()" title="Refresh (F5)">
+              <i class="fa fa-sync-alt"></i> Refresh
+            </button>
+            <button class="btn-action" (click)="exportSchedule()" title="Export">
+              <i class="fa fa-download"></i> Export
+            </button>
+            <button class="btn-action" (click)="printSchedule()" title="Print (Ctrl+P)">
+              <i class="fa fa-print"></i> Print
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="pane-section" *ngIf="selectedColumnIds.length > 0">
+          <h3 class="pane-section-title">Stats</h3>
+          <div class="quick-stats">
+            <div class="stat-item">
+              <i class="fa fa-calendar-check"></i>
+              <div>
+                <strong>{{ getTotalAppointments() }}</strong>
+                <span>Appointments</span>
+              </div>
+            </div>
+            <div class="stat-item" *ngIf="waitlist.length > 0">
+              <i class="fa fa-clock"></i>
+              <div>
+                <strong>{{ waitlist.length }}</strong>
+                <span>Waitlist</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER PANE: Schedule Grid -->
+    <div class="center-pane">
+      <!-- Epic-style Top Bar -->
+      <div class="epic-top-bar" *ngIf="viewMode === 'DAY'" data-testid="epic-top-bar">
+        <div class="top-bar-left">
+          <span class="day-label" data-testid="day-label">{{ getDayLabel() }}</span>
+        </div>
+        <div class="top-bar-center">
+          <button class="btn-nav-small" (click)="prevDay()" title="Previous Day (←)" data-testid="btn-prev-day">
+            <i class="fa fa-chevron-left"></i>
+          </button>
+          <button class="btn-nav-small btn-today-small" (click)="today()" title="Today (T)" data-testid="btn-today">
+            Today
+          </button>
+          <button class="btn-nav-small" (click)="nextDay()" title="Next Day (→)" data-testid="btn-next-day">
+            <i class="fa fa-chevron-right"></i>
+          </button>
+        </div>
+        <div class="top-bar-right">
+          <button class="btn-quick-action" (click)="openQuickBook()" title="New Appointment (N)" data-testid="btn-new-appointment">
+            <i class="fa fa-plus"></i> New (N)
+          </button>
+          <button class="btn-quick-action" (click)="loadAppointments()" title="Refresh" data-testid="btn-refresh">
+            <i class="fa fa-sync-alt"></i> Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- Epic-style Summary Strip -->
+      <div class="epic-summary-strip" *ngIf="selectedColumnIds.length > 0 && viewMode === 'DAY'" data-testid="summary-strip">
+        <div class="summary-item">
+          <span class="summary-label">Total:</span>
+          <span class="summary-value" data-testid="summary-total">{{ summaryData.totalAppointments }}</span>
+        </div>
+        <div class="summary-item status-scheduled">
+          <span class="summary-label">Scheduled:</span>
+          <span class="summary-value" data-testid="summary-scheduled">{{ summaryData.scheduled }}</span>
+        </div>
+        <div class="summary-item status-confirmed">
+          <span class="summary-label">Confirmed:</span>
+          <span class="summary-value" data-testid="summary-confirmed">{{ summaryData.confirmed }}</span>
+        </div>
+        <div class="summary-item status-arrived">
+          <span class="summary-label">Arrived:</span>
+          <span class="summary-value" data-testid="summary-arrived">{{ summaryData.arrived }}</span>
+        </div>
+        <div class="summary-item status-checked-in">
+          <span class="summary-label">Checked In:</span>
+          <span class="summary-value" data-testid="summary-checked-in">{{ summaryData.checkedIn }}</span>
+        </div>
+        <div class="summary-item status-checked-out">
+          <span class="summary-label">Checked Out:</span>
+          <span class="summary-value" data-testid="summary-checked-out">{{ summaryData.checkedOut }}</span>
+        </div>
+        <div class="summary-item status-cancelled">
+          <span class="summary-label">Cancelled:</span>
+          <span class="summary-value" data-testid="summary-cancelled">{{ summaryData.cancelled }}</span>
+        </div>
+        <div class="summary-item status-no-show">
+          <span class="summary-label">No Show:</span>
+          <span class="summary-value" data-testid="summary-no-show">{{ summaryData.noShow }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Open Slots:</span>
+          <span class="summary-value" data-testid="summary-open-slots">{{ summaryData.openSlots }}</span>
+        </div>
+      </div>
+      <div class="board">
+    <!-- Time Column -->
+    <div class="timecol" [style.height.px]="gridHeightPx() + 54" data-testid="time-column">
+      <div class="timehead"></div>
+      <div class="t" *ngFor="let t of timeLabels()" data-testid="time-label">{{ t }}</div>
+    </div>
+
+    <!-- Provider/Room Columns with Week Days -->
+    <div class="columns-week" [style.--column-count]="selectedColumnIds.length" data-testid="schedule-grid">
+      <!-- Column Headers (one per provider) -->
+      <div class="colhead-week" *ngFor="let colId of selectedColumnIds">
+        <div class="h1">
+          <div class="provider-avatar-wrapper">
+            <img 
+              class="avatar provider-avatar" 
+              [src]="getProviderAvatar(colId)" 
+              [alt]="getColumnNameById(colId) + ' profile picture'"
+              [title]="getColumnNameById(colId)"
+              title="Provider profile picture"
+              (error)="onProviderImageError($event, colId)"
+              loading="lazy" />
+            <div class="avatar provider-avatar provider-initials provider-initials-fallback">
+              {{ getProviderInitials(colId) }}
+            </div>
+          </div>
+          {{ getColumnNameById(colId) }}
+        </div>
+        <div class="h2">{{ getTotalAppointmentsForColumn(colId) }} appointments</div>
+      </div>
+
+      <!-- Day Headers (one per day, repeated for each column) -->
+      <ng-container *ngFor="let colId of selectedColumnIds">
+        <div class="dayhead-week" *ngFor="let day of days" [class.today]="isToday(day)">
+          <div class="day-label">{{ day.label }}</div>
+          <div class="today-badge" *ngIf="isToday(day)">Today</div>
+        </div>
+      </ng-container>
+
+      <!-- Grid Cells: Provider × Day -->
+      <ng-container *ngFor="let colId of selectedColumnIds">
+        <div 
+          class="col-week"
+          *ngFor="let day of days"
+          [id]="colId + '-' + day.key"
+          cdkDropList
+          [cdkDropListData]="getAppointmentsForColumnAndDay(colId, day.key)"
+          [cdkDropListConnectedTo]="getConnectedLists()"
+          (cdkDropListDropped)="onDrop($event)"
+          [style.height.px]="gridHeightPx()"
+          (click)="onGridClick(colId, day.key, $event)"
+          (mouseenter)="onSlotHover(colId, day.key, $event)"
+          (mousemove)="onSlotHover(colId, day.key, $event)"
+          (mouseleave)="onSlotLeave()">
+          
+          <div class="gridlines" [style.height.px]="gridHeightPx()"></div>
+          
+          <!-- Current Time Indicator -->
+          <div 
+            *ngIf="isToday(day) && getCurrentTimePosition() !== null"
+            class="current-time-indicator"
+            [style.top.px]="getCurrentTimePosition()!">
+            <div class="current-time-line"></div>
+            <div class="current-time-dot"></div>
+          </div>
+          
+          <!-- Empty Slot Tooltip -->
+          <div 
+            *ngIf="hoveredSlot && hoveredSlot.columnId === colId && hoveredSlot.dayKey === day.key"
+            class="slot-tooltip"
+            [style.top.px]="getCurrentTimePosition() || 0">
+            {{ getHoverTooltip() }}
+          </div>
+
+          <div 
+            class="appt"
+            *ngFor="let a of getAppointmentsForColumnAndDay(colId, day.key)"
+            data-testid="appointment-bar"
+            cdkDrag
+            [cdkDragData]="a"
+            [style.top.px]="topPx(a)"
+            [style.height.px]="heightPx(a)"
+            [style.width.%]="getOverlapInfo(a, colId, day.key).width"
+            [style.left.%]="getOverlapInfo(a, colId, day.key).left"
+            [ngClass]="[statusClass(a), priorityClass(a)]"
+            [attr.data-appt-id]="a.id || a.appointmentId"
+            (click)="onAppointmentClick(a, $event)"
+            (cdkDragStarted)="isDragging = true"
+            (cdkDragEnded)="isDragging = false"
+            [attr.title]="getAppointmentTooltip(a)">
+            
+            <div class="appt-content">
+              <div class="title">
+                <i class="fa" [ngClass]="getStatusIcon(a)" class="status-icon"></i>
+                <div class="patient-avatar-wrapper">
+                  <img 
+                    class="appt-avatar" 
+                    [src]="getPatientAvatar(a)" 
+                    [alt]="a.patientName + ' profile picture'"
+                    [title]="a.patientName"
+                    title="Patient profile picture"
+                    (error)="onPatientImageError($event, a)"
+                    loading="lazy" />
+                  <div class="appt-avatar appt-avatar-initials appt-avatar-initials-fallback">
+                    {{ getPatientInitials(a) }}
+                  </div>
+                </div>
+                <span class="patient-name">{{ a.patientName }}</span>
+                <span class="status-chip" [ngClass]="'status-' + getStatusClass(a.status)">
+                  {{ getStatusLabel(a.status) }}
+                </span>
+              </div>
+              <div class="meta">{{ slotLabel(a) }}</div>
+              <div class="mini">{{ a.visitType || a.departmentName || '—' }}</div>
+
+              <div class="appt-badges">
+                <span class="priority-badge urgent" *ngIf="a.priority === 'URGENT'">
+                  <i class="fa fa-exclamation-circle"></i> URGENT
+                </span>
+                <span class="priority-badge high" *ngIf="a.priority === 'HIGH'">
+                  <i class="fa fa-exclamation-triangle"></i> HIGH
+                </span>
+              </div>
+            </div>
+
+            <!-- Resize handle -->
+            <div 
+              class="resize-handle"
+              (mousedown)="onResizeStart(a, $event); $event.stopPropagation()"
+              title="Drag to resize duration">
+            </div>
+          </div>
+
+          <div class="empty" *ngIf="getAppointmentsForColumnAndDay(colId, day.key).length === 0 && !isLoading">
+            Click to add
+          </div>
+        </div>
+      </ng-container>
+    </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANE: Mini Calendar + Waitlist -->
+    <div class="right-pane">
+      <div class="pane-content">
+        <!-- Mini Calendar -->
+        <div class="pane-section">
+          <h3 class="pane-section-title">Calendar</h3>
+          <div class="mini-calendar">
+            <div class="mini-calendar-header">
+              <button class="btn-cal-nav" (click)="prevMonth()" title="Previous Month">
+                <i class="fa fa-chevron-left"></i>
+              </button>
+              <div class="mini-calendar-month">
+                {{ getCurrentMonthLabel() }}
+              </div>
+              <button class="btn-cal-nav" (click)="nextMonth()" title="Next Month">
+                <i class="fa fa-chevron-right"></i>
+              </button>
+            </div>
+            <div class="mini-calendar-weekdays">
+              <div class="mini-cal-weekday" *ngFor="let wd of getWeekdayLabels()">{{ wd }}</div>
+            </div>
+            <div class="mini-calendar-days">
+              <div 
+                class="mini-cal-day" 
+                *ngFor="let day of getMiniCalendarDays()"
+                [class.other-month]="day.otherMonth"
+                [class.today]="day.isToday"
+                [class.selected]="day.isSelected"
+                (click)="selectDateFromMiniCalendar(day.date)"
+                [title]="formatDateForTitle(day.date)">
+                {{ day.day }}
+              </div>
+            </div>
+          </div>
+          
+          <!-- Quick Date Navigation -->
+          <div class="quick-date-nav">
+            <button class="btn-quick-date" (click)="goToday()" title="Go to Today">
+              <i class="fa fa-calendar-check"></i> Today
+            </button>
+            <button class="btn-quick-date" (click)="jumpWeeks(1)" title="Jump +1 Week">
+              <i class="fa fa-forward"></i> +1 Week
+            </button>
+            <button class="btn-quick-date" (click)="jumpWeeks(2)" title="Jump +2 Weeks">
+              <i class="fa fa-fast-forward"></i> +2 Weeks
+            </button>
+          </div>
+        </div>
+
+        <!-- Waitlist -->
+        <div class="pane-section">
+          <div class="panel-header">
+            <h3 class="pane-section-title">
+              <i class="fa fa-list-alt"></i> 
+              <span>Waitlist</span>
+              <span class="badge-count" *ngIf="waitlist.length > 0" [attr.aria-label]="waitlist.length + ' waitlist items'">
+                {{ waitlist.length }}
+              </span>
+            </h3>
+          </div>
+          <div class="panel-content">
+            <div class="waitlist-search" *ngIf="waitlist.length > 3">
+              <input 
+                type="text" 
+                class="waitlist-search-input" 
+                [(ngModel)]="waitlistSearchQuery"
+                placeholder="Search waitlist..."
+                title="Search waitlist entries"
+                aria-label="Search waitlist entries">
+            </div>
+
+            <div class="wl" 
+                 *ngFor="let w of getFilteredWaitlist()"
+                 [class.urgent-item]="w.priority==='URGENT'"
+                 [class.high-item]="w.priority==='HIGH'"
+                 [class.normal-item]="w.priority==='NORMAL'">
+              <div class="wl-header">
+                <div class="wl-name">
+                  <div class="wl-avatar-wrapper">
+                    <img 
+                      class="wl-avatar" 
+                      [src]="getWaitlistPatientAvatar(w)" 
+                      [alt]="w.patientName + ' profile picture'"
+                      [title]="w.patientName"
+                      title="Patient profile picture"
+                      (error)="onWaitlistPatientImageError($event, w)"
+                      loading="lazy" />
+                    <div class="wl-avatar wl-avatar-initials wl-avatar-initials-fallback">
+                      {{ getWaitlistPatientInitials(w) }}
+                    </div>
+                  </div>
+                  <span>{{ w.patientName }}</span>
+                </div>
+                <div class="wl-pr" 
+                     [class.urgent]="w.priority==='URGENT'" 
+                     [class.high]="w.priority==='HIGH'"
+                     [class.normal]="w.priority==='NORMAL'">
+                  <i class="fa" 
+                     [class.fa-exclamation-circle]="w.priority==='URGENT'" 
+                     [class.fa-exclamation-triangle]="w.priority==='HIGH'"
+                     [class.fa-circle]="w.priority==='NORMAL'"></i>
+                  {{ w.priority }}
+                </div>
+              </div>
+              <div class="wl-reason">{{ w.reason || '' }}</div>
+              <div class="wl-actions">
+                <button class="btn-wl-action" 
+                        (click)="scheduleFromWaitlist(w)" 
+                        [attr.aria-label]="'Schedule appointment for ' + w.patientName"
+                        title="Schedule Appointment">
+                  <i class="fa fa-calendar-plus"></i> 
+                  <span>Schedule</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="empty-waitlist" *ngIf="getFilteredWaitlist().length === 0">
+              <i class="fa fa-inbox"></i>
+              <p>No waitlist items</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conflict Error Toast -->
+  <div class="conflict-toast" *ngIf="conflictError" (click)="conflictError = null">
+    <div class="toast-content">
+      <i class="fa fa-exclamation-triangle"></i>
+      <span>{{ conflictError }}</span>
+      <button class="toast-close" (click)="conflictError = null" title="Close" aria-label="Close error message">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Empty State (No Providers) -->
+  <div class="empty-state" *ngIf="!isLoadingProviders && !isLoading && providerColumns.length === 0 && columnType === 'PROVIDERS'">
+    <div class="empty-state-content">
+      <i class="fa fa-user-md"></i>
+      <h3>No Providers Available</h3>
+      <p>No providers match your current filters. Try adjusting your search or filters.</p>
+      <button class="btn-primary" (click)="clearFilter('department'); clearFilter('specialization'); clearFilter('designation'); providerSearchQuery = ''">
+        Clear All Filters
+      </button>
+    </div>
+  </div>
+
+  <!-- Empty State (No Appointments) -->
+  <div class="empty-state" *ngIf="!isLoading && selectedColumnIds.length > 0 && appts.length === 0">
+    <div class="empty-state-content">
+      <i class="fa fa-calendar"></i>
+      <h3>No Appointments Scheduled</h3>
+      <p>Click on any time slot to create a new appointment.</p>
+    </div>
+  </div>
+
+  <!-- Loading Skeletons -->
+  <div class="loading-skeletons" *ngIf="isLoadingProviders || isLoading">
+    <div class="skeleton-header" *ngIf="isLoadingProviders">
+      <div class="skeleton-line skeleton-line-header"></div>
+      <div class="skeleton-line skeleton-line-subheader"></div>
+    </div>
+    <div class="skeleton-grid" *ngIf="isLoading">
+      <div class="skeleton-cell" *ngFor="let i of [1,2,3,4,5,6,7]">
+        <div class="skeleton-appt" *ngFor="let j of [1,2,3]"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay (Fallback) -->
+  <div class="loading-overlay" *ngIf="isLoading || isLoadingProviders">
+    <div class="loading-spinner">
+      <i class="fa fa-spinner fa-spin"></i>
+      <p *ngIf="isLoadingProviders">Loading providers...</p>
+      <p *ngIf="!isLoadingProviders && isLoading">Loading appointments...</p>
+    </div>
+  </div>
+
+  <!-- Keyboard Shortcuts Help -->
+  <div class="shortcuts-help" *ngIf="showShortcuts" (click)="showShortcuts = false">
+    <div class="shortcuts-content" (click)="$event.stopPropagation()">
+      <h3>Keyboard Shortcuts</h3>
+      <ul>
+        <li><kbd>←</kbd> / <kbd>→</kbd> - Navigate dates</li>
+        <li><kbd>T</kbd> - Go to today</li>
+        <li><kbd>W</kbd> - Week view</li>
+        <li><kbd>D</kbd> - Day view</li>
+        <li><kbd>M</kbd> - Month view</li>
+        <li><kbd>Ctrl+F</kbd> - Search providers</li>
+        <li><kbd>F5</kbd> - Refresh</li>
+        <li><kbd>Ctrl+P</kbd> - Print</li>
+        <li><kbd>?</kbd> - Show/hide shortcuts</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Epic-style Appointment Detail Panel -->
+  <app-appointment-detail-panel
+    *ngIf="showAppointmentDetailPanel && selectedAppointment"
+    [appointment]="selectedAppointment"
+    (close)="closeAppointmentDetailPanel()"
+    (statusChange)="onStatusChange($event)">
+  </app-appointment-detail-panel>
+
+  <!-- Panel Overlay -->
+  <div 
+    class="panel-overlay" 
+    *ngIf="showAppointmentDetailPanel"
+    (click)="closeAppointmentDetailPanel()">
+  </div>
+</div>

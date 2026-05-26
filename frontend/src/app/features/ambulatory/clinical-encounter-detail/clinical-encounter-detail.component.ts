@@ -4,7 +4,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { EncounterService } from '../../../core/services/encounter.service';
 import { PatientService } from '../../../core/services/patient.service';
 import { DoctorService } from '../../../core/services/doctor.service';
-import { DepartmentService } from '../../../core/services/department.service';
+import { MasterDataService } from '../../../core/services/master-data.service';
 import { RoomingService } from '../../../core/services/rooming.service';
 import { ProviderEncounterService } from '../../../core/services/provider-encounter.service';
 import { CheckoutService } from '../../../core/services/checkout.service';
@@ -15,6 +15,7 @@ import { Encounter } from '../../../core/models/encounter.model';
 import { Patient } from '../../../core/models/patient.model';
 import { Doctor } from '../../../core/models/doctor.model';
 import { Department } from '../../../core/models/department.model';
+import { MasterDepartment } from '../../../core/models/master-data.model';
 import { Rooming, ProviderEncounter, Checkout } from '../../../core/models/ambulatory.model';
 import { Coverage, PatientConsent } from '../../../core/models/coverage.model';
 import { RegistrationCompleteness } from '../../../core/models/registration-completeness.model';
@@ -37,6 +38,7 @@ interface Warning {
   section?: StepType;
 }
 
+// Clinical Encounter Detail - Detailed view and workflow for a single clinical encounter
 @Component({
   selector: 'app-clinical-encounter-detail',
   standalone: true,
@@ -55,7 +57,7 @@ export class ClinicalEncounterDetailComponent implements OnInit {
   private encounterService = inject(EncounterService);
   private patientService = inject(PatientService);
   private doctorService = inject(DoctorService);
-  private departmentService = inject(DepartmentService);
+  private masterDataService = inject(MasterDataService);
   private roomingService = inject(RoomingService);
   private providerEncounterService = inject(ProviderEncounterService);
   private checkoutService = inject(CheckoutService);
@@ -151,10 +153,22 @@ export class ClinicalEncounterDetailComponent implements OnInit {
     }
 
     // Load department
-    if (this.encounter.departmentId) {
-      this.departmentService.getById(this.encounter.departmentId).subscribe({
-        next: (dept) => {
-          this.department = dept;
+    if (this.encounter?.departmentId) {
+      this.masterDataService.getDepartments().subscribe({
+        next: (masterDepts) => {
+          const dept = masterDepts.find(d => Number(d.id) === this.encounter?.departmentId);
+          if (dept) {
+            this.department = {
+              id: dept.id,
+              departmentId: Number(dept.id) || undefined,
+              name: dept.name,
+              code: dept.code,
+              description: dept.description,
+              active: dept.active,
+              status: dept.active ? 'ACTIVE' : 'INACTIVE',
+              specialtyGroup: dept.specialtyGroup
+            };
+          }
         },
         error: (err) => console.error('Error loading department:', err)
       });
@@ -341,13 +355,15 @@ export class ClinicalEncounterDetailComponent implements OnInit {
   }
 
   getStatusClass(status: string | undefined): string {
-    switch (status) {
-      case 'ARRIVED':
-        return 'status-arrived';
+    if (!status) return 'status-unknown';
+    const upperStatus = status.toUpperCase();
+    switch (upperStatus) {
       case 'ROOMING':
         return 'status-rooming';
-      case 'IN_PROGRESS':
+      case 'PROVIDER_ENCOUNTER':
         return 'status-in-progress';
+      case 'CHECKOUT':
+        return 'status-checkout';
       case 'COMPLETED':
         return 'status-completed';
       default:
@@ -356,17 +372,19 @@ export class ClinicalEncounterDetailComponent implements OnInit {
   }
 
   getStatusLabel(status: string | undefined): string {
-    switch (status) {
-      case 'ARRIVED':
-        return 'Arrived';
+    if (!status) return 'Unknown';
+    const upperStatus = status.toUpperCase();
+    switch (upperStatus) {
       case 'ROOMING':
         return 'Rooming';
-      case 'IN_PROGRESS':
-        return 'In Progress';
+      case 'PROVIDER_ENCOUNTER':
+        return 'Provider Encounter';
+      case 'CHECKOUT':
+        return 'Checkout';
       case 'COMPLETED':
         return 'Completed';
       default:
-        return status || 'Unknown';
+        return status; // Return the status as-is if not recognized
     }
   }
 

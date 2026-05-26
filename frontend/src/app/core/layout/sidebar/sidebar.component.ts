@@ -1,4 +1,5 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
+import { FeatureFlagsService } from '../../services/feature-flags.service';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -32,7 +33,24 @@ export class SidebarComponent implements OnInit {
   expandedItems: Set<string> = new Set();
   activeRoute: string = '';
 
+  private readonly featureFlags = inject(FeatureFlagsService);
+
   constructor(private router: Router) {}
+
+  /** Sidebar model; includes Assistive / AI when the backend reports {@code aiEnabled}. */
+  get menuSections(): MenuSection[] {
+    if (!this.featureFlags.aiEnabled()) {
+      return this.baseMenuSections;
+    }
+    const assistive: MenuSection = {
+      title: 'Assistive',
+      items: [
+        { icon: 'fa-robot', label: 'AI Assistant', route: '/admin/ai-assistant' }
+      ]
+    };
+    const [first, ...rest] = this.baseMenuSections;
+    return [first, assistive, ...rest];
+  }
 
   ngOnInit() {
     // Track current route to ensure only one item is active
@@ -68,7 +86,7 @@ export class SidebarComponent implements OnInit {
     }
   }
 
-  menuSections: MenuSection[] = [
+  private readonly baseMenuSections: MenuSection[] = [
     {
       title: 'Main Menu',
       items: [
@@ -95,21 +113,21 @@ export class SidebarComponent implements OnInit {
       ]
     },
     {
-      title: 'Doctors',
+      title: 'Providers',
       items: [
         { 
           icon: 'fa-user-doctor', 
-          label: 'All Doctors',
-          route: '/admin/doctors'
+          label: 'All Providers',
+          route: '/admin/providers'
         },
         { 
           icon: 'fa-user-plus', 
-          label: 'Add Doctor',
+          label: 'Add Provider',
           route: '/admin/doctors/add'
         },
         { 
           icon: 'fa-calendar', 
-          label: 'Doctor Schedule',
+          label: 'Provider Schedule',
           route: '/admin/doctors/schedule'
         }
       ]
@@ -117,89 +135,60 @@ export class SidebarComponent implements OnInit {
     {
       title: 'Patients',
       items: [
-        { 
-          icon: 'fa-user-injured', 
-          label: 'All Patients',
+        {
+          icon: 'fa-users',
+          label: 'Patient List',
           route: '/admin/patients'
         },
-        { 
-          icon: 'fa-user-plus', 
+        {
+          icon: 'fa-user-plus',
           label: 'Add Patient',
           route: '/admin/patients/add'
         },
-        { 
-          icon: 'fa-search', 
-          label: 'Patient Search',
-          route: '/admin/prelude/search'
+        {
+          icon: 'fa-file-medical',
+          label: 'Patient Snapshot',
+          route: '/admin/patients/1/snapshot'
+        },
+        {
+          icon: 'fa-notes-medical',
+          label: 'MyChart Portal',
+          route: '/patient/home'
         }
       ]
     },
     {
       title: 'Appointments',
       items: [
-        { 
-          icon: 'fa-calendar-check', 
-          label: 'All Appointments',
-          route: '/admin/appointments'
+        {
+          icon: 'fa-calendar-grid',
+          label: 'Schedule Grid',
+          route: '/admin/appointments/grid'
         },
-        { 
-          icon: 'fa-calendar-grid', 
-          label: 'Scheduler',
-          route: '/admin/appointments/scheduler'
-        },
-        { 
-          icon: 'fa-calendar-alt', 
-          label: 'Scheduling',
-          route: '/scheduling/appointments'
-        },
-        { 
-          icon: 'fa-calendar-plus', 
+        {
+          icon: 'fa-calendar-plus',
           label: 'New Appointment',
           route: '/admin/appointments/new'
-        },
-        { 
-          icon: 'fa-calendar-days', 
-          label: 'Calendar View',
-          route: '/admin/appointments/calendar'
-        },
-        { 
-          icon: 'fa-calendar-grid', 
-          label: 'Schedule Grid',
-          route: '/admin/appointments/cadence'
         }
       ]
     },
     {
-      title: '',
+      title: 'AI Assistant',
       items: [
-        { 
-          icon: 'fa-clipboard-user', 
-          label: 'Clinical Encounters',
-          route: '/ambulatory/clinical-encounters'
+        {
+          icon: 'fa-robot',
+          label: 'AI Medical Assistant',
+          route: '/admin/ai-assistant'
         }
       ]
     },
-    {
-      title: 'Demo',
-      items: [
-        { 
-          icon: 'fa-play-circle', 
-          label: 'Workflow Demo',
-          route: '/demo'
-        }
-      ]
-    },
+    // Demo menu removed - not part of canonical domains
     {
       title: 'Admin Configuration',
       items: [
         { 
-          icon: 'fa-user-doctor', 
-          label: 'Provider Templates',
-          route: '/admin/provider-templates'
-        },
-        { 
           icon: 'fa-calendar-alt', 
-          label: 'Schedules',
+          label: 'Provider Schedules',
           route: '/admin/schedules'
         },
         { 
@@ -237,6 +226,20 @@ export class SidebarComponent implements OnInit {
           icon: 'fa-chart-line', 
           label: 'Dashboard Analysis',
           route: '/admin/analysis'
+        }
+      ]
+    },
+    {
+      title: 'Reports',
+      items: [
+        { 
+          icon: 'fa-chart-bar', 
+          label: 'Reports',
+          children: [
+            { label: 'Scheduling Analytics', route: '/reports/scheduling-analytics' },
+            { label: 'Provider Utilization', route: '/reports/provider-utilization' },
+            { label: 'Scheduling Workqueue', route: '/reports/scheduling-workqueue' }
+          ]
         }
       ]
     }
@@ -316,7 +319,7 @@ export class SidebarComponent implements OnInit {
   }
 
   navigateToDashboard() {
-    this.router.navigate(['/dashboard']);
+    this.router.navigate(['/admin/dashboard']);
   }
 }
 

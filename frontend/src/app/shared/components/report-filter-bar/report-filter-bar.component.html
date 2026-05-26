@@ -1,0 +1,163 @@
+<div class="report-filter-bar" [formGroup]="filterForm">
+  <div class="filter-row">
+    <!-- Date Range Presets -->
+    <div class="filter-group">
+      <label class="filter-label">Date Range</label>
+      <select 
+        formControlName="datePreset"
+        class="filter-select"
+        title="Select date range preset"
+        aria-label="Date range preset">
+        <option value="today">Today</option>
+        <option value="thisWeek">This Week</option>
+        <option value="next2Weeks">Next 2 Weeks</option>
+        <option value="month">Month</option>
+        <option value="custom">Custom</option>
+      </select>
+    </div>
+
+    <!-- Custom Date Range -->
+    <div class="filter-group" *ngIf="filterForm.get('datePreset')?.value === 'custom'">
+      <label class="filter-label">Start Date</label>
+      <input 
+        type="date" 
+        formControlName="startDate"
+        class="filter-input"
+        title="Start date"
+        aria-label="Start date">
+    </div>
+
+    <div class="filter-group" *ngIf="filterForm.get('datePreset')?.value === 'custom'">
+      <label class="filter-label">End Date</label>
+      <input 
+        type="date" 
+        formControlName="endDate"
+        class="filter-input"
+        title="End date"
+        aria-label="End date">
+    </div>
+
+    <!-- Provider Multi-Select -->
+    <div class="filter-group filter-multiselect">
+      <label class="filter-label">Providers</label>
+      <div class="multiselect-dropdown">
+        <button 
+          type="button"
+          class="multiselect-button"
+          [class.active]="providerIdsArray.length > 0"
+          title="Select providers"
+          aria-label="Select providers">
+          {{ providerIdsArray.length > 0 ? providerIdsArray.length + ' selected' : 'All Providers' }}
+          <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="multiselect-menu">
+          <div class="multiselect-item" *ngFor="let provider of providers">
+            <label class="checkbox-label">
+              <input 
+                type="checkbox"
+                [checked]="isProviderSelected(provider.id!)"
+                (change)="onProviderToggle(provider.id!)"
+                [value]="provider.id">
+              <span>{{ getProviderName(provider) }}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Multi-Select -->
+    <div class="filter-group filter-multiselect">
+      <label class="filter-label">Status</label>
+      <div class="multiselect-dropdown">
+        <button 
+          type="button"
+          class="multiselect-button"
+          [class.active]="statusesArray.length > 0"
+          title="Select statuses"
+          aria-label="Select statuses">
+          {{ statusesArray.length > 0 ? statusesArray.length + ' selected' : 'All Statuses' }}
+          <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="multiselect-menu">
+          <div class="multiselect-item" *ngFor="let status of statusOptions">
+            <label class="checkbox-label">
+              <input 
+                type="checkbox"
+                [checked]="isStatusSelected(status.value)"
+                (change)="onStatusToggle(status.value)"
+                [value]="status.value">
+              <span>{{ status.label }}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Appointment Type Multi-Select -->
+    <div class="filter-group filter-multiselect" *ngIf="showAppointmentType">
+      <label class="filter-label">Appointment Type</label>
+      <div class="multiselect-dropdown">
+        <button 
+          type="button"
+          class="multiselect-button"
+          [class.active]="appointmentTypesArray.length > 0"
+          title="Select appointment types"
+          aria-label="Select appointment types">
+          {{ appointmentTypesArray.length > 0 ? appointmentTypesArray.length + ' selected' : 'All Types' }}
+          <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="multiselect-menu">
+          <div class="multiselect-item" *ngFor="let type of appointmentTypeOptions">
+            <label class="checkbox-label">
+              <input 
+                type="checkbox"
+                [checked]="isAppointmentTypeSelected(type.value)"
+                (change)="onAppointmentTypeToggle(type.value)"
+                [value]="type.value">
+              <span>{{ type.label }}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toggles -->
+    <div class="filter-group filter-toggles">
+      <label class="toggle-label" *ngIf="showIncludeCancelled">
+        <input 
+          type="checkbox"
+          formControlName="includeCancelled"
+          class="toggle-checkbox">
+        <span>Include Cancelled</span>
+      </label>
+      <label class="toggle-label" *ngIf="showBusinessHoursOnly">
+        <input 
+          type="checkbox"
+          formControlName="businessHoursOnly"
+          class="toggle-checkbox">
+        <span>Business Hours Only</span>
+      </label>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="filter-actions">
+      <button 
+        type="button"
+        class="btn-apply"
+        (click)="onApply()"
+        title="Apply filters"
+        aria-label="Apply filters">
+        <i class="fas fa-filter"></i> Apply
+      </button>
+      <button 
+        type="button"
+        class="btn-reset"
+        (click)="onReset()"
+        title="Reset filters"
+        aria-label="Reset filters">
+        <i class="fas fa-redo"></i> Reset
+      </button>
+    </div>
+  </div>
+</div>
+

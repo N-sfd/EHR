@@ -1,0 +1,14 @@
+{
+  "name": "staff-service",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start:admin": "cd frontend && npm start",
+    "start:mychart": "cd mychart/mychart-ui && npm start",
+    "start:backend": "mvn spring-boot:run",
+    "start:all": "npm run start:backend & npm run start:admin",
+    "install:all": "cd frontend && npm install && cd ../mychart/mychart-ui && npm install"
+  },
+  "description": "EHR Staff Service - Admin Portal and MyChart Patient Portal"
+}
+

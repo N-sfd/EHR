@@ -8,6 +8,7 @@ import { AppointmentService } from '../../../core/services/appointment.service';
 import { Patient } from '../../../core/models/patient.model';
 import { Doctor } from '../../../core/models/doctor.model';
 import { Appointment } from '../../../core/models/appointment.model';
+import { US_STATES, US_CITIES_BY_STATE, getCitiesForState, getZipCodesForCity } from '../../../core/constants/us-locations.constants';
 
 @Component({
   selector: 'app-add-edit-patient',
@@ -35,6 +36,15 @@ export class AddEditPatientComponent implements OnInit {
   doctors: Doctor[] = [];
   appointments: Appointment[] = [];
   activeTab: string = 'demographics';
+  
+  // Location dropdowns
+  states = US_STATES;
+  cities: string[] = [];
+  zipCodes: string[] = [];
+  mailingCities: string[] = [];
+  mailingZipCodes: string[] = [];
+  billingCities: string[] = [];
+  billingZipCodes: string[] = [];
   activeDemographicsSubTab: string = 'profile';
   activeMedicationSubTab: string = 'active';
   activeAllergySubTab: string = 'active';
@@ -303,6 +313,19 @@ export class AddEditPatientComponent implements OnInit {
           address: patient.address || patient.addressLine1,
           zipCode: patient.zipCode || patient.pincode
         };
+        // Initialize cities and zip codes based on patient state and city
+        if (this.patient.state) {
+          this.cities = getCitiesForState(this.patient.state);
+          if (this.patient.city) {
+            this.zipCodes = getZipCodesForCity(this.patient.state, this.patient.city);
+          }
+        }
+        if (this.demographicsInfo.mailingState) {
+          this.mailingCities = getCitiesForState(this.demographicsInfo.mailingState);
+          if (this.demographicsInfo.mailingCity) {
+            this.mailingZipCodes = getZipCodesForCity(this.demographicsInfo.mailingState, this.demographicsInfo.mailingCity);
+          }
+        }
         this.isLoading = false;
         // Load appointments if appointments tab is active
         if (this.activeTab === 'appointments') {
@@ -423,18 +446,102 @@ export class AddEditPatientComponent implements OnInit {
     return this.problems.filter(p => !p.isActive && !p.isError);
   }
 
+  onStateChange(): void {
+    this.cities = getCitiesForState(this.patient.state || '');
+    this.zipCodes = []; // Clear zip codes when state changes
+    // Reset city and zip if state changes
+    if (this.patient.city && !this.cities.includes(this.patient.city)) {
+      this.patient.city = '';
+      this.patient.zipCode = '';
+    } else if (this.patient.city) {
+      // Update zip codes for current city
+      this.zipCodes = getZipCodesForCity(this.patient.state || '', this.patient.city);
+    }
+  }
+
+  onCityChange(): void {
+    if (this.patient.state && this.patient.city) {
+      this.zipCodes = getZipCodesForCity(this.patient.state, this.patient.city);
+    } else {
+      this.zipCodes = [];
+    }
+    // Reset zip code if it's not in the new list
+    if (this.patient.zipCode && !this.zipCodes.includes(this.patient.zipCode)) {
+      this.patient.zipCode = '';
+    }
+  }
+
+  onMailingStateChange(): void {
+    this.mailingCities = getCitiesForState(this.demographicsInfo.mailingState || '');
+    this.mailingZipCodes = []; // Clear zip codes when state changes
+    // Reset city and zip if state changes
+    if (this.demographicsInfo.mailingCity && !this.mailingCities.includes(this.demographicsInfo.mailingCity)) {
+      this.demographicsInfo.mailingCity = '';
+      this.demographicsInfo.mailingZipCode = '';
+    } else if (this.demographicsInfo.mailingCity) {
+      // Update zip codes for current city
+      this.mailingZipCodes = getZipCodesForCity(this.demographicsInfo.mailingState || '', this.demographicsInfo.mailingCity);
+    }
+  }
+
+  onMailingCityChange(): void {
+    if (this.demographicsInfo.mailingState && this.demographicsInfo.mailingCity) {
+      this.mailingZipCodes = getZipCodesForCity(this.demographicsInfo.mailingState, this.demographicsInfo.mailingCity);
+    } else {
+      this.mailingZipCodes = [];
+    }
+    // Reset zip code if it's not in the new list
+    if (this.demographicsInfo.mailingZipCode && !this.mailingZipCodes.includes(this.demographicsInfo.mailingZipCode)) {
+      this.demographicsInfo.mailingZipCode = '';
+    }
+  }
+
+  onBillingStateChange(): void {
+    this.billingCities = getCitiesForState(this.billingInfo.billingState || '');
+    this.billingZipCodes = []; // Clear zip codes when state changes
+    // Reset city and zip if state changes
+    if (this.billingInfo.billingCity && !this.billingCities.includes(this.billingInfo.billingCity)) {
+      this.billingInfo.billingCity = '';
+      this.billingInfo.billingZipCode = '';
+    } else if (this.billingInfo.billingCity) {
+      // Update zip codes for current city
+      this.billingZipCodes = getZipCodesForCity(this.billingInfo.billingState || '', this.billingInfo.billingCity);
+    }
+  }
+
+  onBillingCityChange(): void {
+    if (this.billingInfo.billingState && this.billingInfo.billingCity) {
+      this.billingZipCodes = getZipCodesForCity(this.billingInfo.billingState, this.billingInfo.billingCity);
+    } else {
+      this.billingZipCodes = [];
+    }
+    // Reset zip code if it's not in the new list
+    if (this.billingInfo.billingZipCode && !this.billingZipCodes.includes(this.billingInfo.billingZipCode)) {
+      this.billingInfo.billingZipCode = '';
+    }
+  }
+
   copyAddressToBilling(): void {
     if (this.billingInfo.useContactAddress) {
       this.billingInfo.billingAddress = this.patient.address || '';
       this.billingInfo.billingCity = this.patient.city || '';
       this.billingInfo.billingState = this.patient.state || '';
       this.billingInfo.billingZipCode = this.patient.zipCode || '';
+      // Update billing dropdowns
+      if (this.billingInfo.billingState) {
+        this.billingCities = getCitiesForState(this.billingInfo.billingState);
+        if (this.billingInfo.billingCity) {
+          this.billingZipCodes = getZipCodesForCity(this.billingInfo.billingState, this.billingInfo.billingCity);
+        }
+      }
     } else {
       // Clear billing address if unchecked
       this.billingInfo.billingAddress = '';
       this.billingInfo.billingCity = '';
       this.billingInfo.billingState = '';
       this.billingInfo.billingZipCode = '';
+      this.billingCities = [];
+      this.billingZipCodes = [];
     }
   }
 

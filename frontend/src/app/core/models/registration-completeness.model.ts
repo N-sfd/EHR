@@ -9,7 +9,7 @@ export interface MissingField {
   field: string;
   label: string;
   severity: 'WARN' | 'CRITICAL';
-  section: 'Demographics' | 'Coverage' | 'Consent';
+  section: string;
 }
 
 export interface RegistrationCompleteness {

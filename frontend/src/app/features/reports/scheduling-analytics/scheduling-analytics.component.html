@@ -1,0 +1,313 @@
+<div class="reports-page">
+  <div class="page-header">
+    <div class="header-content">
+      <div>
+        <h2 class="page-title">Scheduling Analytics</h2>
+        <p class="page-subtitle">Comprehensive scheduling metrics and insights</p>
+      </div>
+      <div class="header-actions">
+        <button class="action-btn export-btn" (click)="exportToCSV()" title="Export to CSV">
+          <i class="fas fa-file-csv"></i>
+          <span>Export CSV</span>
+        </button>
+        <button class="action-btn print-btn" (click)="printReport()" title="Print report">
+          <i class="fas fa-print"></i>
+          <span>Print</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Filter Bar -->
+  <app-report-filter-bar
+    (applyFilters)="onFiltersApplied($event)"
+    (resetFilters)="onFiltersReset()">
+  </app-report-filter-bar>
+
+  <!-- Enhanced KPI Cards (Clickable) -->
+  <div class="kpi-grid">
+    <div class="kpi-card clickable" 
+         (click)="onKpiClick('total')"
+         (mouseenter)="showTooltip($event, 'Total appointments in selected period')"
+         (mouseleave)="hideTooltip()"
+         title="Click to view all appointments">
+      <div class="kpi-icon" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);">
+        <i class="fas fa-calendar-check"></i>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-value">{{ totalAppointments | number }}</div>
+        <div class="kpi-label">Total Appointments</div>
+        <div class="kpi-period">{{ formatDate(startDate) }} - {{ formatDate(endDate) }}</div>
+      </div>
+    </div>
+
+    <div class="kpi-card clickable urgent"
+         (click)="onKpiClick('urgent')"
+         (mouseenter)="showTooltip($event, 'Urgent/High priority appointments')"
+         (mouseleave)="hideTooltip()"
+         title="Click to filter urgent appointments">
+      <div class="kpi-icon" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);">
+        <i class="fas fa-exclamation-circle"></i>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-value">{{ urgentCount | number }}</div>
+        <div class="kpi-label">Urgent/High</div>
+        <div class="kpi-change negative">{{ urgentCount > 0 ? ((urgentCount / totalAppointments) * 100).toFixed(1) : 0 }}% of total</div>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-value">{{ confirmedAppointments | number }}</div>
+        <div class="kpi-label">Confirmed</div>
+        <div class="kpi-change positive">{{ confirmedAppointments > 0 ? ((confirmedAppointments / totalAppointments) * 100).toFixed(1) : 0 }}% of total</div>
+      </div>
+    </div>
+
+    <div class="kpi-card clickable"
+         (click)="onKpiClick('cancelled')"
+         (mouseenter)="showTooltip($event, 'Cancelled appointments')"
+         (mouseleave)="hideTooltip()"
+         title="Click to filter cancelled appointments">
+      <div class="kpi-icon" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);">
+        <i class="fas fa-times-circle"></i>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-value">{{ cancelledAppointments | number }}</div>
+        <div class="kpi-label">Cancelled</div>
+        <div class="kpi-change negative">{{ cancelledAppointments > 0 ? ((cancelledAppointments / totalAppointments) * 100).toFixed(1) : 0 }}% of total</div>
+      </div>
+    </div>
+
+    <div class="kpi-card clickable"
+         (click)="onKpiClick('noshow')"
+         (mouseenter)="showTooltip($event, 'No-show appointments')"
+         (mouseleave)="hideTooltip()"
+         title="Click to filter no-show appointments">
+      <div class="kpi-icon" style="background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);">
+        <i class="fas fa-user-slash"></i>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-value">{{ noShowAppointments | number }}</div>
+        <div class="kpi-label">No-show</div>
+        <div class="kpi-change negative">{{ noShowAppointments > 0 ? ((noShowAppointments / totalAppointments) * 100).toFixed(1) : 0 }}% of total</div>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background: linear-gradient(135deg, #059669 0%, #047857 100%);">
+        <i class="fas fa-check-double"></i>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-value">{{ completedAppointments | number }}</div>
+        <div class="kpi-label">Completed</div>
+        <div class="kpi-change positive">{{ completedAppointments > 0 ? ((completedAppointments / totalAppointments) * 100).toFixed(1) : 0 }}% of total</div>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background: linear-gradient(135deg, #475569 0%, #334155 100%);">
+        <i class="fas fa-clock"></i>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-value">{{ averageAppointmentDuration }}</div>
+        <div class="kpi-label">Avg Duration (min)</div>
+        <div class="kpi-period">Average appointment length</div>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background: linear-gradient(135deg, #0d9488 0%, #115e59 100%);">
+        <i class="fas fa-percentage"></i>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-value">{{ fillRate }}%</div>
+        <div class="kpi-label">Fill Rate</div>
+        <div class="kpi-period">Slot utilization</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Grid -->
+  <div class="charts-grid">
+    <!-- Appointments by Day -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3>Appointments by Day</h3>
+      </div>
+      <div class="chart-body">
+        <div class="bar-chart">
+          <div class="bar-item" *ngFor="let item of appointmentsByDay">
+            <div class="bar-wrapper">
+              <div 
+                class="bar" 
+                [style.height.%]="getBarHeight(item.value, getMaxValue(appointmentsByDay))"
+                [style.background]="item.color">
+              </div>
+            </div>
+            <div class="bar-label">{{ item.label }}</div>
+            <div class="bar-value">{{ item.value }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Appointments by Status (Donut Chart) -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3>Status Distribution</h3>
+      </div>
+      <div class="chart-body">
+        <div class="donut-chart" *ngIf="appointmentsByStatus.length > 0">
+          <div class="donut-wrapper">
+            <svg class="donut-svg" viewBox="0 0 200 200">
+              <circle cx="100" cy="100" r="80" fill="none" stroke="#e2e8f0" stroke-width="30"/>
+              <g *ngFor="let item of appointmentsByStatus; let i = index">
+                <circle 
+                  cx="100" 
+                  cy="100" 
+                  r="80" 
+                  fill="none" 
+                  [attr.stroke]="item.color"
+                  stroke-width="30"
+                  [attr.stroke-dasharray]="getDonutSegment(item.value, getTotalStatusValue())"
+                  [attr.stroke-dashoffset]="getDonutOffset(i)"
+                  [attr.transform]="'rotate(-90 100 100)'"
+                  (mouseenter)="showTooltip($event, item.label + ': ' + item.value + ' (' + getStatusPercentage(item.value) + '%)')"
+                  (mouseleave)="hideTooltip()"
+                  class="donut-segment">
+                </circle>
+              </g>
+            </svg>
+            <div class="donut-center">
+              <div class="donut-total">{{ getTotalStatusValue() }}</div>
+              <div class="donut-label">Total</div>
+            </div>
+          </div>
+          <div class="donut-legend">
+            <div class="donut-legend-item" *ngFor="let item of appointmentsByStatus">
+              <div class="legend-color" [style.background]="item.color"></div>
+              <div class="legend-info">
+                <span class="legend-label">{{ item.label }}</span>
+                <span class="legend-value">{{ item.value }} ({{ getStatusPercentage(item.value) }}%)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="empty-state" *ngIf="appointmentsByStatus.length === 0 && !isLoading">
+          <p>No status data available</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Appointments by Department -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3>Top Departments</h3>
+      </div>
+      <div class="chart-body">
+        <div class="department-chart">
+          <div class="department-item" *ngFor="let item of appointmentsByDepartment">
+            <div class="department-info">
+              <span class="department-label">{{ item.label }}</span>
+              <span class="department-value">{{ item.value }}</span>
+            </div>
+            <div class="department-bar-wrapper">
+              <div 
+                class="department-bar" 
+                [style.width.%]="getBarHeight(item.value, getMaxValue(appointmentsByDepartment))"
+                [style.background]="item.color">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- No-Show Rate Trend -->
+    <div class="chart-card chart-card-wide">
+      <div class="chart-header">
+        <h3>No-Show Rate Trend</h3>
+        <p class="chart-subtitle">Daily no-show and cancellation rate</p>
+      </div>
+      <div class="chart-body">
+        <div class="trend-chart">
+          <div class="trend-item" *ngFor="let item of noShowRateByDay"
+               (mouseenter)="showTooltip($event, item.label + ': ' + item.value + ' appointments, ' + item.noShowRate?.toFixed(1) + '% no-show rate')"
+               (mouseleave)="hideTooltip()">
+            <div class="trend-label">{{ item.label }}</div>
+            <div class="trend-bar-wrapper">
+              <div class="trend-bar-total" 
+                   [style.height.%]="getBarHeight(item.value, getMaxValue(noShowRateByDay))"
+                   style="background: #e2e8f0;">
+              </div>
+              <div class="trend-bar-noshow" 
+                   [style.height.%]="getBarHeight((item.value * (item.noShowRate || 0) / 100), getMaxValue(noShowRateByDay))"
+                   style="background: #dc2626; position: absolute; bottom: 0; left: 0; right: 0;">
+              </div>
+            </div>
+            <div class="trend-value">{{ item.noShowRate?.toFixed(1) }}%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Heatmap: Day of Week x Hour -->
+    <div class="chart-card chart-card-wide">
+      <div class="chart-header">
+        <h3>Appointment Volume Heatmap</h3>
+        <p class="chart-subtitle">Day of week vs. hour (7am - 7pm)</p>
+      </div>
+      <div class="chart-body">
+        <div class="heatmap-container">
+          <div class="heatmap-header">
+            <div class="heatmap-day-label"></div>
+            <div class="heatmap-hour-labels">
+              <div class="heatmap-hour-label" *ngFor="let hour of [7,8,9,10,11,12,13,14,15,16,17,18,19]">
+                {{ hour }}:00
+              </div>
+            </div>
+          </div>
+          <div class="heatmap-rows">
+            <div class="heatmap-row" *ngFor="let day of ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']">
+              <div class="heatmap-day-label">{{ day }}</div>
+              <div class="heatmap-cells">
+                <div class="heatmap-cell" 
+                     *ngFor="let hour of [7,8,9,10,11,12,13,14,15,16,17,18,19]"
+                     [style.background-color]="getHeatmapIntensityColor(getHeatmapCell(day, hour)?.intensity || 0)"
+                     (mouseenter)="showTooltip($event, day + ' ' + hour + ':00 - ' + (getHeatmapCell(day, hour)?.count || 0) + ' appointments')"
+                     (mouseleave)="hideTooltip()">
+                  <span class="heatmap-cell-value">{{ getHeatmapCell(day, hour)?.count || '' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tooltip -->
+  <div class="tooltip" 
+       *ngIf="tooltipVisible"
+       [style.left.px]="tooltipX + 10"
+       [style.top.px]="tooltipY + 10">
+    {{ tooltipContent }}
+  </div>
+
+  <!-- Loading Skeleton State -->
+  <div class="loading-skeleton" *ngIf="isLoading">
+    <div class="skeleton-kpi-grid">
+      <div class="skeleton-kpi-card" *ngFor="let i of [1,2,3,4,5]"></div>
+    </div>
+    <div class="skeleton-charts-grid">
+      <div class="skeleton-chart-card" *ngFor="let i of [1,2,3,4]"></div>
+    </div>
+  </div>
+
+  <!-- Error messages are handled gracefully - show empty states instead of error banners -->
+</div>
+

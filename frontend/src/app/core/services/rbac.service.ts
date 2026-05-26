@@ -25,7 +25,8 @@ export class RbacService {
   constructor(private api: ApiService) {}
 
   getRoles(): Observable<Role[]> {
-    return this.api.get<Role[]>('/api/rbac/roles');
+    // Backend RoleController is at /api/roles (not /api/rbac/roles)
+    return this.api.get<Role[]>('/api/roles');
   }
 
   getPermissions(): Observable<Permission[]> {
@@ -34,22 +35,26 @@ export class RbacService {
   }
 
   updateRolePermission(roleId: number, permissionId: number, enabled: boolean): Observable<any> {
-    return this.api.post(`/api/rbac/roles/${roleId}/permissions`, {
+    // TODO: This endpoint may not exist in backend - check if needed
+    return this.api.post(`/api/roles/${roleId}/permissions`, {
       permissionId,
       enabled
     });
   }
 
   createRole(role: Role): Observable<Role> {
-    return this.api.post<Role>('/api/rbac/roles', role);
+    // Backend RoleController is at /api/roles
+    return this.api.post<Role>('/api/roles', role);
   }
 
   updateRole(roleId: number, role: Role): Observable<Role> {
-    return this.api.put<Role>(`/api/rbac/roles/${roleId}`, role);
+    // Backend RoleController is at /api/roles
+    return this.api.put<Role>(`/api/roles/${roleId}`, role);
   }
 
   deleteRole(roleId: number): Observable<void> {
-    return this.api.delete<void>(`/api/rbac/roles/${roleId}`);
+    // Backend RoleController is at /api/roles
+    return this.api.delete<void>(`/api/roles/${roleId}`);
   }
 }
 

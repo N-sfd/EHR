@@ -42,6 +42,12 @@ public class Patient extends BaseAuditEntity {
     @Column(length = 500)
     private String address;
 
+    @Column(name = "address_line1", length = 500)
+    private String addressLine1;
+
+    @Column(name = "address_line2", length = 500)
+    private String addressLine2;
+
     @Column(length = 50)
     private String city;
 
@@ -84,10 +90,19 @@ public class Patient extends BaseAuditEntity {
     @Column(name = "primary_doctor_id")
     private Long primaryDoctorId;
 
+    // TODO: Uncomment after migration V33 runs and adds primary_provider_id column
+    // @Column(name = "primary_provider_id", nullable = true)
+    // private Long primaryProviderId;
+
     // JPA Relationships
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "primary_doctor_id", referencedColumnName = "staff_id", insertable = false, updatable = false)
     private Doctor primaryDoctor;
+    
+    // TODO: Uncomment after migration V33 runs and adds primary_provider_id column
+    // @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    // @JoinColumn(name = "primary_provider_id", referencedColumnName = "staff_id", insertable = false, updatable = false)
+    // private Staff primaryProvider;
 
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @BatchSize(size = 20)

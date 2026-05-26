@@ -45,7 +45,7 @@ export class ImagingStudyService {
   }
 
   getRecentByPatientId(patientId: number, days?: number): Observable<ImagingStudy[]> {
-    const params = days ? { days: days.toString() } : {};
+    const params: Record<string, string> = days ? { days: days.toString() } : {};
     return this.http.get<ImagingStudy[]>(`${this.apiUrl}/api/imaging-studies/patient/${patientId}/recent`, { params }).pipe(
       catchError(this.handleError)
     );

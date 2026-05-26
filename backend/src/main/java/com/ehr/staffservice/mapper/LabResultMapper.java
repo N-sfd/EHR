@@ -14,14 +14,18 @@ import org.mapstruct.ReportingPolicy;
 public interface LabResultMapper {
     LabResultDto toDto(LabResult entity);
     
-    @Mapping(target = "labResultId", ignore = true)
+    @Mapping(target = "resultId", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "patient", ignore = true)
+    @Mapping(target = "orderingProvider", ignore = true)
+    @Mapping(target = "items", ignore = true)
     LabResult toEntity(LabResultDto dto);
     
-    @Mapping(target = "labResultId", ignore = true)
+    @Mapping(target = "resultId", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "patient", ignore = true)
+    @Mapping(target = "orderingProvider", ignore = true)
+    @Mapping(target = "items", ignore = true)
     void updateEntityFromDto(LabResultDto dto, @MappingTarget LabResult entity);
 }
 

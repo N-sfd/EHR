@@ -112,8 +112,17 @@
         </div>
         <div class="card-body">
           <div class="doctor-item" *ngFor="let item of popularDoctors">
-            <div class="doctor-avatar">
-              <i class="fas fa-user-doctor"></i>
+            <div class="doctor-avatar-wrapper">
+              <img 
+                class="doctor-avatar-img" 
+                [src]="getDoctorAvatar(item.doctor)" 
+                [alt]="'Dr. ' + item.doctor.firstName + ' ' + item.doctor.lastName"
+                [title]="'Dr. ' + item.doctor.firstName + ' ' + item.doctor.lastName"
+                (error)="onDoctorImageError($event, item.doctor)"
+                loading="lazy" />
+              <div class="doctor-avatar-fallback">
+                {{ getDoctorInitials(item.doctor) }}
+              </div>
             </div>
             <div class="doctor-info">
               <div class="doctor-name">Dr. {{ item.doctor.firstName }} {{ item.doctor.lastName }}</div>
@@ -121,33 +130,43 @@
             </div>
             <div class="doctor-bookings">{{ item.bookings }} Bookings</div>
           </div>
+          <div class="empty-doctors" *ngIf="popularDoctors.length === 0">
+            <i class="fas fa-user-doctor"></i>
+            <p>No doctors data available</p>
+          </div>
         </div>
       </div>
 
       <!-- Appointments List -->
-      <div class="card">
+      <div class="card appointments-card">
         <div class="card-header">
           <h3>Appointments</h3>
-          <div class="type-selector">
-            <button class="type-btn active">All Type</button>
-            <button class="type-btn">In Person</button>
-            <button class="type-btn">Online</button>
+          <div class="header-actions">
+            <div class="type-selector">
+              <button class="type-btn active">All Type</button>
+              <button class="type-btn">In Person</button>
+              <button class="type-btn">Online</button>
+            </div>
+            <a class="view-all-link-header" (click)="navigateToAppointments()">View All Appointments</a>
           </div>
         </div>
         <div class="card-body">
-          <div class="appointment-item" *ngFor="let appointment of appointments.slice(0, 3)">
-            <div class="appointment-type">General Visit</div>
-            <div class="appointment-datetime">
-              {{ formatDateTime(appointment.date || appointment.appointmentDate, appointment.time || appointment.appointmentTime) }}
-            </div>
-            <div class="appointment-participants">
-              <span class="participant">{{ appointment.patientName || 'Patient' }}</span>
-              <span class="separator">•</span>
-              <span class="participant">{{ appointment.doctorName || 'Doctor' }}</span>
+          <div class="appointments-list">
+            <div class="appointment-item" *ngFor="let appointment of appointments.slice(0, 3)">
+              <div class="appointment-type">General Visit</div>
+              <div class="appointment-datetime">
+                {{ formatDateTime(appointment.date || appointment.appointmentDate, appointment.time || appointment.appointmentTime) }}
+              </div>
+              <div class="appointment-participants">
+                <span class="participant">{{ appointment.patientName || 'Patient' }}</span>
+                <span class="separator">•</span>
+                <span class="participant">{{ appointment.doctorName || 'Doctor' }}</span>
+              </div>
             </div>
           </div>
-          <div class="view-all-link" (click)="navigateToAppointments()">
-            View All Appointments
+          <div class="empty-appointments" *ngIf="appointments.length === 0">
+            <i class="fas fa-calendar-times"></i>
+            <p>No appointments scheduled</p>
           </div>
         </div>
       </div>
@@ -171,8 +190,13 @@
         </div>
         <div class="card-body">
           <div class="department-item" *ngFor="let item of topDepartments">
-            <div class="department-count">{{ item.count }}</div>
-            <div class="department-name">{{ item.department.name }}</div>
+            <div class="department-info">
+              <div class="department-name">{{ item.department.name }}</div>
+              <div class="department-details">
+                <span class="department-appointments">{{ item.count }} Appointments</span>
+              </div>
+            </div>
+            <div class="department-revenue">{{ formatCurrency(item.revenue || item.count * 25) }}</div>
           </div>
         </div>
       </div>
@@ -199,8 +223,17 @@
             </div>
           </div>
           <div class="doctor-schedule-item" *ngFor="let item of popularDoctors.slice(0, 4)">
-            <div class="doctor-avatar-small">
-              <i class="fas fa-user-doctor"></i>
+            <div class="doctor-avatar-small-wrapper">
+              <img 
+                class="doctor-avatar-small-img" 
+                [src]="getDoctorAvatar(item.doctor)" 
+                [alt]="'Dr. ' + item.doctor.firstName + ' ' + item.doctor.lastName"
+                [title]="'Dr. ' + item.doctor.firstName + ' ' + item.doctor.lastName"
+                (error)="onDoctorImageError($event, item.doctor)"
+                loading="lazy" />
+              <div class="doctor-avatar-small-fallback">
+                {{ getDoctorInitials(item.doctor) }}
+              </div>
             </div>
             <div class="doctor-info">
               <div class="doctor-name">Dr. {{ item.doctor.firstName }} {{ item.doctor.lastName }}</div>
@@ -244,8 +277,17 @@
         </div>
         <div class="card-body">
           <div class="patient-item" *ngFor="let patient of topPatients">
-            <div class="patient-avatar">
-              <i class="fas fa-user"></i>
+            <div class="patient-avatar-wrapper">
+              <img 
+                class="patient-avatar-img" 
+                [src]="getPatientAvatar(patient)" 
+                [alt]="patient.name"
+                [title]="patient.name"
+                (error)="onPatientImageError($event, patient)"
+                loading="lazy" />
+              <div class="patient-avatar-fallback">
+                {{ getPatientInitials(patient) }}
+              </div>
             </div>
             <div class="patient-info">
               <div class="patient-name">{{ patient.name }}</div>
@@ -254,6 +296,41 @@
               </div>
               <div class="patient-appointments">{{ patient.appointments }} Appointments</div>
             </div>
+          </div>
+          <div class="empty-patients" *ngIf="topPatients.length === 0">
+            <i class="fas fa-user"></i>
+            <p>No patient data available</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leave Requests -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Leave Requests</h3>
+          <div class="period-selector">
+            <button 
+              *ngFor="let period of ['Today', 'This Week', 'This Month']"
+              class="period-btn"
+              [class.active]="leavePeriod === period"
+              (click)="leavePeriod = period">
+              {{ period }}
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="leave-item" *ngFor="let leave of leaveRequests">
+            <div class="leave-avatar">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="leave-info">
+              <div class="leave-name">{{ leave.name }}</div>
+              <div class="leave-details">{{ leave.days }} Days - {{ leave.reason }}</div>
+            </div>
+          </div>
+          <div class="empty-leaves" *ngIf="leaveRequests.length === 0">
+            <i class="fas fa-calendar-check"></i>
+            <p>No leave requests</p>
           </div>
         </div>
       </div>
@@ -285,32 +362,9 @@
               {{ transaction.type === 'income' ? '+' : '-' }} {{ formatCurrency(transaction.amount) }}
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Leave Requests -->
-      <div class="card">
-        <div class="card-header">
-          <h3>Leave Requests</h3>
-          <div class="period-selector">
-            <button 
-              *ngFor="let period of ['Today', 'This Week', 'This Month']"
-              class="period-btn"
-              [class.active]="leavePeriod === period"
-              (click)="leavePeriod = period">
-              {{ period }}
-            </button>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="leave-item" *ngFor="let leave of leaveRequests">
-            <div class="leave-avatar">
-              <i class="fas fa-user"></i>
-            </div>
-            <div class="leave-info">
-              <div class="leave-name">{{ leave.name }}</div>
-              <div class="leave-details">{{ leave.days }} Days - {{ leave.reason }}</div>
-            </div>
+          <div class="empty-transactions" *ngIf="recentTransactions.length === 0">
+            <i class="fas fa-receipt"></i>
+            <p>No transactions</p>
           </div>
         </div>
       </div>

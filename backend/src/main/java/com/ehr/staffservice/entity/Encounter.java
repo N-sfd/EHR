@@ -57,8 +57,8 @@ public class Encounter extends BaseAuditEntity {
     @Column(name = "department_id")
     private Long departmentId;
 
-    @Column(name = "primary_provider_id")
-    private Long primaryProviderId;
+    @Column(name = "doctor_id")
+    private Long doctorId;
 
     @Column(name = "chief_complaint", columnDefinition = "TEXT")
     private String chiefComplaint;

@@ -1,5 +1,6 @@
 .sidebar {
   width: 280px;
+  box-sizing: border-box;
   background: var(--primary-teal);
   color: white;
   position: fixed;
@@ -9,8 +10,9 @@
   z-index: 1000;
   transition: all 0.3s ease;
   border-right: none;
-  padding: 25px 15px;
+  padding: 24px 18px 24px 20px;
   overflow-y: auto;
+  overflow-x: hidden;
   display: block;
   visibility: visible;
   margin-left: 0;
@@ -97,11 +99,12 @@
 
 .menu-label {
   font-size: 12px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: rgba(255,255,255,0.5);
-  padding: 0 24px 10px;
+  padding: 0 12px 10px 4px;
   margin: 0;
+  word-break: break-word;
 }
 
 .sidebar-menu ul {

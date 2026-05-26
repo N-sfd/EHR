@@ -1,6 +1,5 @@
 package com.ehr.staffservice.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -8,8 +7,8 @@ import java.util.List;
 
 @Data
 public class ScheduleGridDto {
-    private Long providerId;
-    private String providerName;
+    private Long doctorId;
+    private String doctorName;
     private LocalDate scheduleDate;
     private LocalTime startTime;
     private LocalTime endTime;

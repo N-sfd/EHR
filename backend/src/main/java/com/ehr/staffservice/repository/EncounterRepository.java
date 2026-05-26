@@ -1,6 +1,7 @@
 package com.ehr.staffservice.repository;
 
 import com.ehr.staffservice.entity.Encounter;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,5 +25,8 @@ public interface EncounterRepository extends JpaRepository<Encounter, Long> {
     
     @Query("SELECT e FROM Encounter e WHERE e.encounterStatus = 'CHECKED_IN' AND e.checkInDateTime >= :startDate")
     List<Encounter> findActiveCheckIns(@Param("startDate") LocalDateTime startDate);
+
+    @Query("SELECT e FROM Encounter e WHERE e.patientId = :patientId ORDER BY e.checkInDateTime DESC NULLS LAST, e.id DESC")
+    List<Encounter> findRecentByPatientId(@Param("patientId") Long patientId, Pageable pageable);
 }
 

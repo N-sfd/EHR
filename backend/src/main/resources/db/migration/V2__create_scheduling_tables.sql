@@ -1,4 +1,4 @@
--- Scheduling (Cadence) Tables
+-- Scheduling Tables
 
 CREATE TABLE IF NOT EXISTS departments (
     department_id BIGSERIAL PRIMARY KEY,

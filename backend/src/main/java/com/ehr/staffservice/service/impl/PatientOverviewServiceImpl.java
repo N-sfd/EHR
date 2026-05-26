@@ -46,9 +46,9 @@ public class PatientOverviewServiceImpl implements PatientOverviewService {
         // Get upcoming appointments for this patient
         List<AppointmentDto> allAppointments = appointmentService.getByPatient(patientId);
         List<AppointmentDto> upcomingAppointments = allAppointments.stream()
-                .filter(apt -> apt.getAppointmentDate() != null && 
-                              (apt.getAppointmentDate().isAfter(LocalDate.now()) || 
-                               apt.getAppointmentDate().equals(LocalDate.now())))
+                .filter(apt -> apt.getStartDateTime() != null && 
+                              (apt.getStartDateTime().toLocalDate().isAfter(LocalDate.now()) || 
+                               apt.getStartDateTime().toLocalDate().equals(LocalDate.now())))
                 .filter(apt -> !"CANCELLED".equals(apt.getStatus()))
                 .limit(10)
                 .collect(Collectors.toList());

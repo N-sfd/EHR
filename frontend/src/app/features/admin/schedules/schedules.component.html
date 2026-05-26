@@ -1,7 +1,7 @@
 <div class="schedules">
   <div class="schedules-header">
     <h2>Provider Schedules</h2>
-    <p class="subtitle">Configure provider schedule templates, clinic hours, and overbook rules</p>
+    <p class="subtitle">Set clinic hours, appointment slot length, blocked times, and overbook rules for each provider.</p>
   </div>
 
   <div class="schedules-layout">
@@ -27,19 +27,19 @@
         <p>Loading providers...</p>
       </div>
 
-      <!-- Error State -->
+      <!-- Error State for Providers -->
       <div class="error-state" *ngIf="errorMessage && !isLoadingProviders">
         <i class="fas fa-exclamation-circle"></i>
         <p>{{ errorMessage }}</p>
       </div>
 
       <!-- Providers List -->
-      <div class="providers-list" *ngIf="!isLoadingProviders && !errorMessage">
+      <div class="providers-list" *ngIf="!isLoadingProviders && !errorMessage && filteredProviders.length > 0">
         <div 
           *ngFor="let provider of filteredProviders"
           class="provider-item"
           [class.active]="selectedProviderId === provider.id"
-          (click)="selectTemplate(provider.id)"
+          (click)="loadScheduleForProvider(provider.id)"
         >
           <div class="provider-avatar-small">
             <img [src]="getProviderAvatar(provider)" [alt]="provider.name" (error)="onImageError($event, provider)" />
@@ -72,16 +72,26 @@
     </div>
 
     <!-- Right Panel: Schedule Editor -->
-    <div class="schedule-editor" *ngIf="isEditing">
+    <div class="schedule-editor" *ngIf="selectedProviderId">
       <!-- Loading State for Schedule -->
       <div class="loading-state" *ngIf="isLoading">
         <div class="spinner"></div>
         <p>Loading schedule...</p>
       </div>
 
-      <div *ngIf="!isLoading">
+      <!-- Error State for Schedule -->
+      <div class="error-state" *ngIf="errorMessage && !isLoading && !isEditing">
+        <i class="fas fa-exclamation-circle"></i>
+        <p>{{ errorMessage }}</p>
+        <button class="btn-secondary" (click)="loadScheduleForProvider(selectedProviderId!)">
+          <i class="fas fa-redo"></i> Retry
+        </button>
+      </div>
+
+      <!-- Schedule Form -->
+      <div *ngIf="!isLoading && isEditing">
         <div class="editor-header">
-          <h3>{{ selectedTemplate?.providerName || 'New Schedule' }}</h3>
+          <h3>{{ activeSchedule?.providerName || 'New schedule' }}</h3>
         </div>
 
         <form [formGroup]="scheduleForm" (ngSubmit)="saveSchedule()" class="schedule-form">
@@ -91,7 +101,7 @@
             <div class="form-grid">
               <div class="form-group" [class.has-error]="isFieldInvalid('providerId')">
                 <label>Provider <span class="required">*</span></label>
-                <select formControlName="providerId" class="form-input" [disabled]="!!selectedTemplate">
+                <select formControlName="providerId" class="form-input" [disabled]="!!activeSchedule">
                   <option value="">Select Provider...</option>
                   <option *ngFor="let provider of providers" [value]="provider.id">
                     {{ provider.name }}
@@ -143,6 +153,7 @@
                     [value]="scheduleForm.get('clinicHours')?.get(day.key)?.get('startTime')?.value || '09:00'"
                     (change)="onTimeChange(day.key, 'startTime', $event)"
                     class="time-input"
+                    [title]="'Start time for ' + day.label"
                   />
                   <span>to</span>
                   <input 
@@ -150,6 +161,7 @@
                     [value]="scheduleForm.get('clinicHours')?.get(day.key)?.get('endTime')?.value || '17:00'"
                     (change)="onTimeChange(day.key, 'endTime', $event)"
                     class="time-input"
+                    [title]="'End time for ' + day.label"
                   />
                 </div>
               </div>
@@ -256,6 +268,12 @@
             </div>
           </div>
 
+          <!-- Error Message -->
+          <div class="error-message" *ngIf="errorMessage">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>{{ errorMessage }}</span>
+          </div>
+
           <!-- Form Actions -->
           <div class="form-actions">
             <button type="submit" class="btn-primary" [disabled]="scheduleForm.invalid || isLoading">
@@ -270,7 +288,7 @@
     </div>
 
     <!-- Empty State for Right Panel -->
-    <div class="empty-state-panel" *ngIf="!isEditing">
+    <div class="empty-state-panel" *ngIf="!selectedProviderId">
       <div class="empty-content">
         <i class="fas fa-calendar-alt empty-icon"></i>
         <p>Select a provider to configure schedule</p>

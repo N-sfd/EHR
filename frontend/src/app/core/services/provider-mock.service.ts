@@ -13,7 +13,7 @@ export class ProviderMockService {
       specialty: 'Family Medicine',
       department: 'Primary Care',
       active: true,
-      imageUrl: 'https://i.pravatar.cc/150?img=12'
+      imageUrl: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 2,
@@ -21,7 +21,7 @@ export class ProviderMockService {
       specialty: 'Cardiology',
       department: 'Cardiology',
       active: true,
-      imageUrl: 'https://i.pravatar.cc/150?img=15'
+      imageUrl: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 3,
@@ -29,7 +29,7 @@ export class ProviderMockService {
       specialty: 'Pediatrics',
       department: 'Pediatrics',
       active: true,
-      imageUrl: 'https://i.pravatar.cc/150?img=20'
+      imageUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 4,
@@ -37,7 +37,7 @@ export class ProviderMockService {
       specialty: 'Orthopedics',
       department: 'Orthopedics',
       active: true,
-      imageUrl: 'https://i.pravatar.cc/150?img=33'
+      imageUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 5,
@@ -45,7 +45,7 @@ export class ProviderMockService {
       specialty: 'Dermatology',
       department: 'Dermatology',
       active: true,
-      imageUrl: 'https://i.pravatar.cc/150?img=47'
+      imageUrl: 'https://images.unsplash.com/photo-1594824476968-48fd8d0c0276?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 6,
@@ -53,7 +53,7 @@ export class ProviderMockService {
       specialty: 'Internal Medicine',
       department: 'Internal Medicine',
       active: true,
-      imageUrl: 'https://i.pravatar.cc/150?img=51'
+      imageUrl: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 7,
@@ -61,7 +61,7 @@ export class ProviderMockService {
       specialty: 'Endocrinology',
       department: 'Endocrinology',
       active: true,
-      imageUrl: 'https://i.pravatar.cc/150?img=52'
+      imageUrl: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 8,
@@ -69,7 +69,7 @@ export class ProviderMockService {
       specialty: 'Neurology',
       department: 'Neurology',
       active: true,
-      imageUrl: 'https://i.pravatar.cc/150?img=53'
+      imageUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 9,
@@ -77,7 +77,7 @@ export class ProviderMockService {
       specialty: 'Gynecology',
       department: 'Women\'s Health',
       active: true,
-      imageUrl: 'https://i.pravatar.cc/150?img=54'
+      imageUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 10,
@@ -85,7 +85,7 @@ export class ProviderMockService {
       specialty: 'Pulmonology',
       department: 'Pulmonology',
       active: true,
-      imageUrl: 'https://i.pravatar.cc/150?img=55'
+      imageUrl: 'https://images.unsplash.com/photo-1594824476968-48fd8d0c0276?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 11,
@@ -93,7 +93,7 @@ export class ProviderMockService {
       specialty: 'Psychiatry',
       department: 'Mental Health',
       active: true,
-      imageUrl: 'https://i.pravatar.cc/150?img=56'
+      imageUrl: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 12,
@@ -101,7 +101,7 @@ export class ProviderMockService {
       specialty: 'Gastroenterology',
       department: 'Gastroenterology',
       active: true,
-      imageUrl: 'https://i.pravatar.cc/150?img=57'
+      imageUrl: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=400&fit=crop&crop=faces'
     }
   ];
 
@@ -120,18 +120,18 @@ export class ProviderMockService {
   seedDemoProviders(): Observable<Provider[]> {
     // Reset to demo providers with all 12 providers
     this.providers = [
-      { id: 1, name: 'Dr. Amelia Carter', specialty: 'Family Medicine', department: 'Primary Care', active: true, imageUrl: 'https://i.pravatar.cc/150?img=12' },
-      { id: 2, name: 'Dr. Ryan Patel', specialty: 'Cardiology', department: 'Cardiology', active: true, imageUrl: 'https://i.pravatar.cc/150?img=15' },
-      { id: 3, name: 'Dr. Sophia Nguyen', specialty: 'Pediatrics', department: 'Pediatrics', active: true, imageUrl: 'https://i.pravatar.cc/150?img=20' },
-      { id: 4, name: 'Dr. Noah Kim', specialty: 'Orthopedics', department: 'Orthopedics', active: true, imageUrl: 'https://i.pravatar.cc/150?img=33' },
-      { id: 5, name: 'Dr. Olivia Garcia', specialty: 'Dermatology', department: 'Dermatology', active: true, imageUrl: 'https://i.pravatar.cc/150?img=47' },
-      { id: 6, name: 'Dr. James Wilson', specialty: 'Internal Medicine', department: 'Internal Medicine', active: true, imageUrl: 'https://i.pravatar.cc/150?img=51' },
-      { id: 7, name: 'Dr. Emily Martinez', specialty: 'Endocrinology', department: 'Endocrinology', active: true, imageUrl: 'https://i.pravatar.cc/150?img=52' },
-      { id: 8, name: 'Dr. Michael Chen', specialty: 'Neurology', department: 'Neurology', active: true, imageUrl: 'https://i.pravatar.cc/150?img=53' },
-      { id: 9, name: 'Dr. Sarah Thompson', specialty: 'Gynecology', department: 'Women\'s Health', active: true, imageUrl: 'https://i.pravatar.cc/150?img=54' },
-      { id: 10, name: 'Dr. David Rodriguez', specialty: 'Pulmonology', department: 'Pulmonology', active: true, imageUrl: 'https://i.pravatar.cc/150?img=55' },
-      { id: 11, name: 'Dr. Lisa Anderson', specialty: 'Psychiatry', department: 'Mental Health', active: true, imageUrl: 'https://i.pravatar.cc/150?img=56' },
-      { id: 12, name: 'Dr. Robert Taylor', specialty: 'Gastroenterology', department: 'Gastroenterology', active: true, imageUrl: 'https://i.pravatar.cc/150?img=57' }
+      { id: 1, name: 'Dr. Amelia Carter', specialty: 'Family Medicine', department: 'Primary Care', active: true, imageUrl: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop&crop=faces' },
+      { id: 2, name: 'Dr. Ryan Patel', specialty: 'Cardiology', department: 'Cardiology', active: true, imageUrl: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=400&fit=crop&crop=faces' },
+      { id: 3, name: 'Dr. Sophia Nguyen', specialty: 'Pediatrics', department: 'Pediatrics', active: true, imageUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop&crop=faces' },
+      { id: 4, name: 'Dr. Noah Kim', specialty: 'Orthopedics', department: 'Orthopedics', active: true, imageUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&h=400&fit=crop&crop=faces' },
+      { id: 5, name: 'Dr. Olivia Garcia', specialty: 'Dermatology', department: 'Dermatology', active: true, imageUrl: 'https://images.unsplash.com/photo-1594824476968-48fd8d0c0276?w=400&h=400&fit=crop&crop=faces' },
+      { id: 6, name: 'Dr. James Wilson', specialty: 'Internal Medicine', department: 'Internal Medicine', active: true, imageUrl: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop&crop=faces' },
+      { id: 7, name: 'Dr. Emily Martinez', specialty: 'Endocrinology', department: 'Endocrinology', active: true, imageUrl: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=400&fit=crop&crop=faces' },
+      { id: 8, name: 'Dr. Michael Chen', specialty: 'Neurology', department: 'Neurology', active: true, imageUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop&crop=faces' },
+      { id: 9, name: 'Dr. Sarah Thompson', specialty: 'Gynecology', department: 'Women\'s Health', active: true, imageUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&h=400&fit=crop&crop=faces' },
+      { id: 10, name: 'Dr. David Rodriguez', specialty: 'Pulmonology', department: 'Pulmonology', active: true, imageUrl: 'https://images.unsplash.com/photo-1594824476968-48fd8d0c0276?w=400&h=400&fit=crop&crop=faces' },
+      { id: 11, name: 'Dr. Lisa Anderson', specialty: 'Psychiatry', department: 'Mental Health', active: true, imageUrl: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop&crop=faces' },
+      { id: 12, name: 'Dr. Robert Taylor', specialty: 'Gastroenterology', department: 'Gastroenterology', active: true, imageUrl: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=400&fit=crop&crop=faces' }
     ];
     return of([...this.providers]).pipe(delay(300));
   }

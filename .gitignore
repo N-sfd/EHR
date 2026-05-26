@@ -57,3 +57,7 @@ backend/target/
 .vscode/
 .idea/
 *.iml
+
+# Embedded repos / generated tool dirs
+mychart/
+.sfdx/

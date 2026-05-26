@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { AdminMockService } from './admin-mock.service';
 import { AdminApiService } from './admin-api.service';
@@ -23,7 +24,7 @@ export class AdminService {
   private mockService = inject(AdminMockService);
   private apiService = inject(AdminApiService);
   
-  private useMock = (environment as any).useMock !== false; // Default to true if not set
+  private useMock = (environment as any).useMock === true; // Only use mock if explicitly set to true
 
   // Provider Templates
   getProviderTemplates(): Observable<ProviderTemplate[]> {
@@ -50,23 +51,20 @@ export class AdminService {
       : this.apiService.deleteVisitType(visitTypeId);
   }
 
-  // Schedules
+  // Schedules - Always use mock for now since backend endpoints don't exist
   getScheduleTemplates(): Observable<ScheduleTemplate[]> {
-    return this.useMock
-      ? this.mockService.getScheduleTemplates()
-      : this.apiService.getScheduleTemplates();
+    // Always use mock service since backend endpoints don't exist yet
+    return this.mockService.getScheduleTemplates();
   }
 
   getScheduleTemplate(providerId: number): Observable<ScheduleTemplate> {
-    return this.useMock
-      ? this.mockService.getScheduleTemplate(providerId)
-      : this.apiService.getScheduleTemplate(providerId);
+    // Always use mock service since backend endpoints don't exist yet
+    return this.mockService.getScheduleTemplate(providerId);
   }
 
   saveScheduleTemplate(template: ScheduleTemplate): Observable<ScheduleTemplate> {
-    return this.useMock
-      ? this.mockService.saveScheduleTemplate(template)
-      : this.apiService.saveScheduleTemplate(template);
+    // Always use mock service since backend endpoints don't exist yet
+    return this.mockService.saveScheduleTemplate(template);
   }
 
   // Registration Rules

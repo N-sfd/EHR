@@ -1,15 +1,62 @@
 import { Routes } from '@angular/router';
 import { LayoutComponent } from './core/layout/layout.component';
+import { PatientLayoutComponent } from './core/layout/patient-layout/patient-layout.component';
 import { AdminDashboardComponent } from './features/dashboard/admin-dashboard/admin-dashboard.component';
 import { unsavedChangesGuard } from './core/guards/unsaved-changes.guard';
+import { authGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
+import { patientSmartGuard } from './core/guards/patient-smart.guard';
+import { aiFeatureGuard } from './core/guards/ai-feature.guard';
 
 export const routes: Routes = [
+  // Public routes
   {
-    path: '',
-    component: LayoutComponent,
+    path: 'login',
+    loadComponent: () =>
+      import('./features/auth/login/login.component')
+        .then(m => m.LoginComponent)
+  },
+  
+  // Patient shell routes
+  {
+    path: 'patient',
+    component: PatientLayoutComponent,
     children: [
-      { path: '', redirectTo: 'admin/dashboard', pathMatch: 'full' },
-      { path: 'admin/dashboard', component: AdminDashboardComponent },
+      {
+        path: 'launch',
+        loadComponent: () =>
+          import('./features/patient/launch/launch.component')
+            .then(m => m.LaunchComponent)
+      },
+      {
+        path: 'home',
+        loadComponent: () =>
+          import('./features/patient/home/home.component')
+            .then(m => m.HomeComponent),
+        canActivate: [patientSmartGuard]
+      },
+      {
+        path: 'appointments',
+        loadComponent: () =>
+          import('./features/patient/appointments/appointments.component')
+            .then(m => m.AppointmentsComponent),
+        canActivate: [patientSmartGuard]
+      },
+      {
+        path: '',
+        redirectTo: 'home',
+        pathMatch: 'full'
+      }
+    ]
+  },
+
+  // Admin shell routes
+  {
+    path: 'admin',
+    component: LayoutComponent,
+    canActivateChild: [authGuard],
+    children: [
+      { path: 'dashboard', component: AdminDashboardComponent },
       
       // ---------- HR SETTINGS ----------
       // HR Settings component not yet implemented
@@ -20,52 +67,54 @@ export const routes: Routes = [
       //       .then(m => m.HrSettingsComponent)
       // },
       {
-        path: 'admin/designations',
+        path: 'designations',
         loadComponent: () =>
           import('./features/designations/designations.component')
             .then(m => m.DesignationsComponent)
       },
       {
-        path: 'admin/departments',
+        path: 'departments',
         loadComponent: () =>
           import('./features/departments/departments.component')
             .then(m => m.DepartmentsComponent)
       },
       {
-        path: 'admin/roles',
+        path: 'roles',
         loadComponent: () =>
           import('./features/rbac/roles-permissions.component')
-            .then(m => m.RolesPermissionsComponent)
+            .then(m => m.RolesPermissionsComponent),
+        canActivate: [roleGuard(['ADMIN'])]
       },
       {
-        path: 'admin/roles-permissions',
+        path: 'roles-permissions',
         loadComponent: () =>
           import('./features/rbac/roles-permissions.component')
-            .then(m => m.RolesPermissionsComponent)
+            .then(m => m.RolesPermissionsComponent),
+        canActivate: [roleGuard(['ADMIN'])]
       },
       
       // ---------- STAFF MANAGEMENT ----------
       {
-        path: 'admin/staff-management',
+        path: 'staff-management',
         loadComponent: () =>
           import('./features/staff-management/staff-management.component')
             .then(m => m.StaffManagementComponent)
       },
       // ---------- STAFF (Legacy routes - redirect to staff-management) ----------
       {
-        path: 'admin/staffs',
+        path: 'staffs',
         loadComponent: () =>
           import('./features/staffs/staffs.component')
             .then(m => m.StaffsComponent)
       },
       {
-        path: 'admin/staffs/add',
+        path: 'staffs/add',
         loadComponent: () =>
           import('./features/staffs/add-staff/add-staff.component')
             .then(m => m.AddStaffComponent)
       },
       {
-        path: 'admin/staffs/edit/:id',
+        path: 'staffs/edit/:id',
         loadComponent: () =>
           import('./features/staffs/add-staff/add-staff.component')
             .then(m => m.AddStaffComponent)
@@ -73,31 +122,37 @@ export const routes: Routes = [
       
       // ---------- DOCTORS ----------
       {
-        path: 'admin/doctors',
+        path: 'doctors',
         loadComponent: () =>
           import('./features/doctors/doctors.component')
             .then(m => m.DoctorsComponent)
       },
+      // ---------- PROVIDERS (alias for doctors) ----------
       {
-        path: 'admin/doctors/add',
+        path: 'providers',
+        redirectTo: 'doctors',
+        pathMatch: 'full'
+      },
+      {
+        path: 'doctors/add',
         loadComponent: () =>
           import('./features/doctors/add-doctor/add-doctor.component')
             .then(m => m.AddDoctorComponent)
       },
       {
-        path: 'admin/doctors/edit/:id',
+        path: 'doctors/edit/:id',
         loadComponent: () =>
           import('./features/doctors/add-doctor/add-doctor.component')
             .then(m => m.AddDoctorComponent)
       },
       {
-        path: 'admin/doctors/profile/:id',
+        path: 'doctors/profile/:id',
         loadComponent: () =>
           import('./features/doctors/doctor-details/doctor-details.component')
             .then(m => m.DoctorDetailsComponent)
       },
       {
-        path: 'admin/doctors/schedule',
+        path: 'doctors/schedule',
         loadComponent: () =>
           import('./features/doctors/doctor-schedule/doctor-schedule.component')
             .then(m => m.DoctorScheduleComponent)
@@ -105,104 +160,160 @@ export const routes: Routes = [
       
       // ---------- PATIENTS ----------
       {
-        path: 'admin/patient-management',
+        path: 'patient-management',
         loadComponent: () =>
           import('./features/dashboard/patient-dashboard/patient-dashboard.component')
             .then(m => m.PatientDashboardComponent)
       },
       {
-        path: 'admin/patients',
+        path: 'patients',
         loadComponent: () =>
           import('./features/patients/patients.component')
             .then(m => m.PatientsComponent)
       },
       {
-        path: 'admin/patients/add',
+        path: 'patients/add',
         loadComponent: () =>
           import('./features/patients/add-edit-patient/add-edit-patient.component')
             .then(m => m.AddEditPatientComponent)
       },
       {
-        path: 'admin/patients/edit/:id',
+        path: 'patients/edit/:id',
         loadComponent: () =>
           import('./features/patients/add-edit-patient/add-edit-patient.component')
             .then(m => m.AddEditPatientComponent)
+      },
+      {
+        path: 'patients/profile/:id',
+        loadComponent: () =>
+          import('./features/patients/patient-details/patient-details.component')
+            .then(m => m.PatientDetailsComponent)
+      },
+      {
+        path: 'patients/:id/snapshot',
+        loadComponent: () =>
+          import('./features/patients/patient-snapshot/patient-snapshot.component')
+            .then(m => m.PatientSnapshotComponent)
+      },
+      {
+        path: 'ai-assistant',
+        loadComponent: () =>
+          import('./features/ai-assistant/assistant-panel/assistant-panel.component')
+            .then(m => m.AssistantPanelComponent),
+        canActivate: [aiFeatureGuard]
+      },
+      {
+        path: 'ai-assistant/:patientId',
+        loadComponent: () =>
+          import('./features/ai-assistant/assistant-panel/assistant-panel.component')
+            .then(m => m.AssistantPanelComponent),
+        canActivate: [aiFeatureGuard]
+      },
+      {
+        path: 'patients/:id/mychart',
+        loadComponent: () =>
+          import('./features/patients/patient-details/patient-details.component')
+            .then(m => m.PatientDetailsComponent)
       },
       
       // ---------- APPOINTMENTS ----------
       {
-        path: 'admin/appointments',
+        path: 'appointments',
         loadComponent: () =>
-          import('./features/appointment/appointments.component')
-            .then(m => m.AppointmentsComponent)
+          import('./features/appointment/appointments-shell/appointments-shell.component')
+            .then(m => m.AppointmentsShellComponent),
+        children: [
+          {
+            path: '',
+            redirectTo: 'grid',
+            pathMatch: 'full'
+          },
+          {
+            path: 'grid',
+            loadComponent: () =>
+              import('./features/appointment/schedule-grid/schedule-grid.component')
+                .then(m => m.ScheduleGridComponent),
+            data: { title: 'Schedule Grid' }
+          },
+          {
+            path: 'new',
+            loadComponent: () =>
+              import('./features/appointment/scheduler/scheduler.component')
+                .then(m => m.SchedulerComponent),
+            data: { title: 'New Appointment' }
+          },
+          {
+            path: ':id/edit',
+            loadComponent: () =>
+              import('./features/appointment/scheduler/scheduler.component')
+                .then(m => m.SchedulerComponent),
+            data: { title: 'Edit Appointment' }
+          },
+          // Legacy routes - redirect to grid
+          {
+            path: 'all',
+            redirectTo: 'grid',
+            pathMatch: 'full'
+          },
+          {
+            path: 'scheduler',
+            redirectTo: 'grid',
+            pathMatch: 'full'
+          },
+          {
+            path: 'calendar',
+            redirectTo: 'grid',
+            pathMatch: 'full'
+          },
+          {
+            path: 'appointment-book',
+            redirectTo: 'grid',
+            pathMatch: 'full'
+          },
+          {
+            path: 'book',
+            redirectTo: 'grid',
+            pathMatch: 'full'
+          }
+        ]
       },
-      {
-        path: 'admin/appointments/new',
-        loadComponent: () =>
-          import('./features/appointment/new-appointment.component')
-            .then(m => m.NewAppointmentComponent)
-      },
-      {
-        path: 'admin/appointments/calendar',
-        loadComponent: () =>
-          import('./features/appointment/appointment-calendar.component')
-            .then(m => m.AppointmentCalendarComponent)
-      },
-      {
-        path: 'admin/appointments/cadence',
-        loadComponent: () =>
-          import('./features/appointment/cadence-schedule-grid/cadence-schedule-grid.component')
-            .then(m => m.CadenceScheduleGridComponent)
-      },
-      {
-        path: 'admin/appointments/scheduler',
-        loadComponent: () =>
-          import('./features/appointment/epic-scheduler/epic-scheduler.component')
-            .then(m => m.EpicSchedulerComponent)
-      },
+      // Legacy route redirects for appointments
       {
         path: 'scheduling/appointments',
-        loadComponent: () =>
-          import('./features/scheduling/appointment-scheduler/appointment-scheduler.component')
-            .then(m => m.AppointmentSchedulerComponent)
+        redirectTo: 'appointments/all',
+        pathMatch: 'full'
       },
       {
-        path: 'admin/provider-templates',
-        loadComponent: () =>
-          import('./features/admin/provider-templates/provider-templates.component')
-            .then(m => m.ProviderTemplatesComponent)
+        path: 'provider-templates',
+        redirectTo: 'schedules',
+        pathMatch: 'full'
       },
       {
-        path: 'admin/schedules',
+        path: 'schedules',
         loadComponent: () =>
           import('./features/admin/schedules/schedules.component')
             .then(m => m.SchedulesComponent)
       },
       {
-        path: 'admin/registration-rules',
+        path: 'registration-rules',
         loadComponent: () =>
           import('./features/admin/registration-rules/registration-rules.component')
             .then(m => m.RegistrationRulesComponent)
       },
       {
-        path: 'admin/alerts-warnings',
+        path: 'alerts-warnings',
         loadComponent: () =>
           import('./features/admin/alerts-warnings/alerts-warnings.component')
             .then(m => m.AlertsWarningsComponent)
       },
-      {
-        path: 'demo',
-        loadComponent: () =>
-          import('./features/demo/workflow-demo/workflow-demo.component')
-            .then(m => m.WorkflowDemoComponent)
-      },
+      // Demo route removed - not part of canonical domains
       
       // ---------- SERVICES ----------
       // Services component removed - functionality moved to other modules
       
       // ---------- SPECIALIZATIONS ----------
       {
-        path: 'admin/specializations',
+        path: 'specializations',
         loadComponent: () =>
           import('./features/specializations/specializations.component')
             .then(m => m.SpecializationsComponent)
@@ -210,7 +321,7 @@ export const routes: Routes = [
       
       // ---------- LOCATIONS ----------
       {
-        path: 'admin/locations',
+        path: 'locations',
         loadComponent: () =>
           import('./features/locations/locations.component')
             .then(m => m.LocationsComponent)
@@ -218,111 +329,53 @@ export const routes: Routes = [
       
       // ---------- ANALYSIS ----------
       {
-        path: 'admin/analysis',
+        path: 'analysis',
         loadComponent: () =>
           import('./features/analysis/analysis.component')
             .then(m => m.AnalysisComponent)
       },
       
-      // ---------- PRELUDE ----------
+      // ---------- REPORTS ----------
       {
-        path: 'prelude/search',
+        path: 'reports/scheduling-analytics',
         loadComponent: () =>
-          import('./features/prelude/patient-search/patient-search.component')
-            .then(m => m.PatientSearchComponent)
+          import('./features/reports/scheduling-analytics/scheduling-analytics.component')
+            .then(m => m.SchedulingAnalyticsComponent),
+        data: { title: 'Scheduling Analytics' }
       },
       {
-        path: 'prelude/patient/:mrn',
+        path: 'reports/provider-utilization',
         loadComponent: () =>
-          import('./features/prelude/prelude-patient-shell/prelude-patient-shell.component')
-            .then(m => m.PreludePatientShellComponent),
-        children: [
-          {
-            path: '',
-            redirectTo: 'demographics',
-            pathMatch: 'full'
-          },
-          {
-            path: 'demographics',
-            loadComponent: () =>
-              import('./features/prelude/pages/demographics/demographics.component')
-                .then(m => m.DemographicsComponent),
-            canDeactivate: [unsavedChangesGuard]
-          },
-          {
-            path: 'insurance',
-            loadComponent: () =>
-              import('./features/prelude/pages/insurance/insurance.component')
-                .then(m => m.InsuranceComponent)
-          },
-          {
-            path: 'guarantor',
-            loadComponent: () =>
-              import('./features/prelude/pages/guarantor/guarantor.component')
-                .then(m => m.GuarantorComponent)
-          },
-          {
-            path: 'appointments',
-            loadComponent: () =>
-              import('./features/prelude/pages/appointments/appointments.component')
-                .then(m => m.AppointmentsComponent)
-          },
-          {
-            path: 'documents',
-            loadComponent: () =>
-              import('./features/prelude/pages/documents/documents.component')
-                .then(m => m.DocumentsComponent)
-          },
-          {
-            path: 'alerts',
-            loadComponent: () =>
-              import('./features/prelude/pages/alerts/alerts.component')
-                .then(m => m.AlertsComponent)
-          }
-        ]
+          import('./features/reports/provider-utilization/provider-utilization.component')
+            .then(m => m.ProviderUtilizationComponent),
+        data: { title: 'Provider Utilization' }
       },
-      // Legacy routes for backward compatibility
       {
-        path: 'admin/prelude/search',
-        redirectTo: 'prelude/search',
-        pathMatch: 'full'
+        path: 'reports/scheduling-workqueue',
+        loadComponent: () =>
+          import('./features/reports/scheduling-workqueue/scheduling-workqueue.component')
+            .then(m => m.SchedulingWorkqueueComponent),
+        data: { title: 'Scheduling Workqueue' }
       },
       
-      // ---------- AMBULATORY ----------
-      {
-        path: 'ambulatory',
-        loadComponent: () =>
-          import('./features/ambulatory/ambulatory-shell/ambulatory-shell.component')
-            .then(m => m.AmbulatoryShellComponent),
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            redirectTo: 'clinical-encounters'
-          },
-          {
-            path: 'clinical-encounters',
-            loadComponent: () =>
-              import('./features/ambulatory/clinical-encounters/clinical-encounters.component')
-                .then(m => m.ClinicalEncountersComponent)
-          },
-          {
-            path: 'clinical-encounters/:encounterId',
-            loadComponent: () =>
-              import('./features/ambulatory/clinical-encounter-detail/clinical-encounter-detail.component')
-                .then(m => m.ClinicalEncounterDetailComponent)
-          }
-        ]
-      },
-      // Legacy route for backward compatibility
-      {
-        path: 'admin/ambulatory/encounter/:encounterId',
-        loadComponent: () =>
-          import('./features/ambulatory/ambulatory-encounter/ambulatory-encounter.component')
-            .then(m => m.AmbulatoryEncounterComponent)
-      },
+      // (Removed deprecated Patient Search + Clinical Encounters routes)
     ]
   },
+  
+  // Legacy redirects for backward compatibility
+  { path: 'dashboard', redirectTo: 'admin/dashboard', pathMatch: 'full' },
+  { path: 'reports', redirectTo: 'admin/reports/scheduling-analytics', pathMatch: 'full' },
+  { path: 'reports/scheduling-analytics', redirectTo: 'admin/reports/scheduling-analytics', pathMatch: 'full' },
+  { path: 'reports/provider-utilization', redirectTo: 'admin/reports/provider-utilization', pathMatch: 'full' },
+  { path: 'reports/scheduling-workqueue', redirectTo: 'admin/reports/scheduling-workqueue', pathMatch: 'full' },
+  { path: 'doctors', redirectTo: 'admin/doctors', pathMatch: 'full' },
+  { path: 'patients', redirectTo: 'admin/patient-management', pathMatch: 'full' },
+  { path: 'ambulatory', redirectTo: 'admin/appointments/grid', pathMatch: 'full' },
+  
+  // Root redirect
+  { path: '', redirectTo: 'admin/dashboard', pathMatch: 'full' },
+  
+  // Catch-all redirect
   { path: '**', redirectTo: 'admin/dashboard' }
 ];
 

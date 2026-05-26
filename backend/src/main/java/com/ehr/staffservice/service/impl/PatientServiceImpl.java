@@ -86,9 +86,126 @@ public class PatientServiceImpl implements PatientService {
                     });
         }
 
-        mapper.updateEntityFromDto(dto, entity);
+        // Update ALL fields explicitly - don't skip empty strings, save everything
+        // This ensures all data from the form is persisted to the database
+        
+        if (dto.getFirstName() != null) {
+            entity.setFirstName(dto.getFirstName().trim());
+        }
+        if (dto.getLastName() != null) {
+            entity.setLastName(dto.getLastName().trim());
+        }
+        if (dto.getDateOfBirth() != null) {
+            entity.setDateOfBirth(dto.getDateOfBirth());
+        }
+        
+        // Handle both gender and sex fields
+        String genderValue = dto.getGender();
+        if (genderValue == null || genderValue.isEmpty()) {
+            genderValue = dto.getSex();
+        }
+        if (genderValue != null) {
+            entity.setGender(genderValue.trim());
+        }
+        
+        if (dto.getPhoneNumber() != null) {
+            entity.setPhoneNumber(dto.getPhoneNumber().trim());
+        }
+        if (dto.getEmail() != null) {
+            entity.setEmail(dto.getEmail().trim());
+        }
+        
+        // Handle address fields - prioritize addressLine1
+        // Frontend always sends these fields (even as null), so null means "clear this field"
+        // Only update if the field is explicitly provided in DTO
+        if (dto.getAddressLine1() != null || dto.getAddress() != null) {
+            String addr1 = dto.getAddressLine1() != null ? dto.getAddressLine1().trim() : 
+                          (dto.getAddress() != null ? dto.getAddress().trim() : "");
+            entity.setAddressLine1(addr1.isEmpty() ? null : addr1);
+            // Also set address for backward compatibility
+            entity.setAddress(addr1.isEmpty() ? null : addr1);
+        }
+        // Note: If both are null and not sent, don't update (preserve existing values)
+        
+        // Update addressLine2 only if explicitly provided
+        if (dto.getAddressLine2() != null) {
+            String addr2 = dto.getAddressLine2().trim();
+            entity.setAddressLine2(addr2.isEmpty() ? null : addr2);
+        }
+        // Note: If null and not sent, don't update (preserve existing value)
+        
+        // Update city only if explicitly provided
+        if (dto.getCity() != null) {
+            String city = dto.getCity().trim();
+            entity.setCity(city.isEmpty() ? null : city);
+        }
+        // Note: If null and not sent, don't update (preserve existing value)
+        
+        // Update state only if explicitly provided
+        if (dto.getState() != null) {
+            String state = dto.getState().trim();
+            entity.setState(state.isEmpty() ? null : state);
+        }
+        // Note: If null and not sent, don't update (preserve existing value)
+        
+        // Update zipCode only if explicitly provided (handle both zipCode and pincode from DTO)
+        if (dto.getZipCode() != null) {
+            String zip = dto.getZipCode().trim();
+            entity.setZipCode(zip.isEmpty() ? null : zip);
+        }
+        // Note: If null and not sent, don't update (preserve existing value)
+        
+        // Save photoUrl (profile image) - can be base64 data URL or URL string
+        if (dto.getPhotoUrl() != null) {
+            String photoUrl = dto.getPhotoUrl().trim();
+            entity.setPhotoUrl(photoUrl.isEmpty() ? null : photoUrl);
+        }
+        
+        // Save other optional fields
+        if (dto.getCountry() != null) {
+            String country = dto.getCountry().trim();
+            entity.setCountry(country.isEmpty() ? null : country);
+        }
+        if (dto.getEmergencyContactName() != null) {
+            String ecName = dto.getEmergencyContactName().trim();
+            entity.setEmergencyContactName(ecName.isEmpty() ? null : ecName);
+        }
+        if (dto.getEmergencyContactPhone() != null) {
+            String ecPhone = dto.getEmergencyContactPhone().trim();
+            entity.setEmergencyContactPhone(ecPhone.isEmpty() ? null : ecPhone);
+        }
+        if (dto.getBloodGroup() != null) {
+            String bg = dto.getBloodGroup().trim();
+            entity.setBloodGroup(bg.isEmpty() ? null : bg);
+        }
+        if (dto.getAllergies() != null) {
+            entity.setAllergies(dto.getAllergies().trim());
+        }
+        if (dto.getMedicalHistory() != null) {
+            entity.setMedicalHistory(dto.getMedicalHistory().trim());
+        }
+        if (dto.getStatus() != null) {
+            String status = dto.getStatus().trim();
+            entity.setStatus(status.isEmpty() ? null : status);
+        }
+        if (dto.getInsuranceProvider() != null) {
+            String insProvider = dto.getInsuranceProvider().trim();
+            entity.setInsuranceProvider(insProvider.isEmpty() ? null : insProvider);
+        }
+        if (dto.getInsurancePolicyNumber() != null) {
+            String insPolicy = dto.getInsurancePolicyNumber().trim();
+            entity.setInsurancePolicyNumber(insPolicy.isEmpty() ? null : insPolicy);
+        }
+        if (dto.getPrimaryDoctorId() != null) {
+            entity.setPrimaryDoctorId(dto.getPrimaryDoctorId());
+        }
+        
+        // Don't call mapper.updateEntityFromDto here - we've set everything explicitly
+        // The mapper might overwrite our explicit sets with null values
+        
         Patient updated = repository.save(entity);
         entityManager.flush(); // Ensure data is persisted to database immediately
+        entityManager.refresh(updated); // Refresh to get latest data from DB
         return mapper.toDto(updated);
     }
 
@@ -109,6 +226,56 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public List<PatientDto> getAll() {
         return repository.findAll().stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PatientDto> searchPatients(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return getAll();
+        }
+        
+        String searchTerm = query.trim().toLowerCase();
+        
+        return repository.findAll().stream()
+                .filter(patient -> {
+                    // Search by name (first name + last name)
+                    String fullName = ((patient.getFirstName() != null ? patient.getFirstName() : "") + " " +
+                                      (patient.getLastName() != null ? patient.getLastName() : "")).trim().toLowerCase();
+                    if (fullName.contains(searchTerm)) {
+                        return true;
+                    }
+                    
+                    // Search by patient code (MRN)
+                    if (patient.getPatientCode() != null && 
+                        patient.getPatientCode().toLowerCase().contains(searchTerm)) {
+                        return true;
+                    }
+                    
+                    // Search by phone number
+                    if (patient.getPhoneNumber() != null && 
+                        patient.getPhoneNumber().toLowerCase().contains(searchTerm)) {
+                        return true;
+                    }
+                    
+                    // Search by email
+                    if (patient.getEmail() != null && 
+                        patient.getEmail().toLowerCase().contains(searchTerm)) {
+                        return true;
+                    }
+                    
+                    // Search by date of birth (format: YYYY-MM-DD)
+                    if (patient.getDateOfBirth() != null) {
+                        String dob = patient.getDateOfBirth().toString();
+                        if (dob.contains(searchTerm)) {
+                            return true;
+                        }
+                    }
+                    
+                    return false;
+                })
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
     }

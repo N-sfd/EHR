@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { ApiService } from './api.service';
 import { Observable } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 import { Doctor } from '../models/doctor.model';
 import { StaffMockService } from './staff-mock.service';
 
@@ -11,7 +12,7 @@ import { StaffMockService } from './staff-mock.service';
 export class DoctorService {
   private apiService = inject(ApiService);
   private mockService = inject(StaffMockService);
-  private useMock = true; // Always use mock for now, can be configured via environment
+  private useMock = environment.useMock !== false; // Use environment configuration, default to true
 
   constructor() {}
 

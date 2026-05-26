@@ -2,14 +2,13 @@ package com.ehr.staffservice.service.impl;
 
 import com.ehr.staffservice.dto.ScheduleGridDto;
 import com.ehr.staffservice.entity.Appointment;
-import com.ehr.staffservice.entity.ProviderSchedule;
 import com.ehr.staffservice.repository.AppointmentRepository;
-import com.ehr.staffservice.repository.ProviderScheduleRepository;
 import com.ehr.staffservice.service.ScheduleGridService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,33 +19,35 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ScheduleGridServiceImpl implements ScheduleGridService {
 
-    private final ProviderScheduleRepository scheduleRepository;
     private final AppointmentRepository appointmentRepository;
 
     @Override
-    public ScheduleGridDto getProviderScheduleGrid(Long providerId, LocalDate date) {
-        List<ProviderSchedule> schedules = scheduleRepository.findByProviderIdAndScheduleDate(providerId, date);
-        List<Appointment> appointments = appointmentRepository.findByDoctorIdAndAppointmentDate(providerId, date);
+    public ScheduleGridDto getDoctorScheduleGrid(Long doctorId, LocalDate date) {
+        // Use default schedule (8am-5pm, 15min slots) - provider_availability can be used for custom schedules
+        LocalDateTime startDateTime = date.atStartOfDay();
+        LocalDateTime endDateTime = date.plusDays(1).atStartOfDay();
+        List<Appointment> appointments = appointmentRepository.findByDateRange(
+                startDateTime, endDateTime, List.of(doctorId), null);
         
-        return buildScheduleGrid(providerId, date, schedules, appointments);
+        return buildScheduleGrid(doctorId, date, appointments);
     }
 
     @Override
-    public List<ScheduleGridDto> getProviderScheduleGridRange(Long providerId, LocalDate startDate, LocalDate endDate) {
-        List<ProviderSchedule> schedules = scheduleRepository.findAvailableSchedulesByProviderAndDateRange(providerId, startDate, endDate);
-        List<Appointment> appointments = appointmentRepository.findByDoctorAndDateRange(providerId, startDate, endDate);
+    public List<ScheduleGridDto> getDoctorScheduleGridRange(Long doctorId, LocalDate startDate, LocalDate endDate) {
+        // Use default schedule (8am-5pm, 15min slots) - provider_availability can be used for custom schedules
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
+        List<Appointment> appointments = appointmentRepository.findByDateRange(
+                startDateTime, endDateTime, List.of(doctorId), null);
         
-        Map<LocalDate, List<ProviderSchedule>> schedulesByDate = schedules.stream()
-                .collect(Collectors.groupingBy(ProviderSchedule::getScheduleDate));
         Map<LocalDate, List<Appointment>> appointmentsByDate = appointments.stream()
-                .collect(Collectors.groupingBy(Appointment::getAppointmentDate));
+                .collect(Collectors.groupingBy(apt -> apt.getStartAt().toLocalDate()));
         
         List<ScheduleGridDto> grids = new ArrayList<>();
         LocalDate currentDate = startDate;
         while (!currentDate.isAfter(endDate)) {
-            List<ProviderSchedule> daySchedules = schedulesByDate.getOrDefault(currentDate, new ArrayList<>());
             List<Appointment> dayAppointments = appointmentsByDate.getOrDefault(currentDate, new ArrayList<>());
-            grids.add(buildScheduleGrid(providerId, currentDate, daySchedules, dayAppointments));
+            grids.add(buildScheduleGrid(doctorId, currentDate, dayAppointments));
             currentDate = currentDate.plusDays(1);
         }
         
@@ -54,33 +55,26 @@ public class ScheduleGridServiceImpl implements ScheduleGridService {
     }
 
     @Override
-    public List<ScheduleGridDto> getMultiProviderScheduleGrid(List<Long> providerIds, LocalDate date) {
+    public List<ScheduleGridDto> getMultiDoctorScheduleGrid(List<Long> doctorIds, LocalDate date) {
         List<ScheduleGridDto> grids = new ArrayList<>();
-        for (Long providerId : providerIds) {
-            grids.add(getProviderScheduleGrid(providerId, date));
+        for (Long doctorId : doctorIds) {
+            grids.add(getDoctorScheduleGrid(doctorId, date));
         }
         return grids;
     }
 
-    private ScheduleGridDto buildScheduleGrid(Long providerId, LocalDate date, 
-                                             List<ProviderSchedule> schedules, 
+    private ScheduleGridDto buildScheduleGrid(Long doctorId, LocalDate date, 
                                              List<Appointment> appointments) {
         ScheduleGridDto grid = new ScheduleGridDto();
-        grid.setProviderId(providerId);
+        grid.setDoctorId(doctorId);
         grid.setScheduleDate(date);
         
-        if (!schedules.isEmpty()) {
-            ProviderSchedule firstSchedule = schedules.get(0);
-            grid.setStartTime(firstSchedule.getStartTime());
-            grid.setEndTime(firstSchedule.getEndTime());
-            grid.setSlotIntervalMinutes(firstSchedule.getSlotIntervalMinutes());
-            grid.setLocation(firstSchedule.getLocation());
-        } else {
-            // Default schedule
+        // Default schedule (8am-5pm, 15min slots)
+        // Custom schedules can be managed via provider_availability table
             grid.setStartTime(LocalTime.of(8, 0));
             grid.setEndTime(LocalTime.of(17, 0));
             grid.setSlotIntervalMinutes(15);
-        }
+        grid.setLocation(null);
         
         // Build time slots
         List<ScheduleGridDto.TimeSlotDto> timeSlots = generateTimeSlots(
@@ -98,9 +92,10 @@ public class ScheduleGridServiceImpl implements ScheduleGridService {
                                                                  Integer intervalMinutes, 
                                                                  List<Appointment> appointments) {
         List<ScheduleGridDto.TimeSlotDto> slots = new ArrayList<>();
+        // Map appointments by their start time (rounded to nearest slot)
         Map<LocalTime, Appointment> appointmentMap = appointments.stream()
                 .collect(Collectors.toMap(
-                        Appointment::getAppointmentTime,
+                        apt -> apt.getStartAt().toLocalTime().withSecond(0).withNano(0),
                         apt -> apt,
                         (existing, replacement) -> existing
                 ));
@@ -118,10 +113,10 @@ public class ScheduleGridServiceImpl implements ScheduleGridService {
                 slot.setIsSelectable(false);
                 
                 ScheduleGridDto.AppointmentSlotDto aptSlot = new ScheduleGridDto.AppointmentSlotDto();
-                aptSlot.setAppointmentId(appointment.getAppointmentId());
-                aptSlot.setAppointmentCode(appointment.getAppointmentCode());
+                aptSlot.setAppointmentId(appointment.getId());
+                aptSlot.setAppointmentCode("APT" + appointment.getId()); // Generate code from ID
                 aptSlot.setPatientId(appointment.getPatientId());
-                aptSlot.setVisitType(appointment.getVisitType());
+                aptSlot.setVisitType(appointment.getVisitType()); // Visit type from Appointment entity
                 aptSlot.setDurationMinutes(appointment.getDurationMinutes());
                 aptSlot.setStatus(appointment.getStatus());
                 slot.setAppointment(aptSlot);

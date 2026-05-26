@@ -318,5 +318,10 @@ export class EncounterMockService {
     const encounters = this.mockEncounters.filter(e => e.patientId === patientId);
     return of(encounters.length > 0 ? encounters : this.mockEncounters).pipe(delay(300));
   }
+
+  getByAppointmentId(appointmentId: number): Observable<Encounter | null> {
+    const encounter = this.mockEncounters.find(e => e.appointmentId === appointmentId);
+    return of(encounter || null).pipe(delay(200));
+  }
 }
 

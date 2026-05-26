@@ -51,7 +51,7 @@ export class MedicationAdministrationService {
   }
 
   getMarByPatientId(patientId: number, date?: string): Observable<MedicationAdministration[]> {
-    const params = date ? { date } : {};
+    const params: Record<string, string> = date ? { date } : {};
     return this.http.get<MedicationAdministration[]>(`${this.apiUrl}/api/medication-administrations/patient/${patientId}/mar`, { params }).pipe(
       catchError(this.handleError)
     );

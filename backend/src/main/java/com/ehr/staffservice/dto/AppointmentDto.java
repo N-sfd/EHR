@@ -1,88 +1,82 @@
 package com.ehr.staffservice.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import lombok.Data;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
+/**
+ * Unified Appointment DTO
+ * Used for:
+ * - ScheduleGrid (lightweight blocks)
+ * - Scheduler (form create/update)
+ * - API responses (full details)
+ */
 @Data
 public class AppointmentDto {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private Long appointmentId;
-
-    @NotBlank(message = "Appointment code is required")
-    private String appointmentCode; // e.g., "AP544658"
+    private Long id;
 
     @NotNull(message = "Patient ID is required")
     private Long patientId;
 
-    @NotNull(message = "Doctor ID is required")
-    private Long doctorId;
-
-    private Long departmentId;
-
-    @NotBlank(message = "Appointment type is required")
-    private String appointmentType; // "In Person" or "Online"
-
-    @NotNull(message = "Appointment date is required")
-    private LocalDate appointmentDate;
-
-    @NotNull(message = "Appointment time is required")
-    private LocalTime appointmentTime;
-
-    private LocalTime endTime;
-
-    private Integer durationMinutes; // Default 30 minutes
-
-    private String reason;
-
-    @NotBlank(message = "Status is required")
-    private String status; // "Schedule", "Confirmed", "Checked In", "Checked Out", "Cancelled"
-
-    private String colorCode; // For calendar color coding
-
-    private String location; // Room number, address, etc.
-
-    private String notes;
-
-    // Recurrence fields
-    private Boolean isRecurring = false;
-
-    private String recurrencePattern; // DAILY, WEEKLY, MONTHLY, YEARLY
-
-    private LocalDate recurrenceEndDate;
-
-    private Integer recurrenceInterval; // Every N days/weeks/months
-
-    private Long parentAppointmentId; // For recurring series
-
-    // Populated fields for display
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String patientName;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private String patientPhone;
+    private String patientAvatarUrl;
+
+    @NotNull(message = "Doctor ID is required")
+    private Long doctorId;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String doctorName;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private String doctorImage;
+    private String doctorAvatarUrl;
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private String patientImage;
+    private Long departmentId;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String departmentName;
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private Timestamp createdAt;
+    @NotNull(message = "Start datetime is required")
+    private LocalDateTime startDateTime;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private Timestamp updatedAt;
+    private LocalDateTime endDateTime;
+
+    @NotNull(message = "Duration is required")
+    @Positive(message = "Duration must be positive")
+    private Integer durationMinutes;
+
+    private Long visitTypeId;
+    private String visitType;
+    private String status = "SCHEDULED";
+    private String priority = "NORMAL";
+
+    // Optional fields for full details
+    private String reason;
+    private String notes;
+    private Long locationId;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private LocalDateTime createdAt;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private LocalDateTime updatedAt;
+
+    // Computed endDateTime (if not provided)
+    public LocalDateTime getEndDateTime() {
+        if (endDateTime != null) {
+            return endDateTime;
+        }
+        if (startDateTime != null && durationMinutes != null) {
+            return startDateTime.plusMinutes(durationMinutes);
+        }
+        return null;
+    }
 }

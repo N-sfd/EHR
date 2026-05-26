@@ -1,0 +1,175 @@
+<div class="drawer-backdrop" *ngIf="isOpen" (click)="onBackdropClick()">
+  <div class="drawer-panel" (click)="onDrawerClick($event)">
+    <div class="drawer-header">
+      <h2>Notifications</h2>
+      <button class="close-btn" (click)="closeDrawer()" aria-label="Close drawer">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="drawer-tabs">
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'inbox'"
+        (click)="setTab('inbox')">
+        Inbox
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'settings'"
+        (click)="setTab('settings')">
+        Settings
+      </button>
+    </div>
+
+    <div class="drawer-content">
+      <!-- Inbox Tab -->
+      <div *ngIf="activeTab === 'inbox'" class="inbox-tab">
+        <!-- Filters -->
+        <div class="filter-bar">
+          <button 
+            *ngFor="let filterType of filterTypes"
+            class="filter-btn"
+            [class.active]="filter === filterType"
+            (click)="setFilter(filterType)">
+            {{ filterType }}
+          </button>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions-bar">
+          <button class="action-btn" (click)="markAllRead()" *ngIf="hasUnreadNotifications()">
+            Mark All Read
+          </button>
+          <button class="action-btn danger" (click)="clearAll()" *ngIf="filteredNotifications.length > 0">
+            Clear All
+          </button>
+        </div>
+
+        <!-- Notifications List -->
+        <div class="notifications-list">
+          <div *ngIf="filteredNotifications.length === 0" class="empty-state">
+            <i class="fas fa-bell-slash"></i>
+            <p>No notifications</p>
+          </div>
+
+          <div 
+            *ngFor="let notification of filteredNotifications"
+            class="notification-item"
+            [class.unread]="!notification.read"
+            [ngClass]="'severity-' + notification.severity.toLowerCase()">
+            <div class="notification-content" (click)="navigateToAction(notification)">
+              <div class="notification-header">
+                <h4 class="notification-title">{{ notification.title }}</h4>
+                <span class="notification-time">{{ getTimeAgo(notification.createdAt) }}</span>
+              </div>
+              <p class="notification-message">{{ notification.message }}</p>
+              <div class="notification-meta">
+                <span class="severity-badge" [ngClass]="'severity-' + notification.severity.toLowerCase()">
+                  {{ notification.severity }}
+                </span>
+                <span *ngIf="notification.category" class="category-badge">
+                  {{ notification.category }}
+                </span>
+              </div>
+            </div>
+            <div class="notification-actions">
+              <button 
+                class="icon-btn"
+                [title]="notification.read ? 'Mark as unread' : 'Mark as read'"
+                [attr.aria-label]="notification.read ? 'Mark as unread' : 'Mark as read'"
+                (click)="toggleReadStatus(notification)">
+                <i [class]="notification.read ? 'fas fa-envelope-open' : 'fas fa-envelope'"></i>
+              </button>
+              <button class="icon-btn" title="Delete" (click)="clear(notification)" aria-label="Delete notification">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Tab -->
+      <div *ngIf="activeTab === 'settings'" class="settings-tab" [formGroup]="prefsForm">
+        <div class="form-section">
+          <h3>Notification Channels</h3>
+          
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="enableInApp">
+              <span>Enable In-App Notifications</span>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="enableEmail">
+              <span>Enable Email Notifications</span>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="enableSMS">
+              <span>Enable SMS Notifications</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Do Not Disturb</h3>
+          
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="doNotDisturb">
+              <span>Enable Do Not Disturb</span>
+            </label>
+          </div>
+
+          <div class="form-row" *ngIf="prefsForm.get('doNotDisturb')?.value">
+            <div class="form-group">
+              <label class="form-label" for="dndStart">Start Time</label>
+              <input type="time" id="dndStart" formControlName="dndStart" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="dndEnd">End Time</label>
+              <input type="time" id="dndEnd" formControlName="dndEnd" class="form-input">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Muted Categories</h3>
+          <p class="form-help">Select categories to mute</p>
+          <div class="category-checkboxes">
+            <label 
+              *ngFor="let category of categories"
+              class="checkbox-label">
+              <input 
+                type="checkbox"
+                [checked]="isCategoryMuted(category)"
+                (change)="toggleCategory(category)">
+              <span>{{ category }}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Severity Threshold</h3>
+          <p class="form-help">Only show notifications at or above this severity level</p>
+          <select id="severityThreshold" formControlName="severityThreshold" class="form-select" aria-label="Severity Threshold">
+            <option *ngFor="let severity of severities" [value]="severity">
+              {{ severity }}
+            </option>
+          </select>
+        </div>
+
+        <div class="settings-footer">
+          <button type="button" class="btn btn-primary" (click)="savePreferences()">
+            Save Settings
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

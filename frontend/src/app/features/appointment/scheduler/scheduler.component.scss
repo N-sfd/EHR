@@ -1,0 +1,958 @@
+// ============================================================================
+// PROFESSIONAL NEW APPOINTMENT FORM - EPIC-STYLE
+// ============================================================================
+
+// Color Variables (Dark Teal Professional Scheme)
+$primary-teal: #0d9488; // Dark teal primary
+$primary-teal-dark: #0f766e; // Darker teal for hover/active
+$primary-teal-light: #14b8a6; // Lighter teal for accents
+$primary-teal-hover: #115e59; // Hover state
+$primary-blue: $primary-teal; // Alias for compatibility
+$primary-blue-dark: $primary-teal-dark;
+$primary-blue-light: $primary-teal-light;
+$text-primary: #0f172a;
+$text-secondary: #475569;
+$text-muted: #94a3b8;
+$border-color: #cbd5e1;
+$border-color-light: #e2e8f0;
+$bg-white: #ffffff;
+$bg-gray-50: #f8fafc;
+$bg-gray-100: #f1f5f9;
+$bg-gray-200: #e2e8f0;
+$success-green: #059669;
+$warning-orange: #d97706;
+$error-red: #dc2626;
+$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+// Main Container
+.scheduler {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 100px);
+  background: $bg-gray-50;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.01em;
+}
+
+// ============================================================================
+// STEP INDICATOR - Professional Stepper
+// ============================================================================
+.step-indicator {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 32px;
+  background: $bg-white;
+  border-bottom: 2px solid $border-color-light;
+  box-shadow: $shadow-sm;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  margin-bottom: 0;
+}
+
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    width: calc(100% - 80px);
+    height: 3px;
+    background: $border-color;
+    z-index: 0;
+    transition: all 0.3s ease;
+  }
+  
+  &:last-child::after {
+    display: none;
+  }
+  
+  &.active::after,
+  &.completed::after {
+    background: $primary-teal;
+    height: 3px;
+    box-shadow: 0 0 8px rgba(13, 148, 136, 0.3);
+  }
+  
+  &.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.step-number {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: $bg-gray-200;
+  color: $text-secondary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 3px solid $bg-white;
+  box-shadow: $shadow-sm;
+  
+  i {
+    font-size: 18px;
+  }
+}
+
+.step-item.active .step-number {
+  background: $primary-teal;
+  color: white;
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.4);
+  transform: scale(1.1);
+  border-color: $primary-teal-light;
+}
+
+.step-item.completed .step-number {
+  background: $success-green;
+  color: white;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+.step-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: $text-secondary;
+  text-align: center;
+  letter-spacing: 0.01em;
+  transition: all 0.2s ease;
+}
+
+.step-item.active .step-label {
+  color: $primary-teal;
+  font-weight: 700;
+}
+
+.step-item.completed .step-label {
+  color: $success-green;
+  font-weight: 600;
+}
+
+// ============================================================================
+// SERVER ERROR BANNER
+// ============================================================================
+.server-error-banner {
+  background: linear-gradient(to right, #fee2e2 0%, #fef2f2 100%);
+  border-left: 4px solid $error-red;
+  padding: 18px 24px;
+  margin: 0;
+  border-radius: 0;
+  animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: $shadow-sm;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.error-banner-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  max-width: 1200px;
+  margin: 0 auto;
+  
+  i {
+    color: $error-red;
+    font-size: 22px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  
+  .error-messages {
+    flex: 1;
+    
+    .error-message {
+      color: #991b1b;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      line-height: 1.5;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+  
+  .error-close {
+    background: none;
+    border: none;
+    color: #991b1b;
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: rgba(220, 38, 38, 0.1);
+      transform: scale(1.1);
+    }
+    
+    i {
+      font-size: 16px;
+    }
+  }
+}
+
+// ============================================================================
+// PATIENT SEARCH
+// ============================================================================
+.patient-search-banner {
+  background: $bg-white;
+  padding: 24px 32px;
+  border-bottom: 2px solid $border-color-light;
+  box-shadow: $shadow-sm;
+}
+
+.search-container {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.patient-search-input {
+  flex: 1;
+  padding: 12px 16px 12px 48px;
+  border: 2px solid $border-color;
+  border-radius: 10px;
+  font-size: 15px;
+  font-family: inherit;
+  font-weight: 400;
+  background: $bg-white;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  
+  &::before {
+    content: '\f002';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: $text-muted;
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: $primary-teal;
+    box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1), $shadow-md;
+    background: $bg-white;
+  }
+  
+  &::placeholder {
+    color: $text-muted;
+    font-weight: 400;
+  }
+  
+  &:hover:not(:focus) {
+    border-color: $primary-teal-light;
+  }
+}
+
+.search-results {
+  margin-top: 16px;
+  background: $bg-white;
+  border-radius: 12px;
+  padding: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+  box-shadow: $shadow-lg;
+  border: 1px solid $border-color-light;
+  
+  &.empty {
+    padding: 40px;
+    text-align: center;
+    color: $text-muted;
+  }
+}
+
+.result-item {
+  padding: 14px 16px;
+  background: $bg-white;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
+  
+  &:hover {
+    border-color: $primary-teal;
+    background: rgba(13, 148, 136, 0.02);
+    box-shadow: $shadow-md;
+    transform: translateX(4px);
+  }
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+  
+  .patient-avatar-result {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid $border-color-light;
+    flex-shrink: 0;
+  }
+  
+  .patient-initials-result {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    border: 2px solid $border-color-light;
+    flex-shrink: 0;
+  }
+  
+  .result-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    
+    strong {
+      color: $text-primary;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: -0.01em;
+    }
+    
+    .result-meta {
+      display: flex;
+      gap: 16px;
+      font-size: 13px;
+      color: $text-secondary;
+      
+      span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        
+        i {
+          font-size: 12px;
+          color: $text-muted;
+        }
+      }
+    }
+  }
+}
+
+// ============================================================================
+// PATIENT HEADER
+// ============================================================================
+.patient-header {
+  background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%);
+  color: white;
+  padding: 16px 32px;
+  box-shadow: $shadow-md;
+  z-index: 10;
+  position: sticky;
+  top: 0;
+}
+
+.patient-header-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.patient-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.patient-name {
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.5);
+  transition: all 0.2s ease;
+  letter-spacing: -0.01em;
+  
+  &:hover {
+    opacity: 0.9;
+    text-decoration-color: white;
+  }
+}
+
+.btn-clear-patient {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+  }
+  
+  i {
+    font-size: 12px;
+  }
+}
+
+.patient-info {
+  display: flex;
+  gap: 20px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 500;
+  margin-left: auto;
+  
+  span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    
+    i {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+  }
+}
+
+.patient-alerts {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.alert-badge {
+  background: rgba(255, 255, 255, 0.25);
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+// ============================================================================
+// MAIN LAYOUT
+// ============================================================================
+.scheduler-layout {
+  display: flex;
+  flex: 1;
+  gap: 0;
+  overflow: hidden;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.appointment-details-section {
+  width: 100%;
+  background: $bg-white;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: $shadow-sm;
+}
+
+.details-header {
+  padding: 20px 32px;
+  border-bottom: 2px solid $border-color-light;
+  background: linear-gradient(to bottom, $bg-gray-50 0%, $bg-white 100%);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  
+  h3 {
+    margin: 0;
+    color: $text-primary;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+}
+
+.details-section {
+  padding: 24px 32px;
+  border-bottom: 1px solid $border-color-light;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.section-title {
+  color: $text-primary;
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 20px 0;
+  padding-bottom: 12px;
+  border-bottom: 3px solid $primary-blue;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  
+  i {
+    font-size: 16px;
+    color: $primary-blue;
+  }
+}
+
+// ============================================================================
+// FORM ELEMENTS
+// ============================================================================
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  
+  &.full-width {
+    grid-column: 1 / -1;
+  }
+  
+  &.has-error {
+    .form-input {
+      border-color: $error-red;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+    
+    label {
+      color: $error-red;
+    }
+  }
+  
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: $text-primary;
+    letter-spacing: 0.01em;
+    
+    .required {
+      color: $error-red;
+      margin-left: 2px;
+    }
+  }
+}
+
+.form-input {
+  padding: 12px 16px;
+  border: 2px solid $border-color;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 400;
+  background: $bg-white;
+  color: $text-primary;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:focus {
+    outline: none;
+    border-color: $primary-blue;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1), $shadow-sm;
+    background: $bg-white;
+  }
+  
+  &:hover:not(:focus):not(:disabled) {
+    border-color: $primary-blue-light;
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: $bg-gray-50;
+  }
+  
+  &[readonly] {
+    background: $bg-gray-50;
+    cursor: default;
+    border-color: $border-color-light;
+  }
+  
+  &::placeholder {
+    color: $text-muted;
+    font-weight: 400;
+  }
+}
+
+textarea.form-input {
+  resize: vertical;
+  min-height: 100px;
+  font-family: inherit;
+  line-height: 1.6;
+}
+
+select.form-input {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23475569' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 12px;
+  padding-right: 40px;
+}
+
+// ============================================================================
+// INFO GRID (Read-only)
+// ============================================================================
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  
+  label {
+    font-size: 12px;
+    color: $text-muted;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  span {
+    font-size: 15px;
+    color: $text-primary;
+    font-weight: 500;
+  }
+}
+
+.eligibility-status {
+  color: $success-green;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  
+  &::before {
+    content: '\f00c';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    font-size: 12px;
+  }
+}
+
+// ============================================================================
+// BUTTONS
+// ============================================================================
+.btn-primary {
+  padding: 12px 24px;
+  background: $primary-teal;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
+  letter-spacing: 0.01em;
+  
+  &:hover:not(:disabled) {
+    background: $primary-blue-dark;
+    box-shadow: 0 4px 8px rgba(37, 99, 235, 0.35);
+    transform: translateY(-1px);
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  i {
+    font-size: 14px;
+  }
+}
+
+.btn-secondary {
+  padding: 12px 24px;
+  background: $bg-gray-200;
+  color: $text-primary;
+  border: 2px solid $border-color;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.01em;
+  
+  &:hover {
+    background: $bg-gray-100;
+    border-color: $text-secondary;
+    transform: translateY(-1px);
+  }
+  
+  i {
+    font-size: 14px;
+  }
+}
+
+// ============================================================================
+// STEP NAVIGATION
+// ============================================================================
+.step-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 32px;
+  border-top: 2px solid $border-color-light;
+  margin-top: auto;
+  background: $bg-gray-50;
+  gap: 12px;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  
+  .btn-secondary {
+    margin-right: auto;
+  }
+}
+
+// ============================================================================
+// STEP CONTENT
+// ============================================================================
+.step-content {
+  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ============================================================================
+// REVIEW SECTION
+// ============================================================================
+.review-section {
+  background: $bg-gray-50;
+  border: 2px solid $border-color-light;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.review-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid $border-color-light;
+  
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  
+  label {
+    font-weight: 700;
+    color: $text-secondary;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  span {
+    color: $text-primary;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: right;
+  }
+}
+
+// ============================================================================
+// CONFLICT WARNING
+// ============================================================================
+.conflict-warning {
+  background: linear-gradient(to right, #fef3c7 0%, #fef9e7 100%);
+  border-left: 4px solid $warning-orange;
+  padding: 16px 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  
+  i {
+    color: $warning-orange;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  
+  .warning-text {
+    flex: 1;
+    color: #92400e;
+    font-size: 14px;
+    font-weight: 600;
+  }
+}
+
+// ============================================================================
+// QUICK ACTIONS
+// ============================================================================
+.quick-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid $border-color-light;
+  
+  .btn-quick-action {
+    padding: 8px 16px;
+    background: $bg-white;
+    border: 1.5px solid $border-color;
+    color: $text-secondary;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: $bg-gray-50;
+      border-color: $primary-blue;
+      color: $primary-blue;
+    }
+    
+    i {
+      font-size: 12px;
+    }
+  }
+}
+
+// ============================================================================
+// RESPONSIVE
+// ============================================================================
+@media (max-width: 1200px) {
+  .scheduler-layout {
+    max-width: 100%;
+  }
+  
+  .details-header,
+  .details-section {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .step-indicator {
+    padding: 16px;
+  }
+  
+  .step-number {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+  }
+  
+  .step-label {
+    font-size: 11px;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

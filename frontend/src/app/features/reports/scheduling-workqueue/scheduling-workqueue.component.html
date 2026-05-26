@@ -1,0 +1,180 @@
+<div class="reports-page">
+  <div class="page-header">
+    <div class="header-content">
+      <div>
+        <h2 class="page-title">Scheduling Workqueue</h2>
+        <p class="page-subtitle">Operational exceptions and scheduling issues requiring attention</p>
+      </div>
+      <div class="header-actions">
+        <button class="action-btn export-btn" (click)="exportToCSV()" title="Export to CSV">
+          <i class="fas fa-file-csv"></i>
+          <span>Export CSV</span>
+        </button>
+        <button class="action-btn print-btn" (click)="printReport()" title="Print report">
+          <i class="fas fa-print"></i>
+          <span>Print</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Filter Bar -->
+  <app-report-filter-bar
+    (applyFilters)="onFiltersApplied($event)"
+    (resetFilters)="onFiltersReset()">
+  </app-report-filter-bar>
+
+  <!-- Tabs -->
+  <div class="workqueue-tabs">
+    <button 
+      class="tab-button" 
+      [class.active]="activeTab === 'no-shows'"
+      (click)="setActiveTab('no-shows')">
+      <i class="fas fa-user-slash"></i>
+      <span>No-shows</span>
+      <span class="tab-badge" *ngIf="noShows.length > 0">{{ noShows.length }}</span>
+    </button>
+    <button 
+      class="tab-button" 
+      [class.active]="activeTab === 'cancelled'"
+      (click)="setActiveTab('cancelled')">
+      <i class="fas fa-times-circle"></i>
+      <span>Cancelled (24h)</span>
+      <span class="tab-badge" *ngIf="cancelled.length > 0">{{ cancelled.length }}</span>
+    </button>
+    <button 
+      class="tab-button" 
+      [class.active]="activeTab === 'double-bookings'"
+      (click)="setActiveTab('double-bookings')">
+      <i class="fas fa-exclamation-triangle"></i>
+      <span>Double-bookings</span>
+      <span class="tab-badge" *ngIf="doubleBookings.length > 0">{{ doubleBookings.length }}</span>
+    </button>
+    <button 
+      class="tab-button" 
+      [class.active]="activeTab === 'overbooked'"
+      (click)="setActiveTab('overbooked')"
+      *ngIf="overbooked.length > 0 || true">
+      <i class="fas fa-calendar-times"></i>
+      <span>Overbooked</span>
+      <span class="tab-badge" *ngIf="overbooked.length > 0">{{ overbooked.length }}</span>
+    </button>
+  </div>
+
+  <!-- Workqueue Table -->
+  <div class="workqueue-table-card">
+    <div class="table-header">
+      <h3>{{ getTabTitle() }}</h3>
+      <span class="item-count" *ngIf="getCurrentItems().length > 0">
+        {{ getCurrentItems().length }} item{{ getCurrentItems().length !== 1 ? 's' : '' }}
+      </span>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="isLoading">
+      <i class="fas fa-spinner fa-spin"></i>
+      <p>Loading workqueue items...</p>
+    </div>
+
+    <!-- Empty State (only show when no error and no data) -->
+    <div class="empty-state" *ngIf="!isLoading && getCurrentItems().length === 0 && !errorMessage">
+      <i class="fas fa-check-circle empty-icon"></i>
+      <h3>No {{ getTabTitle().toLowerCase() }} found</h3>
+      <p>All appointments in this category are up to date.</p>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container" *ngIf="!isLoading && getCurrentItems().length > 0">
+      <table class="workqueue-table">
+        <thead>
+          <tr>
+            <th>Patient</th>
+            <th>Provider</th>
+            <th>Date/Time</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Priority</th>
+            <th class="actions-column">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of getCurrentItems(); trackBy: trackByItemId" class="workqueue-row">
+            <td class="patient-cell">
+              <div class="patient-info">
+                <div class="patient-name">{{ item.patientName }}</div>
+                <div class="patient-contact" *ngIf="item.patientPhone || item.patientEmail">
+                  <span *ngIf="item.patientPhone" class="contact-item">
+                    <i class="fas fa-phone"></i> {{ item.patientPhone }}
+                  </span>
+                  <span *ngIf="item.patientEmail" class="contact-item">
+                    <i class="fas fa-envelope"></i> {{ item.patientEmail }}
+                  </span>
+                </div>
+              </div>
+            </td>
+            <td class="provider-cell">{{ item.providerName }}</td>
+            <td class="datetime-cell">
+              <div class="date">{{ formatDate(item.dateTime) }}</div>
+              <div class="time">{{ formatTime(item.dateTime) }}</div>
+            </td>
+            <td class="type-cell">
+              <span class="type-badge" *ngIf="item.appointmentType">{{ item.appointmentType }}</span>
+              <span class="type-placeholder" *ngIf="!item.appointmentType">—</span>
+            </td>
+            <td class="status-cell">
+              <span class="status-badge" [style.background-color]="getStatusColor(item.status)">
+                {{ item.status.replace('_', ' ') }}
+              </span>
+            </td>
+            <td class="priority-cell">
+              <span class="priority-badge" 
+                    *ngIf="item.priority"
+                    [style.background-color]="getPriorityColor(item.priority)">
+                {{ item.priority }}
+              </span>
+              <span class="priority-placeholder" *ngIf="!item.priority">—</span>
+            </td>
+            <td class="actions-cell">
+              <div class="action-buttons">
+                <button 
+                  class="action-btn" 
+                  (click)="openAppointmentDetails(item)"
+                  title="Open appointment details">
+                  <i class="fas fa-eye"></i>
+                </button>
+                <button 
+                  class="action-btn" 
+                  (click)="quickReschedule(item)"
+                  title="Quick reschedule">
+                  <i class="fas fa-calendar-alt"></i>
+                </button>
+                <button 
+                  class="action-btn" 
+                  (click)="copyPatientContact(item, 'phone')"
+                  *ngIf="item.patientPhone"
+                  [class.copied]="copiedItemId === item.id"
+                  title="Copy phone number">
+                  <i class="fas" [class.fa-phone]="copiedItemId !== item.id" [class.fa-check]="copiedItemId === item.id"></i>
+                </button>
+                <button 
+                  class="action-btn" 
+                  (click)="copyPatientContact(item, 'email')"
+                  *ngIf="item.patientEmail"
+                  [class.copied]="copiedItemId === item.id"
+                  title="Copy email address">
+                  <i class="fas" [class.fa-envelope]="copiedItemId !== item.id" [class.fa-check]="copiedItemId === item.id"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-message" *ngIf="errorMessage && !isLoading">
+    <i class="fas fa-exclamation-triangle"></i>
+    <span>{{ errorMessage }}</span>
+  </div>
+</div>

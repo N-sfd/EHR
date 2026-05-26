@@ -1,8 +1,8 @@
 package com.ehr.staffservice.controller.patientaccess;
 
-import com.ehr.staffservice.dto.scheduling.AppointmentResponseDto;
+import com.ehr.staffservice.dto.AppointmentDto;
 import com.ehr.staffservice.response.ApiResponse;
-import com.ehr.staffservice.service.scheduling.AppointmentService;
+import com.ehr.staffservice.service.AppointmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +18,9 @@ public class CheckInController {
 
     @PutMapping("/appointment/{id}/arrive")
     public ResponseEntity<ApiResponse> markArrived(@PathVariable Long id) {
-        AppointmentResponseDto updated = appointmentService.updateAppointmentStatus(id, "ARRIVED");
+        AppointmentDto existing = appointmentService.getAppointment(id);
+        existing.setStatus("ARRIVED");
+        AppointmentDto updated = appointmentService.updateAppointment(id, existing);
         return ResponseEntity.ok(ApiResponse.ok(updated, "Patient marked as arrived"));
     }
 
@@ -39,7 +41,9 @@ public class CheckInController {
         }
 
         // Update appointment status to CHECKED_IN
-        AppointmentResponseDto updated = appointmentService.updateAppointmentStatus(id, "CHECKED_IN");
+        AppointmentDto existing = appointmentService.getAppointment(id);
+        existing.setStatus("CHECKED_IN");
+        AppointmentDto updated = appointmentService.updateAppointment(id, existing);
         
         CheckInResult result = new CheckInResult();
         result.success = true;
@@ -65,7 +69,7 @@ public class CheckInController {
 
     public static class CheckInResult {
         public boolean success;
-        public AppointmentResponseDto appointment;
+        public AppointmentDto appointment;
         public List<String> errors = new ArrayList<>();
     }
 }

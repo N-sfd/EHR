@@ -19,7 +19,7 @@ export class LoginComponent {
 
   loginForm = this.fb.group({
     username: ['admin', Validators.required],
-    password: ['admin123', Validators.required],
+    password: ['password', Validators.required], // Default password matches backend test user
     rememberMe: [true]
   });
 
@@ -55,11 +55,30 @@ export class LoginComponent {
     this.authService.login(username, password).subscribe({
       next: () => {
         this.isSubmitting = false;
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/admin/dashboard']);
       },
-      error: (err) => {
+      error: (err: any) => {
         this.isSubmitting = false;
-        this.errorMessage = err?.error?.message || 'Invalid credentials, try again.';
+        console.error('Login error details:', {
+          status: err?.status,
+          statusText: err?.statusText,
+          message: err?.message,
+          url: err?.url,
+          error: err?.error
+        });
+        
+        // Provide more helpful error messages
+        if (err?.status === 0) {
+          this.errorMessage = 'Cannot connect to server. Please check if the backend is running on port 8087.';
+        } else if (err?.status === 401) {
+          this.errorMessage = err?.error?.error || 'Invalid username or password. Make sure you are using "admin" / "password".';
+        } else if (err?.status === 403) {
+          this.errorMessage = err?.error?.error || 'Account is inactive or access denied.';
+        } else if (err?.status === 500) {
+          this.errorMessage = err?.error?.error || 'Internal server error. Please check backend logs.';
+        } else {
+          this.errorMessage = err?.error?.error || err?.error?.message || err?.message || 'An error occurred during login.';
+        }
       }
     });
   }

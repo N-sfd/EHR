@@ -18,7 +18,7 @@ export class PatientMockService {
       phoneNumber: '555-0101',
       emailAddress: 'john.doe@example.com',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=1'
+      photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 2,
@@ -31,7 +31,7 @@ export class PatientMockService {
       phoneNumber: '555-0102',
       emailAddress: 'jane.smith@example.com',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=5'
+      photoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 3,
@@ -44,7 +44,7 @@ export class PatientMockService {
       phoneNumber: '555-0103',
       emailAddress: 'robert.j@example.com',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=3'
+      photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 4,
@@ -57,7 +57,7 @@ export class PatientMockService {
       phoneNumber: '555-0104',
       emailAddress: 'maria.garcia@example.com',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=9'
+      photoUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 5,
@@ -70,7 +70,7 @@ export class PatientMockService {
       phoneNumber: '', // Empty phoneNumber - CRITICAL
       emailAddress: 'william.brown@example.com',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=7'
+      photoUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=faces'
       // Missing address fields - CRITICAL
     },
     {
@@ -84,7 +84,21 @@ export class PatientMockService {
       phoneNumber: '555-0106',
       emailAddress: 'patricia.davis@example.com',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=10'
+      photoUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=faces'
+      // Missing addressLine1, city, state, zipCode - CRITICAL
+    },
+    {
+      id: 6,
+      patientId: 6,
+      patientCode: 'MRN006',
+      firstName: 'Patricia',
+      lastName: 'Davis',
+      dateOfBirth: '1992-04-25',
+      gender: 'Female',
+      phoneNumber: '555-0106',
+      emailAddress: 'patricia.davis@example.com',
+      status: 'ACTIVE',
+      photoUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 7,
@@ -92,12 +106,12 @@ export class PatientMockService {
       patientCode: 'MRN007',
       firstName: 'Michael',
       lastName: 'Miller',
-      dateOfBirth: '1988-09-12',
+      // Missing dateOfBirth - CRITICAL
       gender: 'Male',
       phoneNumber: '555-0107',
       emailAddress: 'michael.miller@example.com',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=11'
+      photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 8,
@@ -107,10 +121,10 @@ export class PatientMockService {
       lastName: 'Wilson',
       dateOfBirth: '1995-01-08',
       gender: 'Female',
-      phoneNumber: '555-0108',
+      phoneNumber: '', // Empty phoneNumber - CRITICAL
       emailAddress: 'jennifer.wilson@example.com',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=13'
+      photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 9,
@@ -123,7 +137,8 @@ export class PatientMockService {
       phoneNumber: '555-0109',
       emailAddress: 'david.moore@example.com',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=14'
+      photoUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=faces'
+      // Missing addressLine1, city, state, zipCode - CRITICAL
     },
     {
       id: 10,
@@ -131,12 +146,12 @@ export class PatientMockService {
       patientCode: 'MRN010',
       firstName: 'Elizabeth',
       lastName: 'Taylor',
-      dateOfBirth: '1983-06-20',
+      // Missing dateOfBirth - CRITICAL
       gender: 'Female',
       phoneNumber: '555-0110',
       emailAddress: 'elizabeth.taylor@example.com',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=16'
+      photoUrl: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 11,
@@ -149,7 +164,7 @@ export class PatientMockService {
       phoneNumber: '555-0111',
       emailAddress: 'christopher.anderson@example.com',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=17'
+      photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 12,
@@ -162,7 +177,7 @@ export class PatientMockService {
       phoneNumber: '555-0112',
       emailAddress: 'sarah.thomas@example.com',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=18'
+      photoUrl: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 13,
@@ -175,7 +190,7 @@ export class PatientMockService {
       phoneNumber: '555-0113',
       emailAddress: 'daniel.jackson@example.com',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=19'
+      photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 14,
@@ -188,7 +203,7 @@ export class PatientMockService {
       phoneNumber: '555-0114',
       emailAddress: 'jessica.white@example.com',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=21'
+      photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 15,
@@ -201,7 +216,7 @@ export class PatientMockService {
       phoneNumber: '555-0115',
       emailAddress: 'matthew.harris@example.com',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=22'
+      photoUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=faces'
     }
   ];
 

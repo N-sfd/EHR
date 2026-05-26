@@ -1,0 +1,14 @@
+target/
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+mychart/mychart-ui/node_modules/
+mychart/mychart-ui/dist/
+.git/
+.idea/
+.vscode/
+.sfdx/
+*.md
+!mychart/mychart-ui/README.md
+.env
+*.log

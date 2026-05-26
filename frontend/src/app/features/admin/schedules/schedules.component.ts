@@ -5,8 +5,10 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } fr
 import { AdminService } from '../services/admin.service';
 import { ProviderService } from '../../../core/services/provider.service';
 import { ProviderMockService } from '../../../core/services/provider-mock.service';
-import { ScheduleTemplate, BlockedTime, OverbookRule, DayHours } from '../models/admin.model';
+import { ScheduleTemplate, BlockedTime, OverbookRule, DayHours, ClinicHours } from '../models/admin.model';
 import { Provider } from '../../../core/models/provider.model';
+import { friendlyHttpError } from '../../../core/utils/http-error.util';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-schedules',
@@ -21,11 +23,11 @@ export class SchedulesComponent implements OnInit {
   private providerMockService = inject(ProviderMockService);
   private fb = inject(FormBuilder);
 
-  templates: ScheduleTemplate[] = [];
-  selectedTemplate: ScheduleTemplate | null = null;
   providers: Provider[] = [];
   filteredProviders: Provider[] = [];
-  
+  /** Current provider’s schedule payload from the admin API (create flow uses a local default when none exists). */
+  activeSchedule: ScheduleTemplate | null = null;
+
   scheduleForm!: FormGroup;
   isLoading = false;
   isLoadingProviders = true;
@@ -48,7 +50,6 @@ export class SchedulesComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadProviders();
-    this.loadTemplates();
     this.initializeForm();
   }
 
@@ -120,23 +121,14 @@ export class SchedulesComponent implements OnInit {
         this.providers = providers ?? [];
         this.filteredProviders = [...this.providers];
         this.isLoadingProviders = false;
+        this.errorMessage = null;
       },
       error: (err) => {
-        console.error('Error loading providers:', err);
-        this.errorMessage = 'Failed to load providers';
-        // Fallback to mock
-        this.providerMockService.getProviders().subscribe({
-          next: (mockProviders) => {
-            this.providers = mockProviders ?? [];
-            this.filteredProviders = [...this.providers];
-            this.isLoadingProviders = false;
-          },
-          error: () => {
-            this.providers = [];
-            this.filteredProviders = [];
-            this.isLoadingProviders = false;
-          }
-        });
+        console.error('[SchedulesComponent] Error loading providers:', err);
+        this.errorMessage = friendlyHttpError(err);
+        this.providers = [];
+        this.filteredProviders = [];
+        this.isLoadingProviders = false;
       }
     });
   }
@@ -163,120 +155,107 @@ export class SchedulesComponent implements OnInit {
       this.filteredProviders = [...this.providers];
       return;
     }
-    this.filteredProviders = this.providers.filter(p => 
-      p.name.toLowerCase().includes(query) ||
-      p.specialty.toLowerCase().includes(query) ||
-      p.department.toLowerCase().includes(query)
+    this.filteredProviders = this.providers.filter(p =>
+      (p.name ?? '').toLowerCase().includes(query) ||
+      (p.specialty ?? '').toLowerCase().includes(query) ||
+      (p.department ?? '').toLowerCase().includes(query)
     );
   }
 
   getProviderAvatar(provider: Provider): string {
-    if (provider.imageUrl || provider.photoUrl) {
-      return provider.imageUrl || provider.photoUrl || '';
+    // Always return a valid URL - prefer provider image, fallback to generated avatar
+    if (provider.imageUrl && provider.imageUrl.trim() !== '') {
+      return provider.imageUrl;
     }
-    // Generate avatar from initials
-    const initials = provider.name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
+    if (provider.photoUrl && provider.photoUrl.trim() !== '') {
+      return provider.photoUrl;
+    }
+    // Generate avatar from initials as fallback
+    const initials = this.getProviderInitials(provider);
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=004f4f&color=fff&size=100&bold=true`;
+  }
+
+  private getProviderInitials(provider: Provider): string {
+    if (!provider.name || provider.name.trim() === '') {
+      return 'DR';
+    }
+    const parts = provider.name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return provider.name.substring(0, 2).toUpperCase();
   }
 
   onImageError(event: Event, provider: Provider): void {
     const img = event.target as HTMLImageElement;
     if (img) {
       // Fallback to initials-based avatar
-      const initials = provider.name
-        .split(' ')
-        .map(n => n[0])
-        .join('')
-        .toUpperCase()
-        .substring(0, 2);
+      const initials = this.getProviderInitials(provider);
       img.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=004f4f&color=fff&size=100&bold=true`;
+      // Prevent infinite loop if fallback also fails
+      img.onerror = null;
     }
   }
 
-  loadTemplates(): void {
-    this.isLoading = true;
-    this.adminService.getScheduleTemplates().subscribe({
-      next: (templates) => {
-        this.templates = templates;
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error('Error loading schedule templates:', err);
-        this.errorMessage = 'Failed to load schedule templates';
-        this.isLoading = false;
-      }
-    });
-  }
-
-  selectTemplate(providerId: number): void {
+  loadScheduleForProvider(providerId: number): void {
     this.selectedProviderId = providerId;
     const provider = this.providers.find(p => p.id === providerId);
     
+    if (!provider) {
+      console.error('[SchedulesComponent] Provider not found:', providerId);
+      return;
+    }
+    
     this.isLoading = true;
     this.errorMessage = null;
+    this.activeSchedule = null;
     
     this.adminService.getScheduleTemplate(providerId).subscribe({
-      next: (template) => {
-        this.selectedTemplate = template;
-        this.loadTemplateIntoForm(template);
+      next: (schedule) => {
+        this.activeSchedule = schedule;
+        this.applyScheduleToForm(schedule);
         this.isEditing = true;
         this.isLoading = false;
+        this.errorMessage = null;
       },
       error: (err) => {
-        console.error('Error loading template:', err);
-        // Create new template with default values
-        this.selectedTemplate = null;
-        const defaultTemplate: ScheduleTemplate = {
-          providerId,
-          providerName: provider?.name || `Provider ${providerId}`,
-          location: 'Main Clinic',
-          slotDurationMinutes: 15,
-          clinicHours: {
-            monday: { isOpen: true, startTime: '09:00', endTime: '17:00' },
-            tuesday: { isOpen: true, startTime: '09:00', endTime: '17:00' },
-            wednesday: { isOpen: true, startTime: '09:00', endTime: '17:00' },
-            thursday: { isOpen: true, startTime: '09:00', endTime: '17:00' },
-            friday: { isOpen: true, startTime: '09:00', endTime: '17:00' },
-            saturday: { isOpen: false, startTime: '09:00', endTime: '17:00' },
-            sunday: { isOpen: false, startTime: '09:00', endTime: '17:00' }
-          },
-          weeklySchedule: {},
-          blockedTimes: [
-            {
-              startDate: new Date().toISOString().split('T')[0],
-              endDate: new Date().toISOString().split('T')[0],
-              startTime: '12:00',
-              endTime: '13:00',
-              reason: 'Lunch Break',
-              isRecurring: true,
-              recurrencePattern: 'DAILY'
+        console.error('[SchedulesComponent] Error loading schedule:', err);
+        // If 404, start a new schedule with defaults; otherwise show error
+        if (err instanceof HttpErrorResponse && err.status === 404) {
+          const defaultSchedule: ScheduleTemplate = {
+            providerId,
+            providerName: provider.name || `Provider ${providerId}`,
+            location: 'Main Clinic',
+            slotDurationMinutes: 15,
+            clinicHours: {
+              monday: { isOpen: true, startTime: '09:00', endTime: '17:00' },
+              tuesday: { isOpen: true, startTime: '09:00', endTime: '17:00' },
+              wednesday: { isOpen: true, startTime: '09:00', endTime: '17:00' },
+              thursday: { isOpen: true, startTime: '09:00', endTime: '17:00' },
+              friday: { isOpen: true, startTime: '09:00', endTime: '17:00' },
+              saturday: { isOpen: false, startTime: '09:00', endTime: '17:00' },
+              sunday: { isOpen: false, startTime: '09:00', endTime: '17:00' }
             },
-            {
-              startDate: new Date().toISOString().split('T')[0],
-              endDate: new Date().toISOString().split('T')[0],
-              startTime: '15:00',
-              endTime: '16:00',
-              reason: 'Admin Time',
-              isRecurring: true,
-              recurrencePattern: 'DAILY'
-            }
-          ],
-          overbookRules: [],
-          isActive: true
-        };
-        this.loadTemplateIntoForm(defaultTemplate);
-        this.isEditing = true;
+            weeklySchedule: {},
+            blockedTimes: [],
+            overbookRules: [],
+            isActive: true
+          };
+          this.activeSchedule = defaultSchedule;
+          this.applyScheduleToForm(defaultSchedule);
+          this.isEditing = true;
+          this.errorMessage = null;
+        } else {
+          this.errorMessage = friendlyHttpError(err);
+          this.activeSchedule = null;
+          this.isEditing = false;
+        }
         this.isLoading = false;
       }
     });
   }
 
-  loadTemplateIntoForm(template: ScheduleTemplate): void {
+  applyScheduleToForm(template: ScheduleTemplate): void {
     this.scheduleForm.patchValue({
       providerId: template.providerId,
       location: template.location,
@@ -323,36 +302,64 @@ export class SchedulesComponent implements OnInit {
   }
 
   saveSchedule(): void {
+    // Mark all fields as touched to show validation errors
+    this.scheduleForm.markAllAsTouched();
+    
     if (this.scheduleForm.invalid) {
+      const errors: string[] = [];
+      if (this.scheduleForm.get('providerId')?.invalid) {
+        errors.push('Provider is required');
+      }
+      if (this.scheduleForm.get('location')?.invalid) {
+        errors.push('Location is required');
+      }
+      if (this.scheduleForm.get('slotDurationMinutes')?.invalid) {
+        errors.push('Slot duration is required');
+      }
+      this.errorMessage = errors.length > 0 ? errors.join(', ') : 'Please fill in all required fields';
       return;
     }
 
     const formValue = this.scheduleForm.value;
     const provider = this.providers.find(p => p.id === formValue.providerId);
+    
+    // Ensure clinicHours has all required days with proper structure
+    const clinicHours: ClinicHours = {
+      monday: formValue.clinicHours?.monday || { isOpen: false, startTime: '09:00', endTime: '17:00' },
+      tuesday: formValue.clinicHours?.tuesday || { isOpen: false, startTime: '09:00', endTime: '17:00' },
+      wednesday: formValue.clinicHours?.wednesday || { isOpen: false, startTime: '09:00', endTime: '17:00' },
+      thursday: formValue.clinicHours?.thursday || { isOpen: false, startTime: '09:00', endTime: '17:00' },
+      friday: formValue.clinicHours?.friday || { isOpen: false, startTime: '09:00', endTime: '17:00' },
+      saturday: formValue.clinicHours?.saturday || { isOpen: false, startTime: '09:00', endTime: '17:00' },
+      sunday: formValue.clinicHours?.sunday || { isOpen: false, startTime: '09:00', endTime: '17:00' }
+    };
+    
     const template: ScheduleTemplate = {
-      id: this.selectedTemplate?.id,
+      id: this.activeSchedule?.id,
       providerId: formValue.providerId,
       providerName: provider?.name || 'Provider',
       location: formValue.location,
       slotDurationMinutes: formValue.slotDurationMinutes,
-      clinicHours: formValue.clinicHours,
+      clinicHours: clinicHours,
       weeklySchedule: {},
-      blockedTimes: formValue.blockedTimes,
-      overbookRules: formValue.overbookRules,
-      isActive: formValue.isActive
+      blockedTimes: formValue.blockedTimes || [],
+      overbookRules: formValue.overbookRules || [],
+      isActive: formValue.isActive !== false
     };
 
     this.isLoading = true;
+    this.errorMessage = null;
+    
     this.adminService.saveScheduleTemplate(template).subscribe({
       next: (saved) => {
-        this.selectedTemplate = saved;
-        this.loadTemplates();
+        this.activeSchedule = saved;
         this.errorMessage = null;
         this.isLoading = false;
+        console.log('Schedule saved successfully');
       },
       error: (err) => {
-        console.error('Error saving schedule template:', err);
-        this.errorMessage = 'Failed to save schedule template';
+        console.error('Error saving schedule:', err);
+        this.errorMessage = err?.error?.message || err?.message || 'Failed to save schedule. Please try again.';
         this.isLoading = false;
       }
     });
@@ -360,7 +367,7 @@ export class SchedulesComponent implements OnInit {
 
   cancelEdit(): void {
     this.isEditing = false;
-    this.selectedTemplate = null;
+    this.activeSchedule = null;
     this.selectedProviderId = null;
     this.scheduleForm.reset();
     this.blockedTimesArray.clear();
@@ -386,6 +393,7 @@ export class SchedulesComponent implements OnInit {
     const dayGroup = this.scheduleForm.get('clinicHours')?.get(dayKey) as FormGroup;
     if (dayGroup) {
       dayGroup.patchValue({ [timeField]: input.value });
+      dayGroup.markAsDirty();
     }
   }
 }

@@ -13,6 +13,7 @@ public class Staff extends BaseAuditEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "staff_id")
     private Long staffId;
 
     @Column(name = "staff_code", unique = true, length = 20)

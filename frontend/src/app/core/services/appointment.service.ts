@@ -66,47 +66,61 @@ export class AppointmentService {
   }
 
   getAll(): Observable<Appointment[]> {
-    return this.http.get<any[]>(this.baseUrl).pipe(
-      map(appointments => appointments.map(apt => this.mapAppointmentResponse(apt)))
+    return this.http.get<any[]>(this.baseUrl, { withCredentials: true }).pipe(
+      map(appointments => appointments.map(apt => this.mapAppointmentResponse(apt))),
+      catchError(err => {
+        console.warn('[AppointmentService] API failed, using mock data:', err);
+        return this.mockService.getAll();
+      })
     );
   }
 
   getById(id: number): Observable<Appointment> {
-    return this.http.get<any>(`${this.baseUrl}/${id}`).pipe(
-      map(apt => this.mapAppointmentResponse(apt))
+    return this.http.get<any>(`${this.baseUrl}/${id}`, { withCredentials: true }).pipe(
+      map(apt => this.mapAppointmentResponse(apt)),
+      catchError(err => {
+        console.warn('[AppointmentService] getById API failed, using mock:', err);
+        return this.mockService.getById(id);
+      })
     );
   }
 
   create(appointment: Partial<Appointment>): Observable<Appointment> {
-    return this.http.post<any>(this.baseUrl, appointment).pipe(
+    return this.http.post<any>(this.baseUrl, appointment, { withCredentials: true }).pipe(
       map(apt => this.mapAppointmentResponse(apt))
     );
   }
 
   update(id: number, appointment: Partial<Appointment>): Observable<Appointment> {
-    return this.http.put<any>(`${this.baseUrl}/${id}`, appointment).pipe(
+    return this.http.put<any>(`${this.baseUrl}/${id}`, appointment, { withCredentials: true }).pipe(
       map(apt => this.mapAppointmentResponse(apt))
     );
   }
 
   delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+    return this.http.delete<void>(`${this.baseUrl}/${id}`, { withCredentials: true });
   }
 
   getByDoctor(doctorId: number): Observable<Appointment[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/doctors/${doctorId}`).pipe(
+    return this.http.get<any[]>(`${this.baseUrl}/doctors/${doctorId}`, { withCredentials: true }).pipe(
       map(appointments => appointments.map(apt => this.mapAppointmentResponse(apt)))
     );
   }
 
   getByPatient(patientId: number): Observable<Appointment[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/patients/${patientId}`).pipe(
-      map(appointments => appointments.map(apt => this.mapAppointmentResponse(apt)))
+    return this.http.get<any[]>(`${this.baseUrl}/patients/${patientId}`, { withCredentials: true }).pipe(
+      map(appointments => appointments.map(apt => this.mapAppointmentResponse(apt))),
+      catchError(err => {
+        console.warn('[AppointmentService] getByPatient API failed, using mock:', err);
+        return this.mockService.getAll().pipe(
+          map(apts => apts.filter(a => a.patientId === patientId))
+        );
+      })
     );
   }
 
   getByDateRange(startDate: string, endDate: string): Observable<Appointment[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/range?start=${startDate}&end=${endDate}`).pipe(
+    return this.http.get<any[]>(`${this.baseUrl}/range?start=${startDate}&end=${endDate}`, { withCredentials: true }).pipe(
       map(appointments => appointments.map(apt => this.mapAppointmentResponse(apt)))
     );
   }
@@ -120,7 +134,7 @@ export class AppointmentService {
     if (doctorId) {
       params = params.set('doctorId', doctorId.toString());
     }
-    return this.http.get<any>(`${this.baseUrl}/calendar/week`, { params }).pipe(
+    return this.http.get<any>(`${this.baseUrl}/calendar/week`, { params, withCredentials: true }).pipe(
       map(data => this.mapCalendarView(data)),
       catchError(err => {
         console.warn('API failed, using mock data:', err);
@@ -134,7 +148,7 @@ export class AppointmentService {
     if (doctorId) {
       params = params.set('doctorId', doctorId.toString());
     }
-    return this.http.get<any>(`${this.baseUrl}/calendar/month`, { params }).pipe(
+    return this.http.get<any>(`${this.baseUrl}/calendar/month`, { params, withCredentials: true }).pipe(
       map(data => this.mapCalendarView(data))
     );
   }
@@ -144,7 +158,7 @@ export class AppointmentService {
     if (doctorId) {
       params = params.set('doctorId', doctorId.toString());
     }
-    return this.http.get<any>(`${this.baseUrl}/calendar/day`, { params }).pipe(
+    return this.http.get<any>(`${this.baseUrl}/calendar/day`, { params, withCredentials: true }).pipe(
       map(data => this.mapCalendarView(data))
     );
   }
@@ -159,7 +173,7 @@ export class AppointmentService {
     if (doctorId) {
       params = params.set('doctorId', doctorId.toString());
     }
-    return this.http.get<TimeSlot[]>(`${this.baseUrl}/calendar/available-slots`, { params }).pipe(
+    return this.http.get<TimeSlot[]>(`${this.baseUrl}/calendar/available-slots`, { params, withCredentials: true }).pipe(
       catchError(err => {
         console.warn('API failed, using mock data:', err);
         return this.mockService.getAvailableTimeSlots(date, doctorId, slotDurationMinutes);
@@ -173,7 +187,7 @@ export class AppointmentService {
       .set('startTime', startTime)
       .set('endTime', endTime)
       .set('doctorId', doctorId.toString());
-    return this.http.get<{ available: boolean }>(`${this.baseUrl}/calendar/check-availability`, { params }).pipe(
+    return this.http.get<{ available: boolean }>(`${this.baseUrl}/calendar/check-availability`, { params, withCredentials: true }).pipe(
       map(response => response.available)
     );
   }

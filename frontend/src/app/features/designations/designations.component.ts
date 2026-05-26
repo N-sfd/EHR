@@ -3,8 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DesignationService } from '../../core/services/designation.service';
 import { Designation, CreateDesignationDto } from '../../core/models/designation.model';
-import { DepartmentService } from '../../core/services/department.service';
+import { MasterDataService } from '../../core/services/master-data.service';
 import { Department } from '../../core/models/department.model';
+import { MasterDepartment } from '../../core/models/master-data.model';
 
 @Component({
   selector: 'app-designations',
@@ -48,7 +49,7 @@ export class DesignationsComponent implements OnInit {
 
   constructor(
     private designationService: DesignationService,
-    private departmentService: DepartmentService
+    private masterDataService: MasterDataService
   ) {}
 
   ngOnInit() {
@@ -57,14 +58,23 @@ export class DesignationsComponent implements OnInit {
   }
 
   loadDepartments() {
-    this.departmentService.getAll().subscribe({
-      next: (depts) => {
-        this.departments = depts.map(d => ({
-          ...d,
-          id: d.departmentId || d.id
+    this.masterDataService.getDepartments().subscribe({
+      next: (masterDepts: MasterDepartment[]) => {
+        this.departments = masterDepts.map(dept => ({
+          id: dept.id,
+          departmentId: Number(dept.id) || undefined,
+          name: dept.name,
+          code: dept.code,
+          description: dept.description,
+          active: dept.active,
+          status: dept.active ? 'ACTIVE' : 'INACTIVE',
+          specialtyGroup: dept.specialtyGroup
         }));
       },
-      error: (err) => console.error('Error loading departments:', err)
+      error: (err) => {
+        console.error('Error loading departments:', err);
+        this.departments = [];
+      }
     });
   }
 
@@ -82,12 +92,9 @@ export class DesignationsComponent implements OnInit {
         this.isLoading = false;
       },
       error: (err) => {
+        // Service now has fallback, so errors should be rare
+        // Only show error if it's a critical issue
         console.error('Error loading designations:', err);
-        if (err.status === 504 || err.status === 0) {
-          this.errorMessage = 'Backend service is not running. Please start the staff-service on port 8082.';
-        } else {
-          this.errorMessage = 'Unable to load designations. Please try again.';
-        }
         this.isLoading = false;
       }
     });

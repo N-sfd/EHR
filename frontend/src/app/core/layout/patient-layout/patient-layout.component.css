@@ -1,0 +1,116 @@
+.patient-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #F3EFE9;
+}
+
+/* Header */
+.patient-header {
+  background: #004F4F;
+  padding: 0 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.patient-header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 58px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+/* Back to admin pill */
+.back-to-admin {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 5px 10px;
+  border-radius: 6px;
+  transition: all 0.15s;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+.back-to-admin:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.4);
+}
+.back-to-admin i { font-size: 0.85rem; }
+
+.divider-v {
+  width: 1px;
+  height: 24px;
+  background: rgba(255,255,255,0.2);
+  margin: 0 14px;
+}
+
+.portal-logo {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.3px;
+  margin-right: 24px;
+}
+.portal-logo i { color: #2EC8A7; font-size: 1.2rem; }
+
+.portal-nav { display: flex; gap: 4px; }
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255,255,255,0.72);
+  text-decoration: none;
+  font-size: 0.87rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: all 0.15s;
+}
+.nav-link:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.nav-link.active { background: rgba(46,200,167,0.2); color: #2EC8A7; }
+
+/* Sign out */
+.btn-sign-out {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 8px;
+  color: rgba(255,255,255,0.85);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-sign-out:hover:not(:disabled) {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+}
+.btn-sign-out:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Content */
+.patient-content {
+  flex: 1;
+  padding: 0;
+}

@@ -1,0 +1,274 @@
+<div class="reports-page">
+  <div class="page-header">
+    <div class="header-content">
+      <div>
+        <h2 class="page-title">Provider Utilization</h2>
+        <p class="page-subtitle">Provider performance and utilization metrics</p>
+      </div>
+      <div class="header-actions">
+        <button class="action-btn export-btn" (click)="exportToCSV()" title="Export to CSV">
+          <i class="fas fa-file-csv"></i>
+          <span>Export CSV</span>
+        </button>
+        <button class="action-btn print-btn" (click)="printReport()" title="Print report">
+          <i class="fas fa-print"></i>
+          <span>Print</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Filter Bar -->
+  <app-report-filter-bar
+    (applyFilters)="onFiltersApplied($event)"
+    (resetFilters)="onFiltersReset()">
+  </app-report-filter-bar>
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);">
+        <i class="fas fa-clock"></i>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-value">{{ formatMinutes(totalBookedMinutes) }}</div>
+        <div class="kpi-label">Total Booked Minutes</div>
+        <div class="kpi-period">{{ formatDate(startDate) }} - {{ formatDate(endDate) }}</div>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);">
+        <i class="fas fa-calendar-day"></i>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-value">{{ avgAppointmentsPerProviderPerDay }}</div>
+        <div class="kpi-label">Avg Appts/Provider/Day</div>
+        <div class="kpi-period">Average appointments per provider per day</div>
+      </div>
+    </div>
+
+    <div class="kpi-card" *ngIf="hasAvailabilityData">
+      <div class="kpi-icon" style="background: linear-gradient(135deg, #059669 0%, #047857 100%);">
+        <i class="fas fa-percentage"></i>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-value">{{ averageUtilization }}%</div>
+        <div class="kpi-label">Utilization%</div>
+        <div class="kpi-period">Average utilization rate</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Layout -->
+  <div class="utilization-layout with-drilldown">
+    <!-- Left: Charts -->
+    <div class="charts-section">
+      <!-- Providers Ranked by Booked Minutes (Bar Chart) -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>Providers by Booked Minutes</h3>
+          <p class="chart-subtitle">Ranked by total minutes booked</p>
+        </div>
+        <div class="chart-body">
+          <div class="bar-chart">
+            <div class="bar-item clickable" 
+                 *ngFor="let item of providersByBookedMinutes; trackBy: trackByChartDataPoint"
+                 (click)="onProviderClick(item.doctorId!)"
+                 [class.selected]="selectedProviderId === item.doctorId"
+                 (mouseenter)="showTooltip($event, item.label + ': ' + formatMinutes(item.value))"
+                 (mouseleave)="hideTooltip()">
+              <div class="bar-avatar-wrapper" *ngIf="item.doctor">
+                <img 
+                  [src]="getProviderAvatar(item.doctor!)" 
+                  [alt]="item.label"
+                  class="bar-avatar"
+                  (error)="onProviderImageError($event, item.doctor!)">
+              </div>
+              <div class="bar-label">{{ item.label.length > 15 ? (item.label.substring(0, 13) + '...') : item.label }}</div>
+              <div class="bar-wrapper">
+                <div 
+                  class="bar" 
+                  [style.height.%]="getBarHeight(item.value, getMaxValue(providersByBookedMinutes))"
+                  [style.background]="item.color">
+                </div>
+              </div>
+              <div class="bar-value">{{ formatMinutes(item.value) }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selected Provider Daily Trend -->
+      <div class="chart-card" *ngIf="selectedProviderId && selectedProviderDetails.dailyTrend.length > 0">
+        <div class="chart-header">
+          <h3>Daily Trend: {{ selectedProviderDetails.provider ? getProviderName(selectedProviderDetails.provider.doctor) : 'Provider' }}</h3>
+          <p class="chart-subtitle">Booked minutes by day</p>
+        </div>
+        <div class="chart-body">
+          <div class="trend-chart">
+            <div class="trend-item" 
+                 *ngFor="let item of selectedProviderDetails.dailyTrend"
+                 (mouseenter)="showTooltip($event, item.label + ': ' + formatMinutes(item.value))"
+                 (mouseleave)="hideTooltip()">
+              <div class="trend-label">{{ item.label }}</div>
+              <div class="trend-bar-wrapper">
+                <div 
+                  class="trend-bar" 
+                  [style.height.%]="getBarHeight(item.value, getMaxValue(selectedProviderDetails.dailyTrend))"
+                  [style.background]="item.color">
+                </div>
+              </div>
+              <div class="trend-value">{{ formatMinutes(item.value) }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Drilldown Panel -->
+    <div class="drilldown-panel" [class.empty]="!selectedProviderId || !selectedProviderDetails.provider">
+      <!-- Empty State: No Provider Selected -->
+      <div class="drilldown-empty" *ngIf="!selectedProviderId || !selectedProviderDetails.provider">
+        <div class="drilldown-empty-content">
+          <i class="fas fa-user-md"></i>
+          <h3>Select a Provider</h3>
+          <p>Click on a provider in the chart to view detailed utilization metrics and breakdowns.</p>
+        </div>
+      </div>
+
+      <!-- Provider Details: When Provider Selected -->
+      <ng-container *ngIf="selectedProviderId && selectedProviderDetails.provider">
+      <div class="drilldown-header">
+        <div class="drilldown-header-content">
+          <div class="drilldown-avatar-wrapper">
+            <img 
+              [src]="getProviderAvatar(selectedProviderDetails.provider.doctor)" 
+              [alt]="getProviderName(selectedProviderDetails.provider.doctor)"
+              class="drilldown-avatar"
+              (error)="onProviderImageError($event, selectedProviderDetails.provider.doctor)">
+          </div>
+          <div class="drilldown-header-text">
+            <h3>{{ getProviderName(selectedProviderDetails.provider.doctor) }}</h3>
+            <p class="drilldown-specialization" *ngIf="selectedProviderDetails.provider.doctor.specializations?.length">
+              {{ getProviderSpecialization(selectedProviderDetails.provider.doctor) }}
+            </p>
+          </div>
+        </div>
+        <button type="button" class="close-btn" (click)="closeDrilldown()" aria-label="Close drilldown">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="drilldown-content">
+        <!-- Provider Summary KPIs -->
+        <div class="drilldown-section">
+          <h4>Summary</h4>
+          <div class="summary-grid">
+            <div class="summary-item">
+              <span class="summary-label">Total Appointments</span>
+              <span class="summary-value">{{ selectedProviderDetails.provider.totalAppointments }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Total Minutes</span>
+              <span class="summary-value">{{ formatMinutes(selectedProviderDetails.provider.totalMinutesBooked) }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Avg Duration</span>
+              <span class="summary-value">{{ selectedProviderDetails.provider.averageDuration }} min</span>
+            </div>
+            <div class="summary-item" *ngIf="selectedProviderDetails.busiestHour !== null">
+              <span class="summary-label">Busiest Hour</span>
+              <span class="summary-value">{{ getHourLabel(selectedProviderDetails.busiestHour) }}</span>
+            </div>
+            <div class="summary-item" *ngIf="selectedProviderDetails.busiestDay">
+              <span class="summary-label">Busiest Day</span>
+              <span class="summary-value">{{ selectedProviderDetails.busiestDay }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Breakdown (Donut) -->
+        <div class="drilldown-section" *ngIf="selectedProviderDetails.statusBreakdown.length > 0">
+          <h4>Status Breakdown</h4>
+          <div class="donut-chart-small">
+            <svg class="donut-svg" viewBox="0 0 150 150">
+              <circle cx="75" cy="75" r="60" fill="none" stroke="#e2e8f0" stroke-width="20"/>
+              <g *ngFor="let item of selectedProviderDetails.statusBreakdown; let i = index">
+                <circle 
+                  cx="75" 
+                  cy="75" 
+                  r="60" 
+                  fill="none" 
+                  [attr.stroke]="item.color"
+                  stroke-width="20"
+                  [attr.stroke-dasharray]="getDonutSegment(item.value, getTotalStatusValue())"
+                  [attr.stroke-dashoffset]="getDonutOffset(i)"
+                  [attr.transform]="'rotate(-90 75 75)'"
+                  class="donut-segment">
+                </circle>
+              </g>
+            </svg>
+            <div class="donut-center-small">
+              <div class="donut-total-small">{{ getTotalStatusValue() }}</div>
+            </div>
+          </div>
+          <div class="donut-legend-small">
+            <div class="donut-legend-item-small" *ngFor="let item of selectedProviderDetails.statusBreakdown">
+              <div class="legend-color-small" [style.background]="item.color"></div>
+              <span class="legend-label-small">{{ item.label }}</span>
+              <span class="legend-value-small">{{ item.value }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Appointment Type Breakdown -->
+        <div class="drilldown-section" *ngIf="selectedProviderDetails.appointmentTypeBreakdown.length > 0">
+          <h4>Appointment Type</h4>
+          <div class="type-breakdown">
+            <div class="type-item" *ngFor="let item of selectedProviderDetails.appointmentTypeBreakdown">
+              <div class="type-info">
+                <span class="type-label">{{ item.label }}</span>
+                <span class="type-value">{{ item.value }}</span>
+              </div>
+              <div class="type-bar-wrapper">
+                <div 
+                  class="type-bar" 
+                  [style.width.%]="getBarHeight(item.value, getMaxValue(selectedProviderDetails.appointmentTypeBreakdown))"
+                  [style.background]="item.color">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </ng-container>
+    </div>
+  </div>
+
+  <!-- Tooltip -->
+  <div class="tooltip" 
+       *ngIf="tooltipVisible"
+       [style.left.px]="tooltipX + 10"
+       [style.top.px]="tooltipY + 10">
+    {{ tooltipContent }}
+  </div>
+
+  <!-- Loading Skeleton State -->
+  <div class="loading-skeleton" *ngIf="isLoading">
+    <div class="skeleton-kpi-grid">
+      <div class="skeleton-kpi-card" *ngFor="let i of [1,2,3]"></div>
+    </div>
+    <div class="skeleton-chart-card"></div>
+  </div>
+
+  <!-- Empty State (no error banner - just show empty state) -->
+  <div class="empty-state" *ngIf="!isLoading && providerMetrics.length === 0 && !errorMessage">
+    <div class="empty-state-content">
+      <i class="fas fa-chart-bar"></i>
+      <h3>No data for selected filters</h3>
+      <p>Try adjusting your date range or filter criteria to see provider utilization data.</p>
+    </div>
+  </div>
+</div>
+

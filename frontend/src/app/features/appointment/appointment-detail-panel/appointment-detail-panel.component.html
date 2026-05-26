@@ -1,0 +1,88 @@
+<div class="appointment-detail-panel" *ngIf="appointment" data-testid="appointment-detail-panel">
+  <div class="panel-header">
+    <h3>Appointment Details</h3>
+    <button class="btn-close" (click)="onClose()" title="Close (Esc)" data-testid="btn-close-panel">
+      <i class="fa fa-times"></i>
+    </button>
+  </div>
+
+  <div class="panel-content">
+    <!-- Patient Info -->
+    <div class="detail-section">
+      <h4>Patient</h4>
+      <p class="detail-value">{{ appointment.patientName || 'Unknown' }}</p>
+      <p class="detail-meta" *ngIf="appointment.patientId">ID: {{ appointment.patientId }}</p>
+    </div>
+
+    <!-- Provider Info -->
+    <div class="detail-section">
+      <h4>Provider</h4>
+      <p class="detail-value">{{ appointment.providerName || 'Unknown' }}</p>
+    </div>
+
+    <!-- Time Info -->
+    <div class="detail-section">
+      <h4>Time</h4>
+      <p class="detail-value">{{ formatDateTime(appointment.startDateTime) }}</p>
+      <p class="detail-meta">Duration: {{ getDurationMinutes() }} minutes</p>
+    </div>
+
+    <!-- Visit Type -->
+    <div class="detail-section" *ngIf="appointment.visitType">
+      <h4>Visit Type</h4>
+      <p class="detail-value">{{ appointment.visitType }}</p>
+    </div>
+
+    <!-- Current Status -->
+    <div class="detail-section">
+      <h4>Current Status</h4>
+      <p class="detail-value status-badge" [ngClass]="'status-' + (appointment.status || 'SCHEDULED').toLowerCase()">
+        {{ appointment.status || 'SCHEDULED' }}
+      </p>
+    </div>
+
+    <!-- Status Update -->
+    <div class="detail-section">
+      <h4>Update Status</h4>
+      <div class="status-buttons" data-testid="status-buttons">
+        <button 
+          *ngFor="let status of statuses"
+          class="btn-status"
+          [class.active]="selectedStatus === status.value"
+          [class.requires-reason]="status.value === 'CANCELLED' || status.value === 'NO_SHOW'"
+          (click)="onStatusSelect(status.value)"
+          [title]="(status.value === 'CANCELLED' || status.value === 'NO_SHOW') ? 'Requires reason' : ''"
+          [attr.data-testid]="'status-btn-' + status.value.toLowerCase()">
+          {{ status.label }}
+        </button>
+      </div>
+
+      <!-- Reason Input (for CANCELLED/NO_SHOW) -->
+      <div class="reason-input" *ngIf="showReasonInput" data-testid="reason-input">
+        <label>Reason <span class="required">*</span></label>
+        <textarea 
+          [(ngModel)]="statusReason"
+          class="form-textarea"
+          placeholder="Enter reason for cancellation or no-show..."
+          rows="3"
+          required
+          data-testid="reason-textarea"></textarea>
+      </div>
+
+      <button 
+        class="btn-update-status"
+        (click)="updateStatus()"
+        [disabled]="selectedStatus === (appointment.status || 'SCHEDULED') && !showReasonInput"
+        data-testid="btn-update-status">
+        Update Status
+      </button>
+    </div>
+
+    <!-- Notes -->
+    <div class="detail-section" *ngIf="appointment.notes">
+      <h4>Notes</h4>
+      <p class="detail-value notes-text">{{ appointment.notes }}</p>
+    </div>
+  </div>
+</div>
+

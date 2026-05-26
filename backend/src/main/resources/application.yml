@@ -1,6 +1,9 @@
 server:
   port: 8087
 
+# AI auto-config exclusions when AI is off are applied by AiToggleEnvironmentPostProcessor
+# (see EHR_AI_ENABLED). Do not list spring.autoconfigure.exclude here for Spring AI.
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/staff_db
@@ -10,7 +13,12 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none  # Temporarily set to none to allow Flyway migrations to run first, then change back to validate
+    show-sql: true  # Enable SQL logging for debugging
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
   flyway:
     enabled: true
     locations: classpath:db/migration
@@ -26,6 +34,36 @@ spring:
     serialization:
       FAIL_ON_EMPTY_BEANS: false
 
+  ai:
+    # Spring AI 1.0.x defaults these to "openai" with matchIfMissing=true, which creates beans that require an API key
+    # even when you only use chat/embedding. Disable unless you explicitly opt in.
+    model:
+      audio:
+        speech: "none"
+        transcription: "none"
+      image: "none"
+      moderation: "none"
+    openai:
+      enabled: ${ehr.ai.enabled:false}
+      api-key: ${OPENAI_API_KEY:}
+      # Overridden to http://localhost:11434/v1 when ehr.ai.ollama=true (or set manually for Ollama OpenAI compatibility).
+      base-url: ${SPRING_AI_OPENAI_BASE_URL:https://api.openai.com}
+      chat:
+        enabled: ${ehr.ai.enabled:false}
+        options:
+          model: ${OPENAI_CHAT_MODEL:gpt-4.1-mini}
+          temperature: 0.2
+      embedding:
+        enabled: ${ehr.ai.enabled:false}
+        options:
+          model: ${OPENAI_EMBEDDING_MODEL:text-embedding-3-small}
+    vectorstore:
+      pgvector:
+        enabled: ${ehr.ai.enabled:false}
+        index-type: HNSW
+        dimensions: 1536
+        distance-type: COSINE_DISTANCE
+
 springdoc:
   api-docs:
     path: /v3/api-docs
@@ -36,11 +74,60 @@ springdoc:
 
 logging:
   level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql: TRACE
+    root: INFO
+    com.ehr.staffservice: INFO  # Changed from DEBUG to reduce noise
+    com.ehr.staffservice.config.LoggingFilter: WARN  # Disable LoggingFilter output
+    org.hibernate.SQL: WARN  # Reduced from DEBUG to reduce noise
+    org.hibernate.type.descriptor.sql: WARN  # Reduced from TRACE to reduce noise
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN  # Reduced from TRACE to reduce noise
+    org.springframework.jdbc.core: WARN  # Reduced from DEBUG to reduce noise
+    org.springframework.jdbc.core.JdbcTemplate: WARN  # Reduced from DEBUG to reduce noise
+    org.springframework.jdbc.core.StatementCreatorUtils: WARN  # Reduced from TRACE to reduce noise
+    org.springframework.web: INFO
+    org.springframework.security: WARN
 
 appointment-service:
   base-url: http://localhost:8088
 
 patient-service:
-  base-url: http://localhost:8089   
+  base-url: http://localhost:8089
+
+# AI: EHR_AI_ENABLED=true + either OPENAI_API_KEY (cloud OpenAI) or EHR_AI_OLLAMA=true (local Ollama, OpenAI-compatible API)
+ehr:
+  ai:
+    enabled: ${EHR_AI_ENABLED:${APP_AI_ENABLED:false}}
+    # When true, AiToggleEnvironmentPostProcessor points spring.ai.openai at Ollama (/v1) and sets a dummy api-key (Ollama ignores it).
+    ollama: ${EHR_AI_OLLAMA:false}
+    # If true with ollama, OpenAI embedding stays on — only use if your embedding model matches VECTOR(1536) in the DB.
+    ollama-embedding: ${EHR_AI_OLLAMA_EMBEDDING:false}
+
+# Phase A Authentication Configuration
+app:
+  cookie:
+    secure: ${APP_COOKIE_SECURE:false} # true in production (HTTPS)
+  ai:
+    enabled: ${ehr.ai.enabled:false}
+    audit-enabled: ${EHR_AI_AUDIT_ENABLED:${APP_AI_AUDIT_ENABLED:${ehr.ai.enabled:false}}}
+    allow-streaming: ${EHR_AI_STREAMING:false}
+    # Comma-separated (matches {@link com.ehr.staffservice.ai.service.AiGuardrailService} parsing).
+    emergency-keywords: chest pain,trouble breathing,suicidal,stroke,heavy bleeding
+    symptom-review-keywords: blood in stool,unexplained weight loss,persistent fever,night sweats,vision loss,weakness on one side
+
+# SMART on FHIR Configuration
+smart:
+  epic:
+    # Allowed Epic ISS (issuer) URLs - comma-separated list
+    allowed-iss: ${EPIC_SMART_ALLOWED_ISS:https://fhir.epic.com/interconnect-fhir-oauth,https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4}
+    # Epic SMART Client ID (required)
+    client-id: ${EPIC_SMART_CLIENT_ID:your-epic-client-id}
+    # Production: https://app.yourdomain.com/api/patient/smart/callback
+    # Development: http://localhost:8087/api/patient/smart/callback
+    redirect-uri: ${EPIC_SMART_REDIRECT_URI:http://localhost:8087/api/patient/smart/callback}
+    # SMART scope (default: read-only for safety)
+    scope: ${EPIC_SMART_SCOPE:launch patient/*.read}
+    # Production: true (HTTPS required for Secure cookies)
+    # Development: false (http://localhost)
+    cookie-secure: ${EPIC_SMART_COOKIE_SECURE:false}
+    # Production: https://app.yourdomain.com
+    # Development: http://localhost:4300 (MyChart runs on port 4300)
+    frontend-base-url: ${EPIC_SMART_FRONTEND_BASE_URL:http://localhost:4300}

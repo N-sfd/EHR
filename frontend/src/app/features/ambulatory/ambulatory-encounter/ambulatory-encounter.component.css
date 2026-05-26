@@ -4,7 +4,7 @@
   background: #f5f5f5;
 }
 
-.epic-header {
+.clinical-header {
   background: #0066cc;
   color: white;
   padding: 15px 20px;
@@ -17,7 +17,7 @@
   gap: 10px;
 }
 
-.epic-title {
+.clinical-title {
   font-size: 24px;
   font-weight: 600;
   margin: 0;
@@ -87,7 +87,7 @@
 }
 
 /* Summary Grid */
-.epic-summary-grid {
+.summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;

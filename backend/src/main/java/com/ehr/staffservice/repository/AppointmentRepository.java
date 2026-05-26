@@ -7,66 +7,141 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
 
-    @Query("SELECT a FROM Appointment a LEFT JOIN FETCH a.doctor LEFT JOIN FETCH a.patient LEFT JOIN FETCH a.department WHERE a.appointmentCode = :appointmentCode")
-    Optional<Appointment> findByAppointmentCode(@Param("appointmentCode") String appointmentCode);
+    /**
+     * Find appointments by date range and optional provider/room filter
+     * Used for grid queries (lightweight)
+     */
+    @Query("SELECT a FROM Appointment a " +
+           "WHERE a.startAt >= :startAt AND a.startAt < :endAt " +
+           "AND (:doctorIds IS NULL OR a.doctorId IN :doctorIds) " +
+           "AND (:roomIds IS NULL OR a.roomId IN :roomIds) " +
+           "ORDER BY a.startAt")
+    List<Appointment> findByDateRange(
+            @Param("startAt") LocalDateTime startAt,
+            @Param("endAt") LocalDateTime endAt,
+            @Param("doctorIds") List<Long> doctorIds,
+            @Param("roomIds") List<Long> roomIds);
 
-    @Query("SELECT a FROM Appointment a LEFT JOIN FETCH a.doctor LEFT JOIN FETCH a.patient LEFT JOIN FETCH a.department WHERE a.doctorId = :doctorId")
-    List<Appointment> findByDoctorId(@Param("doctorId") Long doctorId);
+    /**
+     * Find conflicting appointments for a doctor
+     * Used for conflict validation
+     */
+    @Query("SELECT a FROM Appointment a " +
+           "WHERE a.doctorId = :doctorId " +
+           "AND (:excludeId IS NULL OR a.id != :excludeId) " +
+           "AND a.status != 'CANCELLED' " +
+           "AND (a.startAt < :endAt AND a.endAt > :startAt)")
+    List<Appointment> findConflictingAppointments(
+            @Param("doctorId") Long doctorId,
+            @Param("startAt") LocalDateTime startAt,
+            @Param("endAt") LocalDateTime endAt,
+            @Param("excludeId") Long excludeId);
 
-    @Query("SELECT a FROM Appointment a LEFT JOIN FETCH a.doctor LEFT JOIN FETCH a.patient LEFT JOIN FETCH a.department WHERE a.patientId = :patientId")
-    List<Appointment> findByPatientId(@Param("patientId") Long patientId);
+    /**
+     * Find appointments by patient
+     */
+    List<Appointment> findByPatientIdOrderByStartAtDesc(Long patientId);
 
-    @Query("SELECT a FROM Appointment a LEFT JOIN FETCH a.doctor LEFT JOIN FETCH a.patient LEFT JOIN FETCH a.department WHERE a.departmentId = :departmentId")
-    List<Appointment> findByDepartmentId(@Param("departmentId") Long departmentId);
+    /**
+     * Find appointments by doctor
+     */
+    List<Appointment> findByDoctorIdOrderByStartAtDesc(Long doctorId);
 
-    List<Appointment> findByAppointmentDate(LocalDate date);
+    // ============================================================================
+    // REPORTING QUERIES (Aggregation)
+    // ============================================================================
 
-    List<Appointment> findByAppointmentDateBetween(LocalDate startDate, LocalDate endDate);
+    /**
+     * Count total appointments in date range
+     */
+    @Query("SELECT COUNT(a) FROM Appointment a " +
+           "WHERE a.startAt >= :startAt AND a.startAt < :endAt " +
+           "AND (:doctorIds IS NULL OR a.doctorId IN :doctorIds)")
+    Long countByDateRange(
+            @Param("startAt") LocalDateTime startAt,
+            @Param("endAt") LocalDateTime endAt,
+            @Param("doctorIds") List<Long> doctorIds);
 
-    List<Appointment> findByDoctorIdAndAppointmentDate(Long doctorId, LocalDate date);
+    /**
+     * Count urgent appointments in date range
+     */
+    @Query("SELECT COUNT(a) FROM Appointment a " +
+           "WHERE a.startAt >= :startAt AND a.startAt < :endAt " +
+           "AND a.priority = 'URGENT' " +
+           "AND (:doctorIds IS NULL OR a.doctorId IN :doctorIds)")
+    Long countUrgentByDateRange(
+            @Param("startAt") LocalDateTime startAt,
+            @Param("endAt") LocalDateTime endAt,
+            @Param("doctorIds") List<Long> doctorIds);
 
-    @Query("SELECT a FROM Appointment a WHERE a.doctorId = :doctorId AND a.appointmentDate >= :startDate AND a.appointmentDate <= :endDate")
-    List<Appointment> findByDoctorIdAndDateRange(@Param("doctorId") Long doctorId, 
-                                                   @Param("startDate") LocalDate startDate, 
-                                                   @Param("endDate") LocalDate endDate);
+    /**
+     * Count appointments by status in date range
+     * Returns Object[] where [0] = status, [1] = count
+     */
+    @Query("SELECT a.status, COUNT(a) FROM Appointment a " +
+           "WHERE a.startAt >= :startAt AND a.startAt < :endAt " +
+           "AND (:doctorIds IS NULL OR a.doctorId IN :doctorIds) " +
+           "GROUP BY a.status")
+    List<Object[]> countByStatusAndDateRange(
+            @Param("startAt") LocalDateTime startAt,
+            @Param("endAt") LocalDateTime endAt,
+            @Param("doctorIds") List<Long> doctorIds);
 
-    List<Appointment> findByStatus(String status);
+    /**
+     * Count appointments by day in date range
+     * Returns Object[] where [0] = date (LocalDate), [1] = count
+     * Uses FUNCTION for date extraction (Hibernate-compatible)
+     */
+    @Query(value = "SELECT DATE(a.start_datetime) as date, COUNT(a.id) as count " +
+           "FROM appointment a " +
+           "WHERE a.start_datetime >= :startAt AND a.start_datetime < :endAt " +
+           "AND (:doctorIds IS NULL OR a.doctor_id IN :doctorIds) " +
+           "GROUP BY DATE(a.start_datetime) " +
+           "ORDER BY DATE(a.start_datetime)", nativeQuery = true)
+    List<Object[]> countByDayAndDateRange(
+            @Param("startAt") LocalDateTime startAt,
+            @Param("endAt") LocalDateTime endAt,
+            @Param("doctorIds") List<Long> doctorIds);
 
-    @Query("SELECT a FROM Appointment a LEFT JOIN FETCH a.doctor LEFT JOIN FETCH a.patient LEFT JOIN FETCH a.department WHERE a.appointmentDate >= :startDate AND a.appointmentDate <= :endDate ORDER BY a.appointmentDate, a.appointmentTime")
-    List<Appointment> findByDateRange(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
-    
-    @Query("SELECT a FROM Appointment a LEFT JOIN FETCH a.doctor LEFT JOIN FETCH a.patient LEFT JOIN FETCH a.department")
-    @Override
-    List<Appointment> findAll();
+    /**
+     * Provider utilization aggregation
+     * Returns Object[] where [0] = doctorId, [1] = totalAppointments, [2] = totalMinutes
+     */
+    @Query("SELECT a.doctorId, COUNT(a), COALESCE(SUM(a.durationMinutes), 0) " +
+           "FROM Appointment a " +
+           "WHERE a.startAt >= :startAt AND a.startAt < :endAt " +
+           "AND (:doctorIds IS NULL OR a.doctorId IN :doctorIds) " +
+           "GROUP BY a.doctorId " +
+           "ORDER BY COUNT(a) DESC")
+    List<Object[]> getProviderUtilization(
+            @Param("startAt") LocalDateTime startAt,
+            @Param("endAt") LocalDateTime endAt,
+            @Param("doctorIds") List<Long> doctorIds);
 
-    // Calendar view queries
-    @Query("SELECT a FROM Appointment a LEFT JOIN FETCH a.doctor LEFT JOIN FETCH a.patient LEFT JOIN FETCH a.department " +
-           "WHERE a.doctorId = :doctorId AND a.appointmentDate >= :startDate AND a.appointmentDate <= :endDate " +
-           "ORDER BY a.appointmentDate, a.appointmentTime")
-    List<Appointment> findByDoctorAndDateRange(@Param("doctorId") Long doctorId, 
-                                               @Param("startDate") LocalDate startDate, 
-                                               @Param("endDate") LocalDate endDate);
-
-    @Query("SELECT a FROM Appointment a LEFT JOIN FETCH a.doctor LEFT JOIN FETCH a.patient LEFT JOIN FETCH a.department " +
-           "WHERE a.appointmentDate = :date AND a.appointmentTime >= :startTime AND a.appointmentTime < :endTime " +
-           "ORDER BY a.appointmentTime")
-    List<Appointment> findByDateAndTimeRange(@Param("date") LocalDate date,
-                                              @Param("startTime") java.time.LocalTime startTime,
-                                              @Param("endTime") java.time.LocalTime endTime);
-
-    @Query("SELECT a FROM Appointment a LEFT JOIN FETCH a.doctor LEFT JOIN FETCH a.patient LEFT JOIN FETCH a.department " +
-           "WHERE a.doctorId = :doctorId AND a.appointmentDate = :date " +
-           "AND ((a.appointmentTime <= :startTime AND (a.endTime IS NULL OR a.endTime > :startTime)) " +
-           "OR (a.appointmentTime < :endTime AND (a.endTime IS NULL OR a.endTime >= :endTime)) " +
-           "OR (a.appointmentTime >= :startTime AND (a.endTime IS NULL OR a.endTime <= :endTime)))")
-    List<Appointment> findConflictingAppointments(@Param("doctorId") Long doctorId,
-                                                   @Param("date") LocalDate date,
-                                                   @Param("startTime") java.time.LocalTime startTime,
-                                                   @Param("endTime") java.time.LocalTime endTime);
+    /**
+     * Heatmap aggregation: Count appointments by day of week and hour
+     * Returns Object[] where [0] = dayOfWeek (0-6), [1] = hour (0-23), [2] = count
+     * Uses PostgreSQL EXTRACT function: DOW returns 0=Sunday, 1=Monday, etc.
+     */
+    @Query(value = "SELECT " +
+           "EXTRACT(DOW FROM a.start_datetime)::integer as dayOfWeek, " +
+           "EXTRACT(HOUR FROM a.start_datetime)::integer as hour, " +
+           "COUNT(a.id) as count " +
+           "FROM appointment a " +
+           "WHERE a.start_datetime >= :startAt AND a.start_datetime < :endAt " +
+           "AND (:doctorIds IS NULL OR a.doctor_id IN (:doctorIds)) " +
+           "AND EXTRACT(HOUR FROM a.start_datetime) >= 7 AND EXTRACT(HOUR FROM a.start_datetime) <= 19 " +
+           "GROUP BY EXTRACT(DOW FROM a.start_datetime), EXTRACT(HOUR FROM a.start_datetime) " +
+           "ORDER BY dayOfWeek, hour", nativeQuery = true)
+    List<Object[]> getHeatmapBuckets(
+            @Param("startAt") LocalDateTime startAt,
+            @Param("endAt") LocalDateTime endAt,
+            @Param("doctorIds") List<Long> doctorIds);
 }
+

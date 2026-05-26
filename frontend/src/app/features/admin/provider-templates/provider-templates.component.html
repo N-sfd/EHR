@@ -42,7 +42,7 @@
           (click)="selectTemplate(provider.id)"
         >
           <div class="provider-avatar-small">
-            <img [src]="getProviderAvatar(provider)" [alt]="provider.name" (error)="onImageError($event, provider)" />
+            <img [src]="getProviderAvatar(provider)" [alt]="provider.name" [title]="provider.name" (error)="onImageError($event, provider)" />
           </div>
           <div class="provider-info">
             <div class="provider-name">{{ provider.name }}</div>
@@ -72,14 +72,33 @@
     </div>
 
     <!-- Right Panel: Template Editor -->
-    <div class="template-editor" *ngIf="selectedTemplate">
+    <div class="template-editor" *ngIf="selectedProviderId">
       <!-- Loading State for Template -->
       <div class="loading-state" *ngIf="isLoading">
         <div class="spinner"></div>
         <p>Loading template...</p>
       </div>
 
-      <div *ngIf="!isLoading">
+      <!-- Error State for Template -->
+      <div class="error-state" *ngIf="errorMessage && !isLoading && !selectedTemplate">
+        <i class="fas fa-exclamation-circle"></i>
+        <p>{{ errorMessage }}</p>
+        <button class="btn-secondary" (click)="selectTemplate(selectedProviderId!)">
+          <i class="fas fa-redo"></i> Retry
+        </button>
+      </div>
+
+      <!-- Empty State for Template (404 - no template exists yet) -->
+      <div class="empty-state" *ngIf="!isLoading && !errorMessage && !selectedTemplate">
+        <i class="fas fa-file-alt empty-icon"></i>
+        <p>No template found for this provider</p>
+        <button class="btn-primary" (click)="selectTemplate(selectedProviderId!)">
+          <i class="fas fa-plus"></i> Create Template
+        </button>
+      </div>
+
+      <!-- Template Content -->
+      <div *ngIf="!isLoading && selectedTemplate">
         <div class="editor-header">
           <h3>{{ selectedTemplate.providerName }}</h3>
           <div class="tabs">
@@ -123,7 +142,7 @@
                 <div class="form-grid">
                   <div class="form-group" [class.has-error]="isFieldInvalid('name')">
                     <label>Name <span class="required">*</span></label>
-                    <input type="text" formControlName="name" class="form-input" />
+                    <input type="text" formControlName="name" class="form-input" title="Visit Type Name" placeholder="Enter visit type name" />
                     <div class="validation-message error" *ngIf="isFieldInvalid('name')">
                       Name is required
                     </div>
@@ -131,7 +150,7 @@
 
                   <div class="form-group" [class.has-error]="isFieldInvalid('durationMinutes')">
                     <label>Duration (minutes) <span class="required">*</span></label>
-                    <select formControlName="durationMinutes" class="form-input">
+                    <select formControlName="durationMinutes" class="form-input" title="Duration in minutes">
                       <option value="10">10 min</option>
                       <option value="15">15 min</option>
                       <option value="20">20 min</option>
@@ -146,19 +165,70 @@
 
                   <div class="form-group" [class.has-error]="isFieldInvalid('allowedDepartments')">
                     <label>Allowed Departments <span class="required">*</span></label>
-                    <div class="checkbox-list">
-                      <ng-container *ngFor="let dept of departments">
-                        <label *ngIf="getDepartmentId(dept)" class="checkbox-item">
+                    
+                    <!-- Selected Departments Chips -->
+                    <div class="selected-chips" *ngIf="getSelectedDepartments().length > 0">
+                      <div class="chip" *ngFor="let dept of getSelectedDepartments()">
+                        <span>{{ dept.name }}</span>
+                        <button type="button" class="chip-remove" (click)="removeDepartment(getDepartmentId(dept)!)" title="Remove">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Department Selector -->
+                    <div class="department-selector">
+                      <!-- Search Box -->
+                      <div class="department-search" *ngIf="departments.length > 0">
+                        <i class="fas fa-search search-icon"></i>
+                        <input 
+                          type="text" 
+                          class="search-input"
+                          placeholder="Search departments..."
+                          [(ngModel)]="departmentSearchQuery"
+                          (input)="onDepartmentSearch()"
+                        />
+                      </div>
+
+                      <!-- Empty State -->
+                      <div class="empty-state" *ngIf="departments.length === 0 && !isLoadingDepartments">
+                        <i class="fas fa-building empty-icon"></i>
+                        <p>No departments available</p>
+                        <button type="button" class="btn-seed" (click)="seedDemoDepartments()">
+                          <i class="fas fa-seedling"></i> Seed Demo Departments
+                        </button>
+                      </div>
+
+                      <!-- Loading State -->
+                      <div class="loading-state" *ngIf="isLoadingDepartments">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Loading departments...</span>
+                      </div>
+
+                      <!-- No Results -->
+                      <div class="no-results" *ngIf="!isLoadingDepartments && departments.length > 0 && filteredDepartments.length === 0">
+                        <i class="fas fa-search"></i>
+                        <p>No departments found matching "{{ departmentSearchQuery }}"</p>
+                      </div>
+
+                      <!-- Department List -->
+                      <div class="department-list" *ngIf="!isLoadingDepartments && filteredDepartments.length > 0">
+                        <label 
+                          *ngFor="let dept of filteredDepartments" 
+                          class="department-item"
+                          [class.selected]="isDepartmentSelected(getDepartmentId(dept)!)"
+                        >
                           <input 
                             type="checkbox" 
-                            [value]="getDepartmentId(dept)"
-                            [checked]="visitTypeForm.get('allowedDepartments')?.value?.includes(getDepartmentId(dept))"
-                            (change)="onDepartmentToggle(getDepartmentId(dept)!, $event)"
+                            [checked]="isDepartmentSelected(getDepartmentId(dept)!)"
+                            (change)="toggleDepartment(getDepartmentId(dept)!)"
                           />
-                          <span>{{ dept.name }}</span>
+                          <span class="dept-name">{{ dept.name }}</span>
+                          <span class="dept-code" *ngIf="dept.code">({{ dept.code }})</span>
                         </label>
-                      </ng-container>
+                      </div>
                     </div>
+
                     <div class="validation-message error" *ngIf="isFieldInvalid('allowedDepartments')">
                       At least one department must be selected
                     </div>
@@ -166,7 +236,7 @@
 
                   <div class="form-group">
                     <label>Default Provider Type</label>
-                    <select formControlName="defaultProviderType" class="form-input">
+                    <select formControlName="defaultProviderType" class="form-input" title="Default Provider Type">
                       <option value="PHYSICIAN">Physician</option>
                       <option value="NURSE_PRACTITIONER">Nurse Practitioner</option>
                       <option value="PHYSICIAN_ASSISTANT">Physician Assistant</option>
@@ -245,31 +315,304 @@
             </div>
           </div>
 
-          <!-- Note Templates Tab (Stub) -->
+          <!-- Note Templates Tab -->
           <div class="tab-content" *ngIf="activeTab === 'noteTemplates'">
             <div class="section-header">
               <h4>Note Templates</h4>
-              <button class="btn-secondary" disabled>
+              <button class="btn-primary" (click)="newNoteTemplate()" [disabled]="isLoading">
                 <i class="fas fa-plus"></i> Add Note Template
               </button>
             </div>
-            <div class="stub-message">
+
+            <!-- Note Template Form -->
+            <div class="form-panel" *ngIf="isEditingNoteTemplate">
+              <form [formGroup]="noteTemplateForm" (ngSubmit)="saveNoteTemplate()">
+                <div class="form-grid">
+                  <div class="form-group" [class.has-error]="isNoteTemplateFieldInvalid('name')">
+                    <label>Name <span class="required">*</span></label>
+                    <input type="text" formControlName="name" class="form-input" placeholder="e.g., Physical Exam Note, Progress Note" />
+                    <div class="validation-message error" *ngIf="isNoteTemplateFieldInvalid('name')">
+                      Name is required
+                    </div>
+                  </div>
+
+                  <div class="form-group" [class.has-error]="isNoteTemplateFieldInvalid('category')">
+                    <label>Category <span class="required">*</span></label>
+                    <select formControlName="category" class="form-input" title="Note Template Category">
+                      <option value="">Select category...</option>
+                      <option value="PHYSICAL_EXAM">Physical Exam</option>
+                      <option value="PROGRESS_NOTE">Progress Note</option>
+                      <option value="CONSULTATION">Consultation</option>
+                      <option value="PROCEDURE">Procedure</option>
+                      <option value="DISCHARGE">Discharge Summary</option>
+                      <option value="HISTORY">History & Physical</option>
+                      <option value="ASSESSMENT">Assessment & Plan</option>
+                      <option value="OTHER">Other</option>
+                    </select>
+                    <div class="validation-message error" *ngIf="isNoteTemplateFieldInvalid('category')">
+                      Category is required
+                    </div>
+                  </div>
+
+                  <div class="form-group checkbox-group">
+                    <label>
+                      <input type="checkbox" formControlName="isActive" />
+                      Active
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Content Section -->
+                <div class="note-content-section">
+                  <div class="form-group full-width" [class.has-error]="isNoteTemplateFieldInvalid('content')">
+                    <label>Template Content <span class="required">*</span></label>
+                    <textarea 
+                      formControlName="content" 
+                      class="form-input form-textarea"
+                      title="Note Template Content"
+                      [attr.placeholder]="'Enter template content with placeholders like {patientName}, {date}, {providerName}'" 
+                      rows="12"
+                    ></textarea>
+                    <div class="form-hint">
+                      <span ngNonBindable>You can use placeholders like {{patientName}}, {{date}}, {{providerName}}, etc.</span>
+                    </div>
+                    <div class="validation-message error" *ngIf="isNoteTemplateFieldInvalid('content')">
+                      Template content is required
+                    </div>
+                    <small class="form-hint">
               <i class="fas fa-info-circle"></i>
-              <p>Note Templates configuration coming soon</p>
+                      <span ngNonBindable>Tip: Use placeholders like {{patientName}}, {{date}}, {{providerName}} for dynamic content</span>
+                    </small>
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <button type="submit" class="btn-primary" [disabled]="noteTemplateForm.invalid || isLoading">
+                    <i class="fas fa-save"></i> Save
+                  </button>
+                  <button type="button" class="btn-secondary" (click)="cancelEdit()">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Note Templates List -->
+            <div class="list-panel" *ngIf="!isEditingNoteTemplate">
+              <div class="list-item" *ngFor="let noteTemplate of selectedTemplate.noteTemplates">
+                <div class="item-content">
+                  <div class="item-header">
+                    <span class="item-name">{{ noteTemplate.name }}</span>
+                    <span class="item-badge category-badge" [attr.data-category]="noteTemplate.category">
+                      {{ noteTemplate.category }}
+                    </span>
+                    <span class="item-badge" [class.active]="noteTemplate.isActive">
+                      {{ noteTemplate.isActive ? 'Active' : 'Inactive' }}
+                    </span>
+                  </div>
+                  <div class="item-details">
+                    <div class="note-content-preview">
+                      {{ noteTemplate.content.length > 150 ? (noteTemplate.content.substring(0, 150) + '...') : noteTemplate.content }}
+                    </div>
+                  </div>
+                </div>
+                <div class="item-actions">
+                  <button class="btn-icon" (click)="editNoteTemplate(noteTemplate)" title="Edit">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-icon btn-danger" (click)="deleteNoteTemplate(noteTemplate.id!)" title="Delete">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="empty-state" *ngIf="selectedTemplate.noteTemplates.length === 0">
+                <i class="fas fa-file-alt empty-icon"></i>
+                <p>No note templates configured. Click "Add Note Template" to add one.</p>
+              </div>
             </div>
           </div>
 
-          <!-- Order Sets Tab (Stub) -->
+          <!-- Order Sets Tab -->
           <div class="tab-content" *ngIf="activeTab === 'orderSets'">
             <div class="section-header">
               <h4>Order Sets</h4>
-              <button class="btn-secondary" disabled>
+              <button class="btn-primary" (click)="newOrderSet()" [disabled]="isLoading">
                 <i class="fas fa-plus"></i> Add Order Set
               </button>
             </div>
-            <div class="stub-message">
-              <i class="fas fa-info-circle"></i>
-              <p>Order Sets configuration coming soon</p>
+
+            <!-- Order Set Form -->
+            <div class="form-panel" *ngIf="isEditingOrderSet">
+              <form [formGroup]="orderSetForm" (ngSubmit)="saveOrderSet()">
+                <div class="form-grid">
+                  <div class="form-group" [class.has-error]="isOrderSetFieldInvalid('name')">
+                    <label>Name <span class="required">*</span></label>
+                    <input type="text" formControlName="name" class="form-input" placeholder="e.g., Routine Physical Exam" />
+                    <div class="validation-message error" *ngIf="isOrderSetFieldInvalid('name')">
+                      Name is required
+                    </div>
+                  </div>
+
+                  <div class="form-group" [class.has-error]="isOrderSetFieldInvalid('category')">
+                    <label>Category <span class="required">*</span></label>
+                    <select formControlName="category" class="form-input" title="Order Set Category">
+                      <option value="">Select category...</option>
+                      <option value="LAB">Lab Orders</option>
+                      <option value="IMAGING">Imaging</option>
+                      <option value="MEDICATION">Medication</option>
+                      <option value="PROCEDURE">Procedure</option>
+                      <option value="REFERRAL">Referral</option>
+                      <option value="OTHER">Other</option>
+                    </select>
+                    <div class="validation-message error" *ngIf="isOrderSetFieldInvalid('category')">
+                      Category is required
+                    </div>
+                  </div>
+
+                  <div class="form-group checkbox-group">
+                    <label>
+                      <input type="checkbox" formControlName="isActive" />
+                      Active
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="order-items-section">
+                  <div class="section-subheader">
+                    <h5>Orders <span class="required">*</span></h5>
+                    <button type="button" class="btn-secondary btn-sm" (click)="addOrderItem()">
+                      <i class="fas fa-plus"></i> Add Order
+                    </button>
+                  </div>
+
+                  <div formArrayName="orders" class="order-items-list">
+                    <div 
+                      *ngFor="let orderItem of orderItems.controls; let i = index" 
+                      [formGroupName]="i"
+                      class="order-item-card"
+                    >
+                      <div class="order-item-header">
+                        <span class="order-item-number">Order {{ i + 1 }}</span>
+                        <button 
+                          type="button" 
+                          class="btn-icon btn-danger btn-sm" 
+                          (click)="removeOrderItem(i)"
+                          [disabled]="orderItems.length === 1"
+                          title="Remove Order"
+                        >
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
+
+                      <div class="order-item-fields">
+                        <div class="form-group" [class.has-error]="isOrderItemFieldInvalid(i, 'orderType')">
+                          <label>Order Type <span class="required">*</span></label>
+                          <select formControlName="orderType" class="form-input" title="Order Type">
+                            <option value="">Select type...</option>
+                            <option value="LAB">Lab</option>
+                            <option value="IMAGING">Imaging</option>
+                            <option value="MEDICATION">Medication</option>
+                            <option value="PROCEDURE">Procedure</option>
+                            <option value="REFERRAL">Referral</option>
+                            <option value="VITALS">Vitals</option>
+                            <option value="OTHER">Other</option>
+                          </select>
+                          <div class="validation-message error" *ngIf="isOrderItemFieldInvalid(i, 'orderType')">
+                            Order type is required
+                          </div>
+                        </div>
+
+                        <div class="form-group" [class.has-error]="isOrderItemFieldInvalid(i, 'orderName')">
+                          <label>Order Name <span class="required">*</span></label>
+                          <input 
+                            type="text" 
+                            formControlName="orderName" 
+                            class="form-input" 
+                            placeholder="e.g., Complete Blood Count, Chest X-Ray"
+                          />
+                          <div class="validation-message error" *ngIf="isOrderItemFieldInvalid(i, 'orderName')">
+                            Order name is required
+                          </div>
+                        </div>
+
+                        <div class="form-group">
+                          <label>Frequency</label>
+                          <input 
+                            type="text" 
+                            formControlName="frequency" 
+                            class="form-input" 
+                            placeholder="e.g., Once daily, Every 6 hours"
+                          />
+                        </div>
+
+                        <div class="form-group">
+                          <label>Duration</label>
+                          <input 
+                            type="text" 
+                            formControlName="duration" 
+                            class="form-input" 
+                            placeholder="e.g., 7 days, 2 weeks"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="validation-message error" *ngIf="orderItems.length === 0">
+                      At least one order is required
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <button type="submit" class="btn-primary" [disabled]="orderSetForm.invalid || isLoading || orderItems.length === 0">
+                    <i class="fas fa-save"></i> Save
+                  </button>
+                  <button type="button" class="btn-secondary" (click)="cancelEdit()">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Order Sets List -->
+            <div class="list-panel" *ngIf="!isEditingOrderSet">
+              <div class="list-item" *ngFor="let orderSet of selectedTemplate.orderSets">
+                <div class="item-content">
+                  <div class="item-header">
+                    <span class="item-name">{{ orderSet.name }}</span>
+                    <span class="item-badge category-badge" [attr.data-category]="orderSet.category">
+                      {{ orderSet.category }}
+                    </span>
+                    <span class="item-badge" [class.active]="orderSet.isActive">
+                      {{ orderSet.isActive ? 'Active' : 'Inactive' }}
+                    </span>
+                  </div>
+                  <div class="item-details">
+                    <span>Orders: {{ orderSet.orders.length }}</span>
+                    <div class="order-items-preview" *ngIf="orderSet.orders && orderSet.orders.length > 0">
+                      <span class="order-preview-item" *ngFor="let order of orderSet.orders.slice(0, 3)">
+                        {{ order.orderName }}
+                      </span>
+                      <span *ngIf="orderSet.orders.length > 3" class="more-orders">
+                        +{{ orderSet.orders.length - 3 }} more
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div class="item-actions">
+                  <button class="btn-icon" (click)="editOrderSet(orderSet)" title="Edit">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-icon btn-danger" (click)="deleteOrderSet(orderSet.id!)" title="Delete">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="empty-state" *ngIf="selectedTemplate.orderSets.length === 0">
+                <i class="fas fa-clipboard-list empty-icon"></i>
+                <p>No order sets configured. Click "Add Order Set" to add one.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -277,7 +620,7 @@
     </div>
 
     <!-- Empty State for Right Panel -->
-    <div class="empty-state-panel" *ngIf="!selectedTemplate">
+    <div class="empty-state-panel" *ngIf="!selectedProviderId">
       <div class="empty-content">
         <i class="fas fa-user-md empty-icon"></i>
         <p>Select a provider to configure templates</p>

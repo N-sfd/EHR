@@ -13,7 +13,7 @@ export class StaffService {
   private baseUrl = `${environment.apiUrl || ''}/api/staff`;
   private http = inject(HttpClient);
   private mockService = inject(StaffMockService);
-  private useMock = true; // Always use mock for now, can be configured via environment
+  private useMock = environment.useMock !== false; // Use environment configuration, default to true
 
   constructor() {}
 

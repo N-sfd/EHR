@@ -134,10 +134,10 @@
 
     <!-- Actions -->
     <div class="form-actions">
-      <button type="submit" class="epic-btn epic-btn-primary" [disabled]="isLoading || encounterForm.invalid">
+      <button type="submit" class="btn btn-primary" [disabled]="isLoading || encounterForm.invalid">
         <i class="fas fa-save"></i> Save Encounter
       </button>
-      <button type="button" class="epic-btn epic-btn-success" (click)="sign()" [disabled]="isLoading || encounterForm.invalid">
+      <button type="button" class="btn btn-success" (click)="sign()" [disabled]="isLoading || encounterForm.invalid">
         <i class="fas fa-signature"></i> Sign Encounter
       </button>
       <div class="error-message" *ngIf="errorMessage">{{ errorMessage }}</div>

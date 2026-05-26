@@ -1,0 +1,194 @@
+.report-filter-bar {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-end;
+  }
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 150px;
+
+    .filter-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .filter-select,
+    .filter-input {
+      padding: 8px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 14px;
+      color: #1e293b;
+      background: #fff;
+      transition: all 0.2s ease;
+
+      &:focus {
+        outline: none;
+        border-color: #0d9488;
+        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+      }
+    }
+  }
+
+  .filter-multiselect {
+    position: relative;
+
+    .multiselect-dropdown {
+      position: relative;
+    }
+
+    .multiselect-button {
+      padding: 8px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 14px;
+      color: #1e293b;
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-width: 150px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: #94a3b8;
+      }
+
+      &.active {
+        border-color: #0d9488;
+        background: #f0fdfa;
+      }
+
+      i {
+        font-size: 12px;
+        color: #64748b;
+      }
+    }
+
+    .multiselect-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 4px;
+      background: #fff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      max-height: 300px;
+      overflow-y: auto;
+      z-index: 100;
+      display: none;
+
+      &:hover,
+      .multiselect-dropdown:hover & {
+        display: block;
+      }
+    }
+
+    .multiselect-item {
+      padding: 8px 12px;
+      border-bottom: 1px solid #f1f5f9;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #1e293b;
+
+        input[type="checkbox"] {
+          cursor: pointer;
+        }
+
+        &:hover {
+          background: #f8fafc;
+        }
+      }
+    }
+  }
+
+  .filter-toggles {
+    flex-direction: row;
+    gap: 16px;
+    min-width: auto;
+
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #1e293b;
+
+      .toggle-checkbox {
+        cursor: pointer;
+      }
+    }
+  }
+
+  .filter-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+
+    .btn-apply,
+    .btn-reset {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      border: none;
+
+      i {
+        font-size: 12px;
+      }
+    }
+
+    .btn-apply {
+      background: #0d9488;
+      color: #fff;
+
+      &:hover {
+        background: #0f766e;
+      }
+    }
+
+    .btn-reset {
+      background: #f1f5f9;
+      color: #475569;
+
+      &:hover {
+        background: #e2e8f0;
+      }
+    }
+  }
+}
+

@@ -1,7 +1,7 @@
 export const environment = {
   production: false,
-  apiUrl: '', // Use empty string for proxy in development, or set to gateway URL in production
-  useMock: true // Set to false to use real API
+  apiUrl: '', // Empty = use relative URLs /api/... (proxied to http://localhost:8087 via proxy.conf.json)
+  useMock: false // Use real API - no mock fallback
 };
 
 

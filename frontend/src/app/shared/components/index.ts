@@ -8,6 +8,5 @@ export * from './tabs/tab.component';
 export * from './card/card.component';
 export * from './section-header/section-header.component';
 export * from './field/field.component';
-export * from './prelude-sidebar/prelude-sidebar.component';
 export * from './patient-header/patient-header.component';
 

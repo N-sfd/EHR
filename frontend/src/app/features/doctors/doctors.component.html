@@ -2,15 +2,15 @@
 <div class="doctors-header">
   <div class="header-top-row">
     <h1 class="doctors-title">
-      <i class="fas fa-chevron-left chevron-icon" (click)="goBack()" style="cursor: pointer;"></i> Doctors
+      <i class="fas fa-chevron-left chevron-icon" (click)="goBack()" style="cursor: pointer;"></i> Providers
     </h1>
     <div class="header-right-section">
       <div class="header-search">
         <i class="fas fa-magnifying-glass search-icon"></i>
-        <input type="text" placeholder="Search Doctor" [(ngModel)]="searchTerm" (input)="applyFilters()">
+        <input type="text" placeholder="Search Provider" [(ngModel)]="searchTerm" (input)="applyFilters()">
       </div>
-      <button class="btn btn-primary" routerLink="/admin/doctors/add" style="margin-left: 1rem;">
-        <i class="fas fa-plus"></i> Add Doctor
+      <button class="btn btn-primary" routerLink="/admin/doctors/add" style="margin-left: 1rem;" data-testid="add-doctor-button">
+        <i class="fas fa-plus"></i> Add Provider
       </button>
     </div>
   </div>
@@ -135,7 +135,7 @@
 <!-- Empty State -->
 <div class="empty-state" *ngIf="!isLoading && filteredDoctors.length === 0">
   <i class="fas fa-user-doctor"></i>
-  <h4>No doctors found</h4>
+  <h4>No providers found</h4>
   <p>Try adjusting filters or add a new doctor.</p>
   <a routerLink="/admin/doctors/add" class="btn btn-primary">New Doctor</a>
 </div>

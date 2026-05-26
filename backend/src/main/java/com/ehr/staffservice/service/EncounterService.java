@@ -1,7 +1,6 @@
 package com.ehr.staffservice.service;
 
 import com.ehr.staffservice.dto.EncounterDto;
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface EncounterService {

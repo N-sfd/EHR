@@ -1,16 +1,17 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, of, delay } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 import { ProviderTemplate } from '../models/admin.model';
 import { ProviderTemplatesMockService } from './provider-templates-mock.service';
+import { api, unwrap } from '../../../core/api/api-base';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProviderTemplatesService {
-  private apiUrl = '/api/admin/provider-templates';
-  private useMock = true; // Always use mock for now, can be configured via environment
+  private useMock = environment.useMock === true; // Only use mock if explicitly set to true
   private http = inject(HttpClient);
   private mockService = inject(ProviderTemplatesMockService);
 
@@ -19,10 +20,11 @@ export class ProviderTemplatesService {
       return this.mockService.getByProvider(providerId);
     }
 
-    return this.http.get<ProviderTemplate>(`${this.apiUrl}/${providerId}`).pipe(
+    return this.http.get<any>(api(`/api/admin/provider-templates/${providerId}`), { withCredentials: true }).pipe(
+      map(response => unwrap<ProviderTemplate>(response)),
       catchError(err => {
-        console.warn('API failed, using mock data:', err);
-        return this.mockService.getByProvider(providerId);
+        console.error('[ProviderTemplatesService] API call failed:', err);
+        return throwError(() => err);
       })
     );
   }
@@ -32,10 +34,11 @@ export class ProviderTemplatesService {
       return this.mockService.save(providerId, template);
     }
 
-    return this.http.post<ProviderTemplate>(`${this.apiUrl}/${providerId}`, template).pipe(
+    return this.http.post<any>(api(`/api/admin/provider-templates/${providerId}`), template, { withCredentials: true }).pipe(
+      map(response => unwrap<ProviderTemplate>(response)),
       catchError(err => {
-        console.warn('API failed, using mock data:', err);
-        return this.mockService.save(providerId, template);
+        console.error('[ProviderTemplatesService] Save API call failed:', err);
+        return throwError(() => err);
       })
     );
   }
@@ -45,10 +48,11 @@ export class ProviderTemplatesService {
       return this.mockService.getAll();
     }
 
-    return this.http.get<ProviderTemplate[]>(this.apiUrl).pipe(
+    return this.http.get<any>(api('/api/admin/provider-templates'), { withCredentials: true }).pipe(
+      map(response => unwrap<ProviderTemplate[]>(response) || []),
       catchError(err => {
-        console.warn('API failed, using mock data:', err);
-        return this.mockService.getAll();
+        console.error('[ProviderTemplatesService] GetAll API call failed:', err);
+        return throwError(() => err);
       })
     );
   }

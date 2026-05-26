@@ -1,0 +1,19 @@
+<div class="appointments-shell">
+  <div class="appointments-nav">
+    <nav class="secondary-nav">
+      <a 
+        *ngFor="let tab of navTabs" 
+        [routerLink]="tab.route"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{exact: false}"
+        class="nav-tab">
+        <i class="fas" [ngClass]="tab.icon"></i>
+        <span>{{ tab.label }}</span>
+      </a>
+    </nav>
+  </div>
+  <div class="appointments-content">
+    <router-outlet></router-outlet>
+  </div>
+</div>
+

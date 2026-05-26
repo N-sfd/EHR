@@ -1,0 +1,64 @@
+# Combined EHR: staff admin portal + MyChart patient portal + Spring Boot API + PostgreSQL
+#
+# Start:  docker compose up --build -d
+# Open:    http://localhost:8080/          (admin)
+#          http://localhost:8080/mychart/  (patient)
+# API:     http://localhost:8080/api/...
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-staff_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-staff_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-staff_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      APP_COOKIE_SECURE: ${APP_COOKIE_SECURE:-false}
+      EPIC_SMART_REDIRECT_URI: ${EPIC_SMART_REDIRECT_URI:-http://localhost:8080/api/patient/smart/callback}
+      EPIC_SMART_FRONTEND_BASE_URL: ${EPIC_SMART_FRONTEND_BASE_URL:-http://localhost:8080/mychart}
+      EPIC_SMART_COOKIE_SECURE: ${EPIC_SMART_COOKIE_SECURE:-false}
+      EHR_AI_ENABLED: ${EHR_AI_ENABLED:-true}
+      EHR_AI_STREAMING: ${EHR_AI_STREAMING:-true}
+      EHR_AI_OLLAMA: ${EHR_AI_OLLAMA:-false}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8087/api/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 90s
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    ports:
+      - "${APP_PORT:-8080}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:

@@ -5,11 +5,12 @@ import { Router, RouterModule } from '@angular/router';
 import { EncounterService } from '../../../core/services/encounter.service';
 import { PatientService } from '../../../core/services/patient.service';
 import { DoctorService } from '../../../core/services/doctor.service';
-import { DepartmentService } from '../../../core/services/department.service';
+import { MasterDataService } from '../../../core/services/master-data.service';
 import { Encounter } from '../../../core/models/encounter.model';
 import { Patient } from '../../../core/models/patient.model';
 import { Doctor } from '../../../core/models/doctor.model';
 import { Department } from '../../../core/models/department.model';
+import { MasterDepartment } from '../../../core/models/master-data.model';
 
 interface EncounterListItem {
   encounter: Encounter;
@@ -18,6 +19,7 @@ interface EncounterListItem {
   department?: Department;
 }
 
+// Clinical Encounters - List and manage patient clinical encounters
 @Component({
   selector: 'app-clinical-encounters',
   standalone: true,
@@ -27,9 +29,9 @@ interface EncounterListItem {
 })
 export class ClinicalEncountersComponent implements OnInit {
   private encounterService = inject(EncounterService);
+  private masterDataService = inject(MasterDataService);
   private patientService = inject(PatientService);
   private doctorService = inject(DoctorService);
-  private departmentService = inject(DepartmentService);
   router = inject(Router);
 
   encounters: EncounterListItem[] = [];
@@ -77,14 +79,23 @@ export class ClinicalEncountersComponent implements OnInit {
     Promise.all([
       this.encounterService.getAll().toPromise(),
       this.doctorService.getAll().toPromise(),
-      this.departmentService.getAll().toPromise()
-    ]).then(([encounters, doctors, departments]) => {
+      this.masterDataService.getDepartments().toPromise()
+    ]).then(([encounters, doctors, masterDepts]: [any, any, MasterDepartment[] | undefined]) => {
       this.providers = doctors || [];
-      this.departments = departments || [];
+      this.departments = (masterDepts || []).map((dept: MasterDepartment) => ({
+        id: dept.id,
+        departmentId: Number(dept.id) || undefined,
+        name: dept.name,
+        code: dept.code,
+        description: dept.description,
+        active: dept.active,
+        status: dept.active ? 'ACTIVE' : 'INACTIVE',
+        specialtyGroup: dept.specialtyGroup
+      }));
 
       // Load patients for each encounter
       const patientIds = new Set<number>();
-      (encounters || []).forEach(enc => {
+      (encounters || []).forEach((enc: Encounter) => {
         if (enc.patientId) {
           patientIds.add(enc.patientId);
         }

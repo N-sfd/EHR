@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Patient } from '../../../core/models/patient.model';
 import { Coverage } from '../../../core/models/coverage.model';
@@ -15,7 +15,7 @@ import { RegistrationCompleteness } from '../../../core/models/registration-comp
   templateUrl: './registration-completeness-banner.component.html',
   styleUrls: ['./registration-completeness-banner.component.scss']
 })
-export class RegistrationCompletenessBannerComponent implements OnInit {
+export class RegistrationCompletenessBannerComponent implements OnInit, OnChanges {
   @Input() patient!: Patient;
   @Output() updateRequested = new EventEmitter<void>();
 
@@ -30,6 +30,44 @@ export class RegistrationCompletenessBannerComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadCompleteness();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // Refresh completeness when patient data changes
+    if (changes['patient']) {
+      const previousPatient = changes['patient'].previousValue;
+      const currentPatient = changes['patient'].currentValue;
+      
+      // Always refresh on first change
+      if (changes['patient'].firstChange) {
+        this.loadCompleteness();
+      } else if (previousPatient && currentPatient) {
+        // Check if patient data actually changed (by ID or key properties)
+        const patientChanged = 
+          previousPatient.id !== currentPatient.id ||
+          previousPatient.firstName !== currentPatient.firstName ||
+          previousPatient.lastName !== currentPatient.lastName ||
+          previousPatient.addressLine1 !== currentPatient.addressLine1 ||
+          previousPatient.address !== currentPatient.address ||
+          previousPatient.city !== currentPatient.city ||
+          previousPatient.state !== currentPatient.state ||
+          previousPatient.pincode !== currentPatient.pincode ||
+          previousPatient.zipCode !== currentPatient.zipCode ||
+          previousPatient.phoneNumber !== currentPatient.phoneNumber ||
+          previousPatient.phone !== currentPatient.phone ||
+          previousPatient.dateOfBirth !== currentPatient.dateOfBirth ||
+          previousPatient.sex !== currentPatient.sex ||
+          previousPatient.gender !== currentPatient.gender;
+        
+        if (patientChanged) {
+          // Patient data was updated - refresh completeness check
+          this.loadCompleteness();
+        }
+      } else {
+        // Patient was added or removed
+        this.loadCompleteness();
+      }
+    }
   }
 
   loadCompleteness(): void {
@@ -86,6 +124,11 @@ export class RegistrationCompletenessBannerComponent implements OnInit {
 
   hasWarnings(): boolean {
     return (this.completeness?.warnings.length ?? 0) > 0 && !this.hasBlockers();
+  }
+
+  // Public method to refresh completeness (can be called after patient update)
+  refresh(): void {
+    this.loadCompleteness();
   }
 }
 

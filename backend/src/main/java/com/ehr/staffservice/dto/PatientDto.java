@@ -14,22 +14,28 @@ public class PatientDto {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String patientCode;
 
-    @NotBlank(message = "First name is required")
     @Size(max = 100, message = "First name must not exceed 100 characters")
     private String firstName;
 
-    @NotBlank(message = "Last name is required")
     @Size(max = 100, message = "Last name must not exceed 100 characters")
     private String lastName;
 
-    @NotBlank(message = "Gender is required")
     @Size(max = 20, message = "Gender must not exceed 20 characters")
     private String gender;
+    
+    // Alias for gender (frontend may send sex)
+    @JsonProperty("sex")
+    public void setSex(String sex) {
+        this.gender = sex;
+    }
+    
+    @JsonProperty("sex")
+    public String getSex() {
+        return this.gender;
+    }
 
-    @NotNull(message = "Date of birth is required")
     private LocalDate dateOfBirth;
 
-    @NotBlank(message = "Phone number is required")
     @Size(max = 30, message = "Phone number must not exceed 30 characters")
     private String phoneNumber;
 
@@ -40,6 +46,12 @@ public class PatientDto {
     @Size(max = 500, message = "Address must not exceed 500 characters")
     private String address;
 
+    @Size(max = 500, message = "Address line 1 must not exceed 500 characters")
+    private String addressLine1;
+
+    @Size(max = 500, message = "Address line 2 must not exceed 500 characters")
+    private String addressLine2;
+
     @Size(max = 50, message = "City must not exceed 50 characters")
     private String city;
 
@@ -48,6 +60,17 @@ public class PatientDto {
 
     @Size(max = 10, message = "Zip code must not exceed 10 characters")
     private String zipCode;
+    
+    // Alias for zipCode (frontend may send pincode)
+    @JsonProperty("pincode")
+    public void setPincode(String pincode) {
+        this.zipCode = pincode;
+    }
+    
+    @JsonProperty("pincode")
+    public String getPincode() {
+        return this.zipCode;
+    }
 
     @Size(max = 50, message = "Country must not exceed 50 characters")
     private String country;

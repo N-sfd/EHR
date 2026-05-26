@@ -76,12 +76,13 @@ export class DepartmentsComponent implements OnInit {
         this.availableDepartments = [...new Set(this.departments.map(d => d.name))];
         this.applyFilters();
         this.isLoading = false;
+        // No error message - data loaded successfully (even if from fallback)
       },
       error: (err) => {
+        // Only show error if we truly have no data (shouldn't happen with MasterDataService fallback)
         console.error('Error loading departments:', err);
-        if (err.status === 504 || err.status === 0) {
-          this.errorMessage = 'Backend service is not running. Please start the staff-service on port 8082.';
-        } else {
+        if (this.departments.length === 0) {
+          // Only show error if we have no data at all
           this.errorMessage = 'Unable to load departments. Please try again.';
         }
         this.isLoading = false;

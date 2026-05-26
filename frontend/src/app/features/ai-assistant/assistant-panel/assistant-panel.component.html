@@ -1,0 +1,169 @@
+<div class="ai-page">
+
+  <!-- Header -->
+  <div class="ai-header">
+    <div class="ai-header-left">
+      <div class="ai-icon"><i class="fas fa-robot"></i></div>
+      <div>
+        <h2 class="ai-title">AI Medical Assistant</h2>
+        <p class="ai-subtitle">
+          <span class="patient-chip" *ngIf="patient()">
+            <i class="fas fa-user"></i> {{ patientLabel }}
+          </span>
+          <span class="patient-chip no-patient" *ngIf="!patient()">
+            <i class="fas fa-stethoscope"></i> General clinical query
+          </span>
+        </p>
+      </div>
+    </div>
+    <div class="ai-header-right">
+      <button type="button" class="btn-clear" (click)="clearChat()" *ngIf="messages().length > 0" title="Clear conversation">
+        <i class="fas fa-trash-alt"></i> Clear
+      </button>
+    </div>
+  </div>
+
+  <!-- Live dashboard stats -->
+  <div class="stats-bar" *ngIf="stats()">
+    <div class="stat-pill">
+      <i class="fas fa-users"></i>
+      <span>Patients: <strong>{{ stats()!.totalPatients }}</strong></span>
+    </div>
+    <div class="stat-pill">
+      <i class="fas fa-calendar-day"></i>
+      <span>Today's appts: <strong>{{ stats()!.todayAppointments }}</strong></span>
+    </div>
+    <div class="stat-pill">
+      <i class="fas fa-calendar-check"></i>
+      <span>Upcoming: <strong>{{ stats()!.upcomingAppointments }}</strong></span>
+    </div>
+    <div class="stat-pill" *ngIf="patient()">
+      <i class="fas fa-user-injured"></i>
+      <span>Context: <strong>{{ patientLabel }}</strong></span>
+    </div>
+  </div>
+
+  <div class="ai-disclaimer">
+    <i class="fas fa-shield-alt"></i>
+    Informational support only — do not use for emergency diagnosis or treatment decisions.
+  </div>
+
+  <!-- Chat Area -->
+  <div class="chat-area" #chatArea>
+
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="messages().length === 0 && !loading()">
+      <div class="empty-icon"><i class="fas fa-comments"></i></div>
+      <h3>How can I help?</h3>
+      <p>Ask clinical questions, review lab findings, or get medication summaries.</p>
+      <div class="suggestion-chips">
+        <button type="button" class="chip" (click)="input = 'Summarize this patient\'s recent lab results'; submit()">
+          <i class="fas fa-flask"></i> Lab summary
+        </button>
+        <button type="button" class="chip" (click)="input = 'What medications is this patient on?'; submit()">
+          <i class="fas fa-pills"></i> Medications
+        </button>
+        <button type="button" class="chip" (click)="input = 'What are the recent vitals trends?'; submit()">
+          <i class="fas fa-heartbeat"></i> Vitals trends
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="messages-list">
+      <div
+        *ngFor="let msg of messages()"
+        class="message-row"
+        [class.user-row]="msg.role === 'user'"
+        [class.assistant-row]="msg.role === 'assistant'">
+
+        <!-- User message -->
+        <div *ngIf="msg.role === 'user'" class="message user-message">
+          <div class="msg-text">{{ msg.text }}</div>
+          <div class="msg-time">{{ msg.timestamp | date:'shortTime' }}</div>
+        </div>
+
+        <!-- Assistant message -->
+        <div *ngIf="msg.role === 'assistant'" class="message assistant-message">
+          <div class="assistant-avatar"><i class="fas fa-robot"></i></div>
+          <div class="assistant-content">
+
+            <!-- Emergency banner -->
+            <div class="alert-banner emergency" *ngIf="msg.meta?.needsEscalation">
+              <i class="fas fa-exclamation-triangle"></i>
+              This may describe an emergency. Seek immediate in-person care or call emergency services.
+            </div>
+
+            <!-- Clinical review banner -->
+            <div class="alert-banner clinical" *ngIf="msg.meta?.needsClinicalReview">
+              <i class="fas fa-user-md"></i>
+              This may warrant discussion with a clinician. Consider scheduling appropriate follow-up.
+            </div>
+
+            <!-- Grounding note -->
+            <div class="alert-banner grounding" *ngIf="msg.streamNote">
+              <i class="fas fa-info-circle"></i> {{ msg.streamNote }}
+            </div>
+
+            <!-- Blocked message -->
+            <div class="alert-banner blocked" *ngIf="msg.meta?.blocked">
+              <i class="fas fa-ban"></i> {{ msg.meta?.blockedReason || 'Request was blocked.' }}
+            </div>
+
+            <!-- Response text -->
+            <div class="msg-text" [class.streaming]="msg.isStreaming">
+              <span *ngIf="msg.text">{{ msg.text }}</span>
+              <span class="typing-dots" *ngIf="msg.isStreaming && !msg.text">
+                <span></span><span></span><span></span>
+              </span>
+              <span class="cursor" *ngIf="msg.isStreaming && msg.text">▍</span>
+            </div>
+
+            <!-- Citations -->
+            <div class="citations" *ngIf="msg.citations && msg.citations.length">
+              <div class="citations-label"><i class="fas fa-book-open"></i> Sources</div>
+              <ul>
+                <li *ngFor="let c of msg.citations">{{ c.label }}</li>
+              </ul>
+            </div>
+
+            <!-- Disclaimer -->
+            <div class="msg-disclaimer" *ngIf="msg.meta?.disclaimer">
+              <i class="fas fa-info-circle"></i> {{ msg.meta?.disclaimer }}
+            </div>
+
+            <div class="msg-time">{{ msg.timestamp | date:'shortTime' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-bar" *ngIf="error()">
+    <i class="fas fa-exclamation-circle"></i> {{ error() }}
+    <button type="button" class="close-error" (click)="error.set(null)" title="Dismiss error" aria-label="Dismiss error"><i class="fas fa-times"></i></button>
+  </div>
+
+  <!-- Input Area -->
+  <div class="input-area">
+    <textarea
+      [(ngModel)]="input"
+      (keydown)="onKeyDown($event)"
+      rows="2"
+      placeholder="Ask a clinical question... (Enter to send, Shift+Enter for new line)"
+      [disabled]="loading()"
+      class="chat-input">
+    </textarea>
+    <div class="input-actions">
+      <button class="btn-stop" *ngIf="loading()" (click)="stop()" type="button">
+        <i class="fas fa-stop-circle"></i> Stop
+      </button>
+      <button class="btn-send" [disabled]="loading() || !input.trim()" (click)="submit()" type="button">
+        <i class="fas fa-paper-plane" *ngIf="!loading()"></i>
+        <i class="fas fa-spinner fa-spin" *ngIf="loading()"></i>
+        {{ loading() ? 'Thinking...' : 'Send' }}
+      </button>
+    </div>
+  </div>
+</div>

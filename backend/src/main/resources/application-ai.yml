@@ -1,0 +1,13 @@
+# Optional profile: enable AI explicitly without env vars (e.g. production).
+# Run with: --spring.profiles.active=dev,ai
+#   or: SPRING_PROFILES_ACTIVE=prod,ai
+# Still requires OPENAI_API_KEY (and a DB with pgvector when using embeddings).
+
+ehr:
+  ai:
+    enabled: true
+
+spring:
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:}

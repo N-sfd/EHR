@@ -1,0 +1,21 @@
+[
+  {
+    "name": "when is my next visit",
+    "role": "PATIENT",
+    "portal": "MYCHART",
+    "patientId": 88,
+    "request": {
+      "message": "When is my next appointment?",
+      "contextType": "APPOINTMENT",
+      "contextRefId": ""
+    },
+    "expectedRetrievalTypes": ["APPOINTMENT", "STRUCTURED_CHART"],
+    "expected": {
+      "mustContain": [],
+      "forbidden": ["guaranteed slot"],
+      "needsEscalation": false,
+      "needsClinicalReview": false,
+      "chartGroundingWarning": false
+    }
+  }
+]

@@ -45,7 +45,7 @@ export class LabResultService {
   }
 
   getRecentByPatientId(patientId: number, days?: number): Observable<LabResult[]> {
-    const params = days ? { days: days.toString() } : {};
+    const params: Record<string, string> = days ? { days: days.toString() } : {};
     return this.http.get<LabResult[]>(`${this.apiUrl}/api/lab-results/patient/${patientId}/recent`, { params }).pipe(
       catchError(this.handleError)
     );

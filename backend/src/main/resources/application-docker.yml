@@ -1,0 +1,23 @@
+# Used with SPRING_PROFILES_ACTIVE=docker (see docker-compose.yml)
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://db:5432/staff_db}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+
+server:
+  forward-headers-strategy: framework
+
+app:
+  cookie:
+    secure: ${APP_COOKIE_SECURE:false}
+  ai:
+    enabled: ${EHR_AI_ENABLED:false}
+    audit-enabled: ${EHR_AI_AUDIT_ENABLED:false}
+    allow-streaming: ${EHR_AI_STREAMING:false}
+
+smart:
+  epic:
+    redirect-uri: ${EPIC_SMART_REDIRECT_URI:http://localhost:8080/api/patient/smart/callback}
+    frontend-base-url: ${EPIC_SMART_FRONTEND_BASE_URL:http://localhost:8080/mychart}
+    cookie-secure: ${EPIC_SMART_COOKIE_SECURE:false}

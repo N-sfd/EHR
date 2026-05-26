@@ -18,26 +18,26 @@ public class ScheduleGridController {
 
     private final ScheduleGridService service;
 
-    @GetMapping("/provider/{providerId}/date/{date}")
-    public ResponseEntity<ScheduleGridDto> getProviderScheduleGrid(
-            @PathVariable Long providerId,
+    @GetMapping("/doctor/{doctorId}/date/{date}")
+    public ResponseEntity<ScheduleGridDto> getDoctorScheduleGrid(
+            @PathVariable Long doctorId,
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        return ResponseEntity.ok(service.getProviderScheduleGrid(providerId, date));
+        return ResponseEntity.ok(service.getDoctorScheduleGrid(doctorId, date));
     }
 
-    @GetMapping("/provider/{providerId}/range")
-    public ResponseEntity<List<ScheduleGridDto>> getProviderScheduleGridRange(
-            @PathVariable Long providerId,
+    @GetMapping("/doctor/{doctorId}/range")
+    public ResponseEntity<List<ScheduleGridDto>> getDoctorScheduleGridRange(
+            @PathVariable Long doctorId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        return ResponseEntity.ok(service.getProviderScheduleGridRange(providerId, startDate, endDate));
+        return ResponseEntity.ok(service.getDoctorScheduleGridRange(doctorId, startDate, endDate));
     }
 
-    @GetMapping("/providers/date/{date}")
-    public ResponseEntity<List<ScheduleGridDto>> getMultiProviderScheduleGrid(
-            @RequestParam List<Long> providerIds,
+    @GetMapping("/doctors/date/{date}")
+    public ResponseEntity<List<ScheduleGridDto>> getMultiDoctorScheduleGrid(
+            @RequestParam List<Long> doctorIds,
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        return ResponseEntity.ok(service.getMultiProviderScheduleGrid(providerIds, date));
+        return ResponseEntity.ok(service.getMultiDoctorScheduleGrid(doctorIds, date));
     }
 }
 

@@ -1,6 +1,5 @@
 package com.ehr.staffservice.dto.scheduling;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -11,8 +10,8 @@ public class AppointmentRequestDto {
     @NotNull(message = "Patient ID is required")
     private Long patientId;
 
-    @NotNull(message = "Provider ID is required")
-    private Long providerId;
+    @NotNull(message = "Doctor ID is required")
+    private Long doctorId;
 
     private Long departmentId;
     private Long visitTypeId;

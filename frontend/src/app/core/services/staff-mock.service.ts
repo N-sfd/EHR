@@ -21,7 +21,7 @@ export class StaffMockService {
       designationId: 1,
       employmentStatus: 'ACTIVE',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=12'
+      photoUrl: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 2,
@@ -36,7 +36,7 @@ export class StaffMockService {
       designationId: 1,
       employmentStatus: 'ACTIVE',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=15'
+      photoUrl: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 3,
@@ -51,7 +51,7 @@ export class StaffMockService {
       designationId: 1,
       employmentStatus: 'ACTIVE',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=20'
+      photoUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 4,
@@ -66,7 +66,7 @@ export class StaffMockService {
       designationId: 1,
       employmentStatus: 'ACTIVE',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=33'
+      photoUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 5,
@@ -81,7 +81,7 @@ export class StaffMockService {
       designationId: 1,
       employmentStatus: 'ACTIVE',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=47'
+      photoUrl: 'https://images.unsplash.com/photo-1594824476968-48fd8d0c0276?w=400&h=400&fit=crop&crop=faces'
     },
     // Nurses
     {
@@ -96,7 +96,7 @@ export class StaffMockService {
       designationId: 2,
       employmentStatus: 'ACTIVE',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=24'
+      photoUrl: 'https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 7,
@@ -110,7 +110,7 @@ export class StaffMockService {
       designationId: 2,
       employmentStatus: 'ACTIVE',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=25'
+      photoUrl: 'https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 8,
@@ -124,7 +124,7 @@ export class StaffMockService {
       designationId: 2,
       employmentStatus: 'ACTIVE',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=26'
+      photoUrl: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 9,
@@ -138,7 +138,7 @@ export class StaffMockService {
       designationId: 2,
       employmentStatus: 'ACTIVE',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=27'
+      photoUrl: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop&crop=faces'
     },
     {
       id: 10,
@@ -152,7 +152,7 @@ export class StaffMockService {
       designationId: 2,
       employmentStatus: 'ACTIVE',
       status: 'ACTIVE',
-      photoUrl: 'https://i.pravatar.cc/150?img=28'
+      photoUrl: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=400&fit=crop&crop=faces'
     }
   ];
 

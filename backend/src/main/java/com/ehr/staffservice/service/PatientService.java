@@ -9,6 +9,7 @@ public interface PatientService {
     PatientDto get(Long id);
     PatientDto getByPatientCode(String patientCode);
     List<PatientDto> getAll();
+    List<PatientDto> searchPatients(String query);
     void delete(Long id);
 }
 
