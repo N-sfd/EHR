@@ -37,19 +37,8 @@ export class SidebarComponent implements OnInit {
 
   constructor(private router: Router) {}
 
-  /** Sidebar model; includes Assistive / AI when the backend reports {@code aiEnabled}. */
   get menuSections(): MenuSection[] {
-    if (!this.featureFlags.aiEnabled()) {
-      return this.baseMenuSections;
-    }
-    const assistive: MenuSection = {
-      title: 'Assistive',
-      items: [
-        { icon: 'fa-robot', label: 'AI Assistant', route: '/admin/ai-assistant' }
-      ]
-    };
-    const [first, ...rest] = this.baseMenuSections;
-    return [first, assistive, ...rest];
+    return this.baseMenuSections;
   }
 
   ngOnInit() {
@@ -172,17 +161,6 @@ export class SidebarComponent implements OnInit {
         }
       ]
     },
-    {
-      title: 'AI Assistant',
-      items: [
-        {
-          icon: 'fa-robot',
-          label: 'AI Medical Assistant',
-          route: '/admin/ai-assistant'
-        }
-      ]
-    },
-    // Demo menu removed - not part of canonical domains
     {
       title: 'Admin Configuration',
       items: [

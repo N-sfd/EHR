@@ -1,0 +1,58 @@
+<svg viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#004F4F"/>
+      <stop offset="100%" stop-color="#006b6b"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="800" height="200" rx="20" fill="url(#bg)"/>
+
+  <!-- Decorative circles -->
+  <circle cx="680" cy="-20" r="130" fill="rgba(46,200,167,0.12)"/>
+  <circle cx="720" cy="220" r="100" fill="rgba(46,200,167,0.08)"/>
+  <circle cx="100" cy="200" r="80" fill="rgba(255,255,255,0.04)"/>
+
+  <!-- ECG line decoration -->
+  <path d="M400 100 L460 100 L475 60 L485 135 L495 70 L505 100 L800 100"
+        stroke="#2EC8A7" stroke-width="2" opacity="0.4" stroke-linecap="round"/>
+
+  <!-- Doctor/nurse silhouette (simplified SVG person with stethoscope) -->
+  <g transform="translate(590,15)" opacity="0.18">
+    <circle cx="80" cy="40" r="28" fill="white"/>
+    <path d="M52 80 Q52 65 80 65 Q108 65 108 80 L115 160 L45 160 Z" fill="white"/>
+    <path d="M60 95 Q55 120 55 140 Q55 155 65 155 Q75 155 75 140" stroke="white" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <circle cx="65" cy="158" r="10" stroke="white" stroke-width="5" fill="none"/>
+  </g>
+
+  <!-- Content left side -->
+  <!-- Heart icon -->
+  <g transform="translate(50,60)">
+    <path d="M30 18 C30 8, 20 2, 12 8 C4 2, -6 8, -6 18 C-6 28, 12 42, 12 42 C12 42, 30 28, 30 18Z"
+          fill="#2EC8A7" opacity="0.9"/>
+  </g>
+
+  <!-- Floating stat cards on right -->
+  <g transform="translate(480,30)">
+    <rect width="120" height="52" rx="10" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+    <circle cx="22" cy="26" r="12" fill="rgba(46,200,167,0.3)"/>
+    <text x="22" y="30" text-anchor="middle" font-size="10" fill="#2EC8A7" font-weight="bold">Rx</text>
+    <rect x="42" y="16" width="64" height="8" rx="4" fill="rgba(255,255,255,0.5)"/>
+    <rect x="42" y="30" width="48" height="6" rx="3" fill="rgba(255,255,255,0.25)"/>
+  </g>
+  <g transform="translate(614,30)">
+    <rect width="120" height="52" rx="10" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+    <circle cx="22" cy="26" r="12" fill="rgba(96,165,250,0.3)"/>
+    <text x="22" y="30" text-anchor="middle" font-size="9" fill="#60a5fa" font-weight="bold">LAB</text>
+    <rect x="42" y="16" width="64" height="8" rx="4" fill="rgba(255,255,255,0.5)"/>
+    <rect x="42" y="30" width="48" height="6" rx="3" fill="rgba(255,255,255,0.25)"/>
+  </g>
+  <g transform="translate(480,94)">
+    <rect width="254" height="52" rx="10" fill="rgba(46,200,167,0.15)" stroke="rgba(46,200,167,0.3)" stroke-width="1"/>
+    <circle cx="22" cy="26" r="12" fill="rgba(46,200,167,0.4)"/>
+    <text x="22" y="31" text-anchor="middle" font-size="10" fill="#2EC8A7" font-weight="bold">AI</text>
+    <rect x="42" y="14" width="100" height="8" rx="4" fill="rgba(255,255,255,0.5)"/>
+    <rect x="42" y="28" width="160" height="6" rx="3" fill="rgba(255,255,255,0.25)"/>
+    <rect x="42" y="40" width="130" height="6" rx="3" fill="rgba(255,255,255,0.15)"/>
+  </g>
+</svg>

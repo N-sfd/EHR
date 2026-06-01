@@ -1,27 +1,174 @@
-<div class="home-dashboard">
-  <div class="modules-grid">
-    <div 
-      class="module-card" 
-      *ngFor="let module of managementModules"
-      (click)="navigateToModule(module.route)"
-    >
-      <div class="module-icon">
-        <i class="fas" [ngClass]="module.icon"></i>
+<div class="ehr-dashboard" *ngIf="!isLoading; else loadingTpl">
+
+  <!-- ── Top Bar ─────────────────────────────────────────────────── -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="org-mark">
+        <img src="assets/logo.svg" alt="CareOS" class="topbar-logo">
+        <div>
+          <span class="topbar-brand">CareOS</span>
+          <span class="topbar-sub">Staff Portal</span>
+        </div>
       </div>
-      <div class="module-content">
-        <h3 class="module-title">{{ module.title }}</h3>
-        <p class="module-description">{{ module.description }}</p>
-        <div class="module-buttons">
-          <button 
-            class="module-btn" 
-            *ngFor="let btn of module.buttons; let i = index"
-            (click)="navigateToFeature(module, btn); $event.stopPropagation()"
-            [class.active]="i === 0 && (module.title === 'Doctors Management' || module.title === 'Staff Management')"
-          >
-            {{ btn }}
+      <div class="topbar-divider"></div>
+      <div class="topbar-greeting">
+        <span class="greeting-text">{{ greeting }}</span>
+        <span class="today-date">{{ today | date:'EEEE, MMMM d, yyyy' }}</span>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" class="tb-btn primary" (click)="go('/admin/appointments/new')">
+        <i class="fas fa-calendar-plus"></i> New Appointment
+      </button>
+      <button type="button" class="tb-btn" (click)="go('/admin/patients/add')">
+        <i class="fas fa-user-plus"></i> Add Patient
+      </button>
+      <button type="button" class="tb-btn" (click)="go('/admin/reports/scheduling-analytics')">
+        <i class="fas fa-chart-bar"></i> Reports
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Hero Banner ──────────────────────────────────────────────── -->
+  <div class="hero-banner">
+    <div class="hero-content">
+      <div class="hero-text">
+        <h2>{{ greeting }}, {{ staffName }}</h2>
+        <p>{{ today | date:'EEEE, MMMM d, yyyy' }} &nbsp;·&nbsp; {{ systemStatus }}</p>
+      </div>
+      <div class="hero-chips">
+        <span class="hero-chip chip-green"><i class="fas fa-circle-check"></i> Systems Operational</span>
+        <span class="hero-chip chip-teal"><i class="fas fa-shield-halved"></i> HIPAA Compliant</span>
+      </div>
+    </div>
+    <div class="hero-illustration">
+      <img src="assets/portal-banner.svg" alt="" aria-hidden="true">
+    </div>
+  </div>
+
+  <!-- ── KPI Strip ───────────────────────────────────────────────── -->
+  <div class="kpi-strip">
+    <div class="kpi-card" *ngFor="let k of kpis" (click)="go(k.route || '')" [style.border-top-color]="k.color">
+      <div class="kpi-icon" [style.background]="k.color + '18'" [style.color]="k.color">
+        <i class="fas" [ngClass]="k.icon"></i>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value" [style.color]="k.color">{{ k.value }}</div>
+        <div class="kpi-label">{{ k.label }}</div>
+        <div class="kpi-sub">{{ k.sub }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Main Grid ───────────────────────────────────────────────── -->
+  <div class="main-grid">
+
+    <!-- Today's Schedule -->
+    <div class="panel panel-schedule">
+      <div class="panel-header">
+        <div class="panel-title">
+          <i class="fas fa-calendar-day"></i> Today's Schedule
+          <span class="panel-badge">{{ todaySchedule.length }}</span>
+        </div>
+        <button type="button" class="panel-link" (click)="go('/admin/appointments')">
+          View all <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+
+      <div class="schedule-empty" *ngIf="todaySchedule.length === 0">
+        <i class="fas fa-calendar-xmark"></i>
+        <p>No appointments scheduled for today</p>
+        <button type="button" class="btn-book" (click)="go('/admin/appointments/new')">
+          <i class="fas fa-plus"></i> Book Appointment
+        </button>
+      </div>
+
+      <div class="schedule-list" *ngIf="todaySchedule.length > 0">
+        <div class="schedule-row" *ngFor="let a of todaySchedule">
+          <div class="sched-time">{{ a.time }}</div>
+          <div class="sched-dot" [ngClass]="statusClass(a.status)"></div>
+          <div class="sched-info">
+            <div class="sched-patient">{{ a.patientName }}</div>
+            <div class="sched-meta">
+              <span><i class="fas fa-user-doctor"></i> {{ a.doctorName }}</span>
+              <span *ngIf="a.reason"><i class="fas fa-notes-medical"></i> {{ a.reason }}</span>
+            </div>
+          </div>
+          <span class="sched-chip" [ngClass]="statusClass(a.status)">{{ a.status }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column -->
+    <div class="right-col">
+
+      <!-- Quick Actions -->
+      <div class="panel panel-actions">
+        <div class="panel-header">
+          <div class="panel-title"><i class="fas fa-bolt"></i> Quick Actions</div>
+        </div>
+        <div class="action-grid">
+          <button type="button" class="action-btn" *ngFor="let a of quickActions"
+            (click)="go(a.route)" [style.--ac]="a.color">
+            <div class="action-icon" [style.background]="a.color + '18'" [style.color]="a.color">
+              <i class="fas" [ngClass]="a.icon"></i>
+            </div>
+            <span>{{ a.label }}</span>
           </button>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="panel panel-recent">
+        <div class="panel-header">
+          <div class="panel-title"><i class="fas fa-clock-rotate-left"></i> Recent Patients</div>
+          <button type="button" class="panel-link" (click)="go('/admin/patients')">
+            View all <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+        <div class="recent-list">
+          <div class="recent-row" *ngFor="let p of recentPatients">
+            <div class="recent-avatar">{{ (p.name || '?')[0].toUpperCase() }}</div>
+            <div class="recent-info">
+              <div class="recent-name">{{ p.name }}</div>
+              <div class="recent-meta">
+                <span *ngIf="p.doctor"><i class="fas fa-user-doctor"></i> {{ p.doctor }}</span>
+                <span>{{ p.reason }}</span>
+              </div>
+            </div>
+            <div class="recent-right">
+              <div class="recent-date">{{ p.date | date:'MMM d' }}</div>
+              <span class="chip" [ngClass]="statusClass(p.status)">{{ p.status }}</span>
+            </div>
+          </div>
+          <div class="recent-empty" *ngIf="recentPatients.length === 0">
+            <i class="fas fa-users"></i> No recent patient activity
+          </div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- ── Module Grid ─────────────────────────────────────────────── -->
+  <div class="section-title"><i class="fas fa-th-large"></i> Management Modules</div>
+  <div class="module-grid">
+    <div class="mod-card" *ngFor="let m of modules" (click)="go(m.route)">
+      <div class="mod-icon" [style.background]="m.color + '18'" [style.color]="m.color">
+        <i class="fas" [ngClass]="m.icon"></i>
+      </div>
+      <div class="mod-body">
+        <div class="mod-title">{{ m.title }}</div>
+        <div class="mod-desc">{{ m.desc }}</div>
+      </div>
+      <i class="fas fa-chevron-right mod-arrow" [style.color]="m.color"></i>
+    </div>
+  </div>
+
 </div>
+
+<ng-template #loadingTpl>
+  <div class="dash-loading">
+    <div class="spinner-ring"></div>
+    <p>Loading dashboard…</p>
+  </div>
+</ng-template>

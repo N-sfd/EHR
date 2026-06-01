@@ -87,6 +87,8 @@
 }
 .nav-link:hover { background: rgba(255,255,255,0.12); color: #fff; }
 .nav-link.active { background: rgba(46,200,167,0.2); color: #2EC8A7; }
+.nav-ai { border: 1px solid rgba(46,200,167,0.35); }
+.nav-ai:hover, .nav-ai.active { border-color: #2EC8A7; }
 
 /* Sign out */
 .btn-sign-out {

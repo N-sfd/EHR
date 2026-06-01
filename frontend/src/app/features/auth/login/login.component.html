@@ -1,29 +1,50 @@
-<div class="login-shell">
-  <div class="login-panel accent">
-    <div class="logo-tag"> MEDICAL CLINIC OS</div>
-    <h1>Coordinate providers, staff & operations from a single screen.</h1>
-    <p class="lead">
-      Stay ahead with live schedules, automated reminders, AI assistance and proactive compliance insights.
-    </p>
+<div class=”login-shell”>
+  <div class=”login-panel accent”>
 
-    <div class="highlight-grid">
-      <div class="highlight-card" *ngFor="let item of highlights">
-        <span class="value">{{ item.value }}</span>
-        <span class="label">{{ item.label }}</span>
+    <!-- Brand -->
+    <div class=”brand-row”>
+      <img src=”assets/logo.svg” alt=”HMS Logo” class=”brand-logo”>
+      <div>
+        <div class=”brand-name”>CareOS</div>
+        <div class=”brand-tag”>Hospital Management System</div>
       </div>
     </div>
 
-    <div class="testimonial">
-      <p>“MDcare  helped us improve slot utilization by 32% in just eight weeks.”</p>
-      <span>- Trustcare Clinic, Las Vegas</span>
+    <h1>Modern EHR for the care teams of tomorrow.</h1>
+    <p class=”lead”>
+      Unified scheduling, AI-assisted clinical workflows, real-time lab results and patient engagement — all in one platform.
+    </p>
+
+    <!-- Illustration -->
+    <div class=”illustration-wrap”>
+      <img src=”assets/login-illustration.svg” alt=”EHR Dashboard” class=”hero-illustration”>
+    </div>
+
+    <div class=”highlight-grid”>
+      <div class=”highlight-card” *ngFor=”let item of highlights”>
+        <span class=”value”>{{ item.value }}</span>
+        <span class=”label”>{{ item.label }}</span>
+      </div>
+    </div>
+
+    <div class=”testimonial”>
+      <div class=”testimonial-avatar”>TC</div>
+      <div>
+        <p>”CareOS improved our slot utilization by 32% in just eight weeks.”</p>
+        <span>— Trustcare Clinic, Las Vegas</span>
+      </div>
     </div>
   </div>
 
   <div class="login-panel form">
     <div class="form-card">
-      <div class="pill">AI Assistance</div>
+      <div class="form-logo">
+        <img src="assets/logo.svg" alt="CareOS">
+        <span class="form-logo-name">CareOS</span>
+      </div>
+      <div class="pill"><i class="fas fa-shield-alt"></i> Secure Access</div>
       <h2>Welcome back</h2>
-      <p class="subheading">Sign in to orchestrate your clinic command center.</p>
+      <p class="subheading">Sign in to your clinic command center.</p>
 
       <form [formGroup]="loginForm" (ngSubmit)="submit()">
         <div class="form-group">
@@ -35,7 +56,7 @@
           <label>Password</label>
           <div class="password-field">
             <input class="form-control" [type]="passwordVisible ? 'text' : 'password'" formControlName="password" placeholder="••••••••">
-            <button type="button" class="toggle-password" (click)="togglePasswordVisibility()" [attr.aria-label]="passwordVisible ? 'Hide password' : 'Show password'">
+            <button type="button" class="toggle-password" (click)="togglePasswordVisibility()" [attr.aria-label]="passwordVisible ? 'Hide password' : 'Show password'" [title]="passwordVisible ? 'Hide password' : 'Show password'">
               <i class="fas" [class]="passwordVisible ? 'fa-eye-slash' : 'fa-eye'"></i>
             </button>
           </div>
@@ -63,6 +84,10 @@
       </form>
 
       <p class="hint">Use any valid Spring Security credentials (default: admin / password).</p>
+
+      <div class="powered-by">
+        <i class="fas fa-heartbeat"></i> POWERED BY CAREOS EHR
+      </div>
     </div>
   </div>
 </div>

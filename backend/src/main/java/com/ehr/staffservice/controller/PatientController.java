@@ -1,6 +1,8 @@
 package com.ehr.staffservice.controller;
 
+import com.ehr.staffservice.dto.LabResultDto;
 import com.ehr.staffservice.dto.PatientDto;
+import com.ehr.staffservice.service.LabResultService;
 import com.ehr.staffservice.service.PatientService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
@@ -25,6 +27,7 @@ import java.util.Map;
 public class PatientController {
 
     private final PatientService service;
+    private final LabResultService labResultService;
     private final EntityManager entityManager;
     private final ObjectMapper objectMapper;
 
@@ -223,6 +226,12 @@ public class PatientController {
         }
         
         return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/{id}/labs")
+    public ResponseEntity<List<LabResultDto>> getLabResults(@PathVariable Long id) {
+        List<LabResultDto> results = labResultService.getLabResultsForPatient(id, null, null);
+        return ResponseEntity.ok(results);
     }
 
     @GetMapping("/{id}/consent")

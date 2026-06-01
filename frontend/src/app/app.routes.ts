@@ -43,6 +43,34 @@ export const routes: Routes = [
         canActivate: [patientSmartGuard]
       },
       {
+        path: 'health-records',
+        loadComponent: () =>
+          import('./features/patient/health-records/health-records.component')
+            .then(m => m.HealthRecordsComponent),
+        canActivate: [patientSmartGuard]
+      },
+      {
+        path: 'medications',
+        loadComponent: () =>
+          import('./features/patient/medications/medications.component')
+            .then(m => m.MedicationsComponent),
+        canActivate: [patientSmartGuard]
+      },
+      {
+        path: 'messages',
+        loadComponent: () =>
+          import('./features/patient/messages/messages.component')
+            .then(m => m.MessagesComponent),
+        canActivate: [patientSmartGuard]
+      },
+      {
+        path: 'ai-assistant',
+        loadComponent: () =>
+          import('./features/patient/ai-assistant/patient-ai-assistant.component')
+            .then(m => m.PatientAiAssistantComponent),
+        canActivate: [patientSmartGuard]
+      },
+      {
         path: '',
         redirectTo: 'home',
         pathMatch: 'full'

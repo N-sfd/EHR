@@ -2,23 +2,28 @@
 
   <!-- Welcome Banner -->
   <div class="welcome-banner">
-    <div class="welcome-left">
-      <div class="avatar-circle">
-        <i class="fas fa-user"></i>
-      </div>
-      <div>
-        <h1 class="greeting">{{ greeting }}, {{ patientName }}</h1>
-        <p class="today-date">{{ today | date:'EEEE, MMMM d, yyyy' }}</p>
-      </div>
+    <div class="banner-illustration">
+      <img src="assets/portal-banner.svg" alt="" aria-hidden="true">
     </div>
-    <div class="welcome-stats">
-      <div class="stat-card">
-        <span class="stat-num">{{ upcomingAppointments.length }}</span>
-        <span class="stat-label">Upcoming</span>
+    <div class="banner-overlay">
+      <div class="welcome-left">
+        <div class="avatar-circle">
+          <i class="fas fa-user"></i>
+        </div>
+        <div>
+          <h1 class="greeting">{{ greeting }}, {{ patientName }}</h1>
+          <p class="today-date">{{ today | date:'EEEE, MMMM d, yyyy' }}</p>
+        </div>
       </div>
-      <div class="stat-card">
-        <span class="stat-num">{{ pastAppointments.length }}</span>
-        <span class="stat-label">Past visits</span>
+      <div class="welcome-stats">
+        <div class="stat-card">
+          <span class="stat-num">{{ upcomingAppointments.length }}</span>
+          <span class="stat-label">Upcoming</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num">{{ pastAppointments.length }}</span>
+          <span class="stat-label">Past visits</span>
+        </div>
       </div>
     </div>
   </div>
@@ -40,6 +45,10 @@
     <a class="qa-card" routerLink="/patient/messages">
       <i class="fas fa-comment-medical"></i>
       <span>Messages</span>
+    </a>
+    <a class="qa-card qa-ai" routerLink="/patient/ai-assistant">
+      <i class="fas fa-robot"></i>
+      <span>Health AI</span>
     </a>
   </div>
 

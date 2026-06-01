@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { switchMap, of, catchError } from 'rxjs';
 import { PatientService } from '../../../core/services/patient.service';
 import { AppointmentService } from '../../../core/services/appointment.service';
@@ -17,6 +18,8 @@ import { Appointment } from '../../../core/models/appointment.model';
 export class PatientDetailsComponent implements OnInit {
   patient: Patient | null = null;
   appointments: Appointment[] = [];
+  labs: any[] = [];
+  labsLoading = false;
   isLoading = false;
   errorMessage: string | null = null;
   showImageModal = false;
@@ -24,6 +27,7 @@ export class PatientDetailsComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private http: HttpClient,
     private patientService: PatientService,
     private appointmentService: AppointmentService
   ) {}
@@ -52,6 +56,7 @@ export class PatientDetailsComponent implements OnInit {
         this.patient = patient;
         if (patient) {
           this.loadAppointments(patient.patientId || 0);
+          this.loadLabResults(patient.patientId || 0);
         }
         this.isLoading = false;
       },
@@ -73,6 +78,31 @@ export class PatientDetailsComponent implements OnInit {
         this.appointments = [];
       }
     });
+  }
+
+  loadLabResults(patientId: number): void {
+    this.labsLoading = true;
+    this.http.get<any[]>(`/api/patients/${patientId}/labs`)
+      .pipe(catchError(() => of([])))
+      .subscribe(results => {
+        this.labs = (results || []).sort((a, b) =>
+          new Date(b.resultDate || b.orderDate || 0).getTime() -
+          new Date(a.resultDate || a.orderDate || 0).getTime()
+        );
+        this.labsLoading = false;
+      });
+  }
+
+  labStatusClass(status: string): string {
+    if (status === 'ABNORMAL') return 'lab-abnormal';
+    if (status === 'CRITICAL')  return 'lab-critical';
+    return 'lab-normal';
+  }
+
+  labStatusLabel(status: string): string {
+    if (status === 'ABNORMAL') return '⚠ Abnormal';
+    if (status === 'CRITICAL')  return '🔴 Critical';
+    return '✓ Normal';
   }
 
   getAvatar(): string {

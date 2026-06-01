@@ -48,8 +48,18 @@
     Informational support only — do not use for emergency diagnosis or treatment decisions.
   </div>
 
-  <!-- Chat Area -->
-  <div class="chat-area" #chatArea>
+  <!-- AI Not Configured notice -->
+  <div class="not-configured-notice" *ngIf="!aiEnabled">
+    <div class="nc-icon"><i class="fas fa-robot"></i></div>
+    <h3>AI is not configured on this server.</h3>
+    <ul>
+      <li>To review lab results: open a patient profile and click <strong>"Lab Results"</strong> in the patient details.</li>
+      <li>To enable AI: set <code>EHR_AI_ENABLED=true</code> with a valid <code>OPENAI_API_KEY</code> and restart the backend.</li>
+    </ul>
+  </div>
+
+  <!-- Chat Area (only when AI is enabled) -->
+  <div class="chat-area" #chatArea *ngIf="aiEnabled">
 
     <!-- Empty state -->
     <div class="empty-state" *ngIf="messages().length === 0 && !loading()">
@@ -140,13 +150,13 @@
   </div>
 
   <!-- Error -->
-  <div class="error-bar" *ngIf="error()">
+  <div class="error-bar" *ngIf="error() && aiEnabled">
     <i class="fas fa-exclamation-circle"></i> {{ error() }}
     <button type="button" class="close-error" (click)="error.set(null)" title="Dismiss error" aria-label="Dismiss error"><i class="fas fa-times"></i></button>
   </div>
 
-  <!-- Input Area -->
-  <div class="input-area">
+  <!-- Input Area (only when AI is enabled) -->
+  <div class="input-area" *ngIf="aiEnabled">
     <textarea
       [(ngModel)]="input"
       (keydown)="onKeyDown($event)"

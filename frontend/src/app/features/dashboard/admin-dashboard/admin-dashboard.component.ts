@@ -1,145 +1,132 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { forkJoin, catchError, of } from 'rxjs';
+import { AuthService } from '../../../core/services/auth.service';
+
+interface KpiCard { label: string; value: number | string; icon: string; color: string; sub?: string; route?: string; }
+interface ScheduleItem { time: string; patientName: string; doctorName: string; reason: string; status: string; appointmentId?: number; }
+interface RecentPatient { name: string; reason: string; date: string; status: string; doctor: string; patientId?: number; }
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css']
 })
-export class AdminDashboardComponent {
-  constructor(private router: Router) {
-    // Component initialized
-  }
+export class AdminDashboardComponent implements OnInit {
+  private http = inject(HttpClient);
+  private router = inject(Router);
+  private auth = inject(AuthService);
 
-  managementModules = [
-    {
-      title: 'Doctors Management',
-      description: 'Manage doctor profiles, schedules, and professional information.',
-      icon: 'fa-user-doctor',
-      route: '/admin/doctors',
-      buttons: ['Profiles', 'Schedule', 'Records']
-    },
-    {
-      title: 'Staff Management',
-      description: 'Manage staff members, roles, and department assignments.',
-      icon: 'fa-users',
-      route: '/admin/staffs',
-      buttons: ['Directory', 'Roles', 'Assignments']
-    },
-    {
-      title: 'Patient Management',
-      description: 'Comprehensive patient records, history, and care management.',
-      icon: 'fa-bed-pulse',
-      route: '/admin/patients',
-      buttons: ['Records', 'History', 'Care Plans']
-    },
-    {
-      title: 'Appointment Scheduling',
-      description: 'Efficient scheduling system for doctors and patients.',
-      icon: 'fa-calendar-check',
-      route: '/admin/appointments',
-      buttons: ['Booking', 'Calendar', 'Reminders']
-    },
-    {
-      title: 'Billing and Invoicing',
-      description: 'Streamlined billing, insurance claim processing, and payment tracking.',
-      icon: 'fa-file-invoice-dollar',
-      route: '/admin/billing',
-      buttons: ['Invoicing', 'Payment', 'Claims']
-    },
-    {
-      title: 'Pharmacy Management',
-      description: 'Complete pharmacy inventory and prescription management.',
-      icon: 'fa-pills',
-      route: '/admin/pharmacy',
-      buttons: ['Inventory', 'Prescriptions', 'Dispensing']
-    },
-    {
-      title: 'Lab & Radiology Info System',
-      description: 'Laboratory tests, radiology reports, and diagnostic imaging.',
-      icon: 'fa-flask',
-      route: '/admin/lab-radiology',
-      buttons: ['Lab Tests', 'Reports', 'Imaging']
-    },
-    {
-      title: 'Electronic Prescription',
-      description: 'Digital prescription management and e-prescribing system.',
-      icon: 'fa-prescription',
-      route: '/admin/prescriptions',
-      buttons: ['E-Prescribe', 'Digital', 'Secure']
-    },
-    {
-      title: 'Inventory Manager',
-      description: 'Medical supplies, equipment, and inventory tracking.',
-      icon: 'fa-boxes-stacked',
-      route: '/admin/inventory',
-      buttons: ['Supplies', 'Equipment', 'Tracking']
-    },
-    {
-      title: 'Telehealth',
-      description: 'Remote consultation and virtual healthcare services.',
-      icon: 'fa-video',
-      route: '/admin/telehealth',
-      buttons: ['Video Calls', 'Virtual', 'Consultation']
-    }
+  today = new Date();
+  greeting = '';
+  staffName = 'Administrator';
+  readonly systemStatus = 'All systems operational';
+  isLoading = true;
+
+  kpis: KpiCard[] = [];
+  todaySchedule: ScheduleItem[] = [];
+  recentPatients: RecentPatient[] = [];
+
+  readonly quickActions = [
+    { label: 'New Appointment', icon: 'fa-calendar-plus', route: '/admin/appointments/new', color: '#004F4F' },
+    { label: 'Add Patient',     icon: 'fa-user-plus',     route: '/admin/patients/add',    color: '#0891b2' },
+    { label: 'Doctor Schedules',icon: 'fa-calendar-alt',  route: '/admin/doctors/schedule',color: '#7c3aed' },
+    { label: 'Patient Records',  icon: 'fa-folder-open',   route: '/admin/patients',        color: '#059669' },
+    { label: 'Departments',     icon: 'fa-sitemap',       route: '/admin/departments',     color: '#d97706' },
+    { label: 'Reports',         icon: 'fa-chart-bar',     route: '/admin/reports/scheduling-analytics', color: '#db2777' },
   ];
 
-  navigateToModule(route: string) {
-    this.router.navigate([route]);
+  readonly modules = [
+    { title: 'Doctors',       icon: 'fa-user-doctor',        route: '/admin/doctors',      color: '#004F4F', desc: 'Profiles & schedules' },
+    { title: 'Staff',         icon: 'fa-users',               route: '/admin/staff-management', color: '#0891b2', desc: 'Roles & assignments' },
+    { title: 'Patients',      icon: 'fa-bed-pulse',           route: '/admin/patients',     color: '#7c3aed', desc: 'Records & care plans' },
+    { title: 'Appointments',  icon: 'fa-calendar-check',      route: '/admin/appointments', color: '#059669', desc: 'Scheduling & booking' },
+    { title: 'Departments',   icon: 'fa-sitemap',             route: '/admin/departments',  color: '#d97706', desc: 'Org structure' },
+    { title: 'Specializations',icon: 'fa-stethoscope',        route: '/admin/specializations', color: '#dc2626', desc: 'Clinical specialties' },
+    { title: 'Schedules',     icon: 'fa-table-columns',       route: '/admin/schedules',    color: '#0284c7', desc: 'Provider templates' },
+    { title: 'Analysis',      icon: 'fa-chart-line',          route: '/admin/analysis',     color: '#7c3aed', desc: 'Insights & trends' },
+    { title: 'Reports',       icon: 'fa-file-chart-column',   route: '/admin/reports/scheduling-analytics', color: '#059669', desc: 'Analytics & exports' },
+    { title: 'Roles & Access',icon: 'fa-shield-halved',       route: '/admin/roles',        color: '#db2777', desc: 'RBAC configuration' },
+  ];
+
+  ngOnInit(): void {
+    const h = this.today.getHours();
+    this.greeting = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+    this.auth.getCurrentUser().subscribe(user => {
+      if (user?.name) this.staffName = user.name;
+    });
+    this.loadData();
   }
 
-  navigateToFeature(module: any, feature: string) {
-    if (module.title === 'Doctors Management') {
-      switch(feature) {
-        case 'Profiles':
-          this.router.navigate(['/admin/doctors']);
-          break;
-        case 'Schedule':
-          this.router.navigate(['/admin/doctors/schedule']);
-          break;
-        case 'Records':
-          this.router.navigate(['/admin/doctors']);
-          break;
-        default:
-          this.router.navigate([module.route]);
-      }
-    } else if (module.title === 'Staff Management') {
-      switch(feature) {
-        case 'Directory':
-          this.router.navigate(['/admin/staffs']);
-          break;
-        case 'Roles':
-          this.router.navigate(['/admin/staffs'], { queryParams: { view: 'roles' } });
-          break;
-        case 'Assignments':
-          this.router.navigate(['/admin/staffs'], { queryParams: { view: 'assignments' } });
-          break;
-        default:
-          this.router.navigate([module.route]);
-      }
-    } else if (module.title === 'Appointment Scheduling') {
-      switch(feature) {
-        case 'Booking':
-          this.router.navigate(['/admin/appointments']);
-          break;
-        case 'Calendar':
-          this.router.navigate(['/admin/appointments/calendar']);
-          break;
-        case 'Reminders':
-          // For now, navigate to appointments list with reminders filter
-          // TODO: Create a dedicated reminders component if needed
-          this.router.navigate(['/admin/appointments'], { queryParams: { view: 'reminders' } });
-          break;
-        default:
-          this.router.navigate([module.route]);
-      }
-    } else {
-      // Default navigation for other modules
-      this.router.navigate([module.route]);
+  private loadData(): void {
+    const todayStr = this.today.toISOString().slice(0, 10);
+    forkJoin({
+      appointments: this.http.get<any[]>('/api/appointments').pipe(catchError(() => of([]))),
+      patients:     this.http.get<any>('/api/patients').pipe(catchError(() => of([]))),
+      doctors:      this.http.get<any[]>('/api/doctors').pipe(catchError(() => of([])))
+    }).subscribe(({ appointments, patients, doctors }) => {
+      const appts = Array.isArray(appointments) ? appointments : [];
+      const pList = Array.isArray(patients) ? patients : (patients?.content || []);
+      const dList = Array.isArray(doctors) ? doctors : [];
+      const todayAppts = appts.filter(a => (a.appointmentDate || a.date || '').startsWith(todayStr));
+
+      this.kpis = [
+        { label: "Today's Appointments", value: todayAppts.length,
+          icon: 'fa-calendar-day',   color: '#004F4F', sub: 'scheduled today',  route: '/admin/appointments' },
+        { label: 'Checked In',          value: todayAppts.filter(a => a.status === 'Checked In').length,
+          icon: 'fa-circle-check',    color: '#059669', sub: 'arrived patients', route: '/admin/appointments' },
+        { label: 'Scheduled',           value: todayAppts.filter(a => a.status === 'Scheduled' || !a.status).length,
+          icon: 'fa-clock',           color: '#0891b2', sub: 'pending today',    route: '/admin/appointments' },
+        { label: 'Total Patients',      value: pList.length,
+          icon: 'fa-hospital-user',   color: '#7c3aed', sub: 'registered',       route: '/admin/patients' },
+        { label: 'Doctors on Staff',    value: dList.length,
+          icon: 'fa-user-doctor',     color: '#d97706', sub: 'active providers', route: '/admin/doctors' },
+      ];
+
+      this.todaySchedule = todayAppts
+        .sort((a, b) => (a.appointmentTime || a.time || '00:00').localeCompare(b.appointmentTime || b.time || '00:00'))
+        .slice(0, 10)
+        .map(a => ({
+          time:        a.appointmentTime || a.time || '—',
+          patientName: a.patientName     || `Patient #${a.patientId}`,
+          doctorName:  a.doctorName      || 'Unassigned',
+          reason:      a.reason          || 'General Visit',
+          status:      a.status          || 'Scheduled',
+          appointmentId: a.appointmentId || a.id
+        }));
+
+      this.recentPatients = appts
+        .sort((a, b) =>
+          new Date(b.appointmentDate || b.date || 0).getTime() -
+          new Date(a.appointmentDate || a.date || 0).getTime()
+        )
+        .slice(0, 8)
+        .map(a => ({
+          name:      a.patientName || `Patient #${a.patientId}`,
+          reason:    a.reason      || 'General Visit',
+          date:      a.appointmentDate || a.date || '',
+          status:    a.status      || 'Scheduled',
+          doctor:    a.doctorName  || '',
+          patientId: a.patientId
+        }));
+
+      this.isLoading = false;
+    });
+  }
+
+  go(route: string): void { this.router.navigate([route]); }
+
+  statusClass(s: string): string {
+    switch (s) {
+      case 'Checked In':  return 'chip-green';
+      case 'Checked Out': return 'chip-grey';
+      case 'Cancelled':   return 'chip-red';
+      case 'Confirmed':   return 'chip-blue';
+      default:            return 'chip-yellow';
     }
   }
 }
-

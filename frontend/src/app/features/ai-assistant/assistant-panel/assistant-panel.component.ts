@@ -40,6 +40,8 @@ export class AssistantPanelComponent implements OnInit, OnDestroy {
   private readonly patientService = inject(PatientService);
   private readonly appointmentService = inject(AppointmentService);
 
+  readonly aiEnabled = this.flags.aiEnabled();
+
   patientId = signal<number>(0);
   patient = signal<Patient | null>(null);
   stats = signal<DashboardStats | null>(null);
@@ -241,14 +243,38 @@ export class AssistantPanelComponent implements OnInit, OnDestroy {
         this.loading.set(false);
       },
       error: (err) => {
-        const is503 = err?.status === 503 || err?.status === 404 || err?.status === 500;
-        const msg = is503
-          ? 'AI service is not configured on this server. Enable it by setting EHR_AI_ENABLED=true with a valid OPENAI_API_KEY.'
-          : 'Unable to get a response. Please try again.';
-        this.updateLastMessage(m => ({ ...m, text: msg, isStreaming: false }));
-        this.error.set(is503 ? 'AI backend not configured (EHR_AI_ENABLED=false).' : 'Request failed — please retry.');
-        this.loading.set(false);
+        const isUnavailable = err?.status === 503 || err?.status === 404 || err?.status === 500;
+        if (isUnavailable) {
+          this.handleAiUnavailable(req.message);
+        } else {
+          this.updateLastMessage(m => ({ ...m, text: 'Unable to get a response. Please try again.', isStreaming: false }));
+          this.error.set('Request failed — please retry.');
+          this.loading.set(false);
+        }
       }
     });
+  }
+
+  private handleAiUnavailable(message: string): void {
+    const lower = message.toLowerCase();
+    let reply = '';
+
+    if (/lab|result|test|cbc|lipid|panel|blood\s+work/.test(lower)) {
+      reply = this.patientId()
+        ? `AI is not configured on this server. To view lab results for this patient, navigate to their profile and open the Lab Results section.\n\nTo enable AI: set EHR_AI_ENABLED=true and provide a valid OPENAI_API_KEY in your environment.`
+        : `AI is not configured on this server.\n\nTo review lab results: open a patient profile and click "Lab Results".\n\nTo enable AI: set EHR_AI_ENABLED=true with a valid OPENAI_API_KEY.`;
+    } else if (/med|medication|drug|prescri|pill|refill/.test(lower)) {
+      reply = this.patientId()
+        ? `AI is not configured on this server. To view medications for this patient, navigate to their profile and open the Medications section.\n\nTo enable AI: set EHR_AI_ENABLED=true and provide a valid OPENAI_API_KEY.`
+        : `AI is not configured on this server.\n\nTo review medications: open a patient profile and use the Medications section.\n\nTo enable AI: set EHR_AI_ENABLED=true with a valid OPENAI_API_KEY.`;
+    } else if (/vital|bp|pressure|heart|pulse|temp|weight|oxygen/.test(lower)) {
+      reply = `AI is not configured on this server. Vitals are recorded during patient encounters — open a patient's Encounter record to review them.\n\nTo enable AI: set EHR_AI_ENABLED=true with a valid OPENAI_API_KEY.`;
+    } else {
+      reply = `AI backend is not configured (EHR_AI_ENABLED=false).\n\nTo enable the AI assistant:\n1. Set EHR_AI_ENABLED=true in your environment\n2. Provide a valid OPENAI_API_KEY\n3. Restart the backend server\n\nYou can still navigate the EHR normally — patient records, appointments, and lab results are all available.`;
+    }
+
+    this.updateLastMessage(m => ({ ...m, text: reply, isStreaming: false }));
+    this.error.set('AI backend not configured (EHR_AI_ENABLED=false). See response for details.');
+    this.loading.set(false);
   }
 }

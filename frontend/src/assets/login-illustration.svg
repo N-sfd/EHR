@@ -1,0 +1,98 @@
+<svg viewBox="0 0 560 480" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <defs>
+    <linearGradient id="card-g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.04"/>
+    </linearGradient>
+    <linearGradient id="ecg-g" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2EC8A7" stop-opacity="0"/>
+      <stop offset="30%" stop-color="#2EC8A7"/>
+      <stop offset="100%" stop-color="#2EC8A7" stop-opacity="0.3"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Main dashboard card -->
+  <rect x="60" y="40" width="440" height="300" rx="20" fill="url(#card-g)" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+
+  <!-- Top bar of card -->
+  <rect x="60" y="40" width="440" height="48" rx="20" fill="rgba(255,255,255,0.1)"/>
+  <rect x="60" y="68" width="440" height="20" fill="rgba(255,255,255,0.1)"/>
+  <!-- Dots -->
+  <circle cx="90" cy="64" r="6" fill="#ff6b6b" opacity="0.8"/>
+  <circle cx="110" cy="64" r="6" fill="#ffd166" opacity="0.8"/>
+  <circle cx="130" cy="64" r="6" fill="#2EC8A7" opacity="0.8"/>
+  <!-- Title bar text -->
+  <rect x="155" y="59" width="120" height="10" rx="5" fill="rgba(255,255,255,0.4)"/>
+
+  <!-- KPI mini cards -->
+  <rect x="84" y="110" width="90" height="70" rx="12" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+  <rect x="188" y="110" width="90" height="70" rx="12" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+  <rect x="292" y="110" width="90" height="70" rx="12" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+  <rect x="396" y="110" width="90" height="70" rx="12" fill="rgba(2EC8A7,0.2)" stroke="rgba(46,200,167,0.35)" stroke-width="1"/>
+
+  <!-- KPI icons -->
+  <circle cx="102" cy="130" r="10" fill="#2EC8A7" opacity="0.7"/>
+  <text x="102" y="134" text-anchor="middle" font-size="11" fill="white">♥</text>
+  <circle cx="206" cy="130" r="10" fill="#60a5fa" opacity="0.7"/>
+  <text x="206" y="134" text-anchor="middle" font-size="11" fill="white">👤</text>
+  <circle cx="310" cy="130" r="10" fill="#a78bfa" opacity="0.7"/>
+  <text x="310" y="134" text-anchor="middle" font-size="11" fill="white">📅</text>
+  <circle cx="414" cy="130" r="10" fill="#2EC8A7" opacity="0.9"/>
+  <text x="414" y="134" text-anchor="middle" font-size="11" fill="white">🤖</text>
+
+  <!-- KPI numbers -->
+  <rect x="90" y="148" width="50" height="14" rx="4" fill="rgba(255,255,255,0.7)"/>
+  <rect x="194" y="148" width="50" height="14" rx="4" fill="rgba(255,255,255,0.7)"/>
+  <rect x="298" y="148" width="50" height="14" rx="4" fill="rgba(255,255,255,0.7)"/>
+  <rect x="402" y="148" width="50" height="14" rx="4" fill="rgba(46,200,167,0.8)"/>
+  <rect x="90" y="168" width="35" height="8" rx="3" fill="rgba(255,255,255,0.3)"/>
+  <rect x="194" y="168" width="40" height="8" rx="3" fill="rgba(255,255,255,0.3)"/>
+  <rect x="298" y="168" width="38" height="8" rx="3" fill="rgba(255,255,255,0.3)"/>
+  <rect x="402" y="168" width="42" height="8" rx="3" fill="rgba(46,200,167,0.5)"/>
+
+  <!-- ECG Line -->
+  <path d="M84 240 L140 240 L155 200 L165 275 L175 210 L185 240 L476 240"
+        stroke="url(#ecg-g)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- ECG glow -->
+  <path d="M84 240 L140 240 L155 200 L165 275 L175 210 L185 240 L476 240"
+        stroke="#2EC8A7" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity="0.12"/>
+
+  <!-- Table rows below -->
+  <rect x="84" y="264" width="392" height="1" fill="rgba(255,255,255,0.08)"/>
+  <rect x="84" y="280" width="200" height="8" rx="3" fill="rgba(255,255,255,0.2)"/>
+  <rect x="84" y="295" width="160" height="8" rx="3" fill="rgba(255,255,255,0.15)"/>
+  <rect x="84" y="310" width="180" height="8" rx="3" fill="rgba(255,255,255,0.12)"/>
+
+  <!-- Right column pills -->
+  <rect x="380" y="276" width="60" height="18" rx="9" fill="rgba(46,200,167,0.3)" stroke="rgba(46,200,167,0.5)" stroke-width="1"/>
+  <rect x="380" y="291" width="60" height="18" rx="9" fill="rgba(96,165,250,0.25)" stroke="rgba(96,165,250,0.4)" stroke-width="1"/>
+  <rect x="380" y="306" width="60" height="18" rx="9" fill="rgba(167,139,250,0.25)" stroke="rgba(167,139,250,0.4)" stroke-width="1"/>
+
+  <!-- Floating mini cards bottom -->
+  <rect x="60" y="364" width="130" height="80" rx="14" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+  <rect x="210" y="378" width="130" height="80" rx="14" fill="rgba(46,200,167,0.12)" stroke="rgba(46,200,167,0.25)" stroke-width="1"/>
+  <rect x="370" y="355" width="130" height="90" rx="14" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+
+  <!-- Mini card content -->
+  <circle cx="90" cy="390" r="16" fill="rgba(46,200,167,0.2)" stroke="#2EC8A7" stroke-width="1.5"/>
+  <text x="90" y="395" text-anchor="middle" font-size="14" fill="#2EC8A7">+</text>
+  <rect x="115" y="382" width="60" height="8" rx="3" fill="rgba(255,255,255,0.4)"/>
+  <rect x="115" y="396" width="45" height="6" rx="3" fill="rgba(255,255,255,0.2)"/>
+  <rect x="72" y="418" width="100" height="6" rx="3" fill="rgba(255,255,255,0.15)"/>
+  <rect x="72" y="430" width="80" height="6" rx="3" fill="rgba(255,255,255,0.1)"/>
+
+  <circle cx="240" cy="403" r="16" fill="rgba(46,200,167,0.3)" stroke="#2EC8A7" stroke-width="1.5"/>
+  <text x="240" y="408" text-anchor="middle" font-size="12" fill="#2EC8A7">AI</text>
+  <rect x="265" y="396" width="58" height="8" rx="3" fill="rgba(255,255,255,0.5)"/>
+  <rect x="265" y="410" width="42" height="6" rx="3" fill="rgba(255,255,255,0.25)"/>
+  <rect x="222" y="432" width="100" height="6" rx="3" fill="rgba(46,200,167,0.35)"/>
+  <rect x="222" y="444" width="76" height="6" rx="3" fill="rgba(46,200,167,0.2)"/>
+
+  <circle cx="400" cy="378" r="16" fill="rgba(167,139,250,0.2)" stroke="rgba(167,139,250,0.5)" stroke-width="1.5"/>
+  <text x="400" y="383" text-anchor="middle" font-size="12" fill="#a78bfa">Rx</text>
+  <rect x="425" y="371" width="58" height="8" rx="3" fill="rgba(255,255,255,0.4)"/>
+  <rect x="425" y="385" width="42" height="6" rx="3" fill="rgba(255,255,255,0.2)"/>
+  <rect x="382" y="406" width="100" height="6" rx="3" fill="rgba(255,255,255,0.15)"/>
+  <rect x="382" y="418" width="80" height="6" rx="3" fill="rgba(255,255,255,0.1)"/>
+  <rect x="382" y="430" width="60" height="6" rx="3" fill="rgba(255,255,255,0.08)"/>
+</svg>

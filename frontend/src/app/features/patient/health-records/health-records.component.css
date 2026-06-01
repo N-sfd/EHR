@@ -1,0 +1,36 @@
+:host {
+  --p: #004F4F;
+  --accent: #2EC8A7;
+  --border: #E6E6E6;
+  --text: #0D1F2D;
+  --muted: #6b7280;
+}
+
+.records-page { max-width: 860px; margin: 0 auto; padding: 24px 20px 48px; display: flex; flex-direction: column; gap: 20px; }
+
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.page-header h1 { margin: 0; font-size: 1.5rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 10px; }
+.page-header h1 i { color: var(--accent); }
+.subtitle { margin: 4px 0 0; color: var(--muted); font-size: 0.9rem; }
+.btn-back { display: flex; align-items: center; gap: 6px; background: #fff; border: 1px solid var(--border); border-radius: 8px; color: var(--text); text-decoration: none; font-size: 0.85rem; font-weight: 600; padding: 8px 14px; transition: all 0.15s; }
+.btn-back:hover { background: #e6f4f4; border-color: var(--accent); color: var(--p); }
+
+.empty-state { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 60px 20px; color: #9ca3af; text-align: center; background: #f9fafb; border-radius: 12px; border: 1px dashed var(--border); }
+.empty-state i { font-size: 2.5rem; }
+.empty-state h3 { margin: 0; color: #374151; font-size: 1.1rem; }
+
+.records-list { display: flex; flex-direction: column; gap: 10px; }
+.record-card { display: flex; align-items: center; gap: 16px; background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 18px 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: box-shadow 0.15s, border-color 0.15s; }
+.record-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.08); border-color: var(--accent); }
+
+.record-icon { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; background: #fee2e2; border-radius: 10px; color: #dc2626; font-size: 1.2rem; flex-shrink: 0; }
+.record-info { flex: 1; }
+.record-name { font-size: 1rem; font-weight: 600; color: var(--text); }
+.record-meta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; font-size: 0.8rem; color: var(--muted); }
+.record-meta span { display: flex; align-items: center; gap: 4px; }
+
+.btn-download { display: flex; align-items: center; gap: 6px; background: var(--p); color: #fff; border: none; border-radius: 8px; font-size: 0.8rem; font-weight: 600; padding: 8px 14px; cursor: pointer; transition: background 0.15s; white-space: nowrap; }
+.btn-download:hover { background: #003838; }
+
+.loading-state { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 80px 20px; color: var(--muted); }
+.loading-state i { font-size: 2.5rem; color: var(--accent); }

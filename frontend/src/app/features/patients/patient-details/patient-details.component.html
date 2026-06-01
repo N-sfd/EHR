@@ -174,12 +174,59 @@
       </table>
     </div>
   </section>
+
+  <!-- Lab Results -->
+  <section class="patient-history-card card lab-results-card">
+    <div class="card-header-section">
+      <h3 class="card-title"><i class="fas fa-flask"></i> Lab Results</h3>
+      <span class="total-count">{{ labs.length }} result(s) on file</span>
+    </div>
+
+    <div class="lab-loading" *ngIf="labsLoading">
+      <i class="fas fa-spinner fa-spin"></i> Loading lab results…
+    </div>
+
+    <div class="lab-empty" *ngIf="!labsLoading && labs.length === 0">
+      <i class="fas fa-flask"></i>
+      <p>No lab results on file for this patient.</p>
+    </div>
+
+    <div class="lab-list" *ngIf="!labsLoading && labs.length > 0">
+      <div class="lab-row" *ngFor="let lab of labs">
+        <div class="lab-icon-wrap"><i class="fas fa-vial"></i></div>
+        <div class="lab-info">
+          <div class="lab-name">{{ lab.panelName || 'Lab Panel' }}</div>
+          <div class="lab-meta">
+            <span *ngIf="lab.labName"><i class="fas fa-building"></i> {{ lab.labName }}</span>
+            <span *ngIf="lab.orderingProvider"><i class="fas fa-user-doctor"></i> {{ lab.orderingProvider }}</span>
+            <span *ngIf="lab.resultDate"><i class="fas fa-calendar"></i> {{ lab.resultDate | date:'mediumDate' }}</span>
+          </div>
+          <div class="lab-items" *ngIf="lab.items?.length">
+            <span class="lab-item-chip" *ngFor="let item of lab.items?.slice(0,5)"
+              [class.chip-abnormal]="item.flag === 'HIGH' || item.flag === 'LOW' || item.flag === 'CRITICAL'">
+              {{ item.testName }}{{ item.flag ? ' (' + item.flag + ')' : '' }}
+            </span>
+            <span class="lab-item-chip chip-more" *ngIf="lab.items?.length > 5">+{{ lab.items.length - 5 }} more</span>
+          </div>
+        </div>
+        <div class="lab-status">
+          <span class="lab-badge" [ngClass]="labStatusClass(lab.overallStatus)">
+            {{ labStatusLabel(lab.overallStatus) }}
+          </span>
+          <span class="lab-abnormal-count" *ngIf="lab.abnormalCount > 0">
+            {{ lab.abnormalCount }} abnormal
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
 </div>
 
 <!-- Image Modal -->
 <div class="image-modal" *ngIf="showImageModal" (click)="closeImageModal()">
   <div class="image-modal-content" (click)="$event.stopPropagation()">
-    <button class="image-modal-close" (click)="closeImageModal()" aria-label="Close">
+    <button type="button" class="image-modal-close" (click)="closeImageModal()" aria-label="Close" title="Close">
       <i class="fas fa-times"></i>
     </button>
     <img [src]="getFullImageUrl()" [alt]="(patient?.firstName || 'Patient') + ' ' + (patient?.lastName || '') + ' photo'" [title]="(patient?.firstName || 'Patient') + ' ' + (patient?.lastName || '') + ' profile photo'" (error)="onImageError($event)">
