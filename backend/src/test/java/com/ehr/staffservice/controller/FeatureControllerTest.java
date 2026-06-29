@@ -1,6 +1,7 @@
 package com.ehr.staffservice.controller;
 
 import com.ehr.staffservice.config.AiProperties;
+import com.ehr.staffservice.config.EhrAiProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,9 +25,12 @@ class FeatureControllerTest {
     @Mock
     private AiProperties aiProperties;
 
+    @Mock
+    private EhrAiProperties ehrAiProperties;
+
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(new FeatureController(aiProperties)).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(new FeatureController(aiProperties, ehrAiProperties)).build();
     }
 
     @Test
@@ -47,6 +51,7 @@ class FeatureControllerTest {
         when(aiProperties.isEnabled()).thenReturn(true);
         when(aiProperties.isAuditEnabled()).thenReturn(true);
         when(aiProperties.isAllowStreaming()).thenReturn(true);
+        when(ehrAiProperties.isOllama()).thenReturn(false);
         mockMvc.perform(get("/api/features").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.aiEnabled").value(true))
