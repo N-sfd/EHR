@@ -8,6 +8,12 @@ export interface FeaturesResponse {
   aiAuditEnabled: boolean;
   /** When true, {@code POST /api/ai/chat/stream} is enabled; UI may stream then fall back to {@code /api/ai/chat}. */
   aiStreamingEnabled: boolean;
+  /** True when backend uses local Ollama ({@code EHR_AI_OLLAMA=true}). */
+  aiOllama?: boolean;
+  /** {@code ollama} | {@code openai} | {@code none} */
+  aiProvider?: string;
+  aiChatModel?: string;
+  ollamaBaseUrl?: string;
 }
 
 /**
@@ -28,6 +34,14 @@ export class FeatureFlagsService {
   readonly aiAuditEnabled = computed(() => this.data()?.aiAuditEnabled === true);
 
   readonly aiStreamingEnabled = computed(() => this.data()?.aiStreamingEnabled === true);
+
+  readonly aiOllama = computed(() => this.data()?.aiOllama === true);
+
+  readonly aiProvider = computed(() => this.data()?.aiProvider ?? 'none');
+
+  readonly aiChatModel = computed(() => this.data()?.aiChatModel ?? '');
+
+  readonly ollamaBaseUrl = computed(() => this.data()?.ollamaBaseUrl ?? 'http://localhost:11434');
 
   load(): Observable<FeaturesResponse> {
     return this.http.get<FeaturesResponse>('/api/features').pipe(

@@ -83,6 +83,11 @@ export class SidebarComponent implements OnInit {
           icon: 'fa-grip', 
           label: 'Dashboard', 
           route: '/admin/dashboard'
+        },
+        {
+          icon: 'fa-wand-magic-sparkles',
+          label: 'AI Assistant',
+          route: '/admin/ai-assistant'
         }
       ]
     },
@@ -133,16 +138,6 @@ export class SidebarComponent implements OnInit {
           icon: 'fa-user-plus',
           label: 'Add Patient',
           route: '/admin/patients/add'
-        },
-        {
-          icon: 'fa-file-medical',
-          label: 'Patient Snapshot',
-          route: '/admin/patients/1/snapshot'
-        },
-        {
-          icon: 'fa-notes-medical',
-          label: 'MyChart Portal',
-          route: '/patient/home'
         }
       ]
     },
@@ -195,16 +190,6 @@ export class SidebarComponent implements OnInit {
         { icon: 'fa-briefcase', label: 'Designation', route: '/admin/designations' },
         { icon: 'fa-building', label: 'Departments', route: '/admin/departments' },
         { icon: 'fa-stethoscope', label: 'Specializations', route: '/admin/specializations' }
-      ]
-    },
-    {
-      title: 'Analysis',
-      items: [
-        { 
-          icon: 'fa-chart-line', 
-          label: 'Dashboard Analysis',
-          route: '/admin/analysis'
-        }
       ]
     },
     {

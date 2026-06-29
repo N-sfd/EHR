@@ -1,4 +1,25 @@
 <div class="sched-wrap epic-style">
+  <!-- Hero strip -->
+  <div class="schedule-hero">
+    <div class="schedule-hero-decor" aria-hidden="true">
+      <img src="assets/hospital-icon.svg" class="schedule-hero-icon icon-a" alt="">
+      <img src="assets/medicine-icon.svg" class="schedule-hero-icon icon-b" alt="">
+    </div>
+    <div class="schedule-hero-text">
+      <h2>Provider Schedule</h2>
+      <p>Manage appointments across providers, rooms, and time slots.</p>
+      <span class="schedule-hero-badge" *ngIf="viewMode === 'WEEK'">
+        <i class="fa fa-calendar-week"></i> Week view — one anchor day + range highlight
+      </span>
+      <span class="schedule-hero-badge" *ngIf="viewMode === 'DAY'">
+        <i class="fa fa-calendar-day"></i> {{ dateLabel }}
+      </span>
+    </div>
+    <div class="schedule-hero-art">
+      <img src="assets/schedule-hero.svg" alt="" aria-hidden="true">
+    </div>
+  </div>
+
   <!-- 3-Pane Layout: Left (Actions/Filters) | Center (Grid) | Right (Calendar+Waitlist) -->
   <div class="three-pane-layout">
     <!-- LEFT PANE: Actions + View Controls + Filters -->
@@ -418,6 +439,8 @@
         <!-- Mini Calendar -->
         <div class="pane-section">
           <h3 class="pane-section-title">Calendar</h3>
+          <p class="calendar-hint" *ngIf="viewMode === 'WEEK'">Click a day to focus it; the week range is shown lightly.</p>
+          <p class="calendar-hint" *ngIf="viewMode === 'DAY'">One day selected at a time.</p>
           <div class="mini-calendar">
             <div class="mini-calendar-header">
               <button class="btn-cal-nav" (click)="prevMonth()" title="Previous Month">
@@ -438,8 +461,11 @@
                 class="mini-cal-day" 
                 *ngFor="let day of getMiniCalendarDays()"
                 [class.other-month]="day.otherMonth"
-                [class.today]="day.isToday"
-                [class.selected]="day.isSelected"
+                [class.today]="day.isToday && !day.isAnchor"
+                [class.anchor]="day.isAnchor"
+                [class.in-range]="day.inRange"
+                [class.range-start]="day.isRangeStart"
+                [class.range-end]="day.isRangeEnd"
                 (click)="selectDateFromMiniCalendar(day.date)"
                 [title]="formatDateForTitle(day.date)">
                 {{ day.day }}

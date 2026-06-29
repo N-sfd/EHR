@@ -50,6 +50,8 @@ export class ScheduleGridComponent implements OnInit, OnDestroy {
   // Mini Calendar
   miniCalendarMonth = new Date().getMonth();
   miniCalendarYear = new Date().getFullYear();
+  /** Primary date highlighted in the mini calendar (single anchor). */
+  calendarAnchorDate = new Date();
 
   // Filters
   filterDepartmentId: number | null = null;
@@ -143,6 +145,8 @@ export class ScheduleGridComponent implements OnInit, OnDestroy {
     this.loadFiltersFromQueryParams();
     
     this.buildWeekDays();
+    this.calendarAnchorDate = this.normalizeDate(this.weekStart);
+    this.syncMiniCalendarToDate(this.calendarAnchorDate);
     this.updateDateLabel();
     this.loadMasterData();
     this.loadColumns();
@@ -629,6 +633,8 @@ export class ScheduleGridComponent implements OnInit, OnDestroy {
   prevWeek() {
     this.weekStart = this.addDays(this.weekStart, -7);
     this.weekEnd = this.addDays(this.weekStart, 6);
+    this.calendarAnchorDate = this.normalizeDate(this.weekStart);
+    this.syncMiniCalendarToDate(this.calendarAnchorDate);
     this.buildWeekDays();
     this.updateDateLabel();
     this.loadAppointments();
@@ -638,6 +644,8 @@ export class ScheduleGridComponent implements OnInit, OnDestroy {
   nextWeek() {
     this.weekStart = this.addDays(this.weekStart, 7);
     this.weekEnd = this.addDays(this.weekStart, 6);
+    this.calendarAnchorDate = this.normalizeDate(this.weekStart);
+    this.syncMiniCalendarToDate(this.calendarAnchorDate);
     this.buildWeekDays();
     this.updateDateLabel();
     this.loadAppointments();
@@ -645,10 +653,13 @@ export class ScheduleGridComponent implements OnInit, OnDestroy {
   }
 
   goToday() {
+    const today = this.normalizeDate(new Date());
+    this.calendarAnchorDate = today;
+    this.syncMiniCalendarToDate(today);
     if (this.viewMode === 'DAY') {
       this.today();
     } else {
-      this.weekStart = this.startOfWeek(new Date());
+      this.weekStart = this.startOfWeek(today);
       this.weekEnd = this.addDays(this.weekStart, 6);
       this.buildWeekDays();
       this.updateDateLabel();
@@ -1537,14 +1548,16 @@ export class ScheduleGridComponent implements OnInit, OnDestroy {
     this.viewMode = mode;
     if (mode === 'DAY') {
       this.currentDay = new Date();
-      this.weekStart = new Date(this.currentDay);
-      this.weekEnd = new Date(this.currentDay);
+      this.weekStart = this.normalizeDate(this.currentDay);
+      this.weekEnd = this.normalizeDate(this.currentDay);
+      this.calendarAnchorDate = this.normalizeDate(this.currentDay);
       this.days = [{ date: this.weekStart, key: this.formatDate(this.weekStart), label: this.formatDateLabel(this.weekStart) }];
     } else if (mode === 'WEEK') {
-      this.weekStart = this.startOfWeek(new Date());
+      this.weekStart = this.startOfWeek(this.calendarAnchorDate);
       this.weekEnd = this.addDays(this.weekStart, 6);
       this.buildWeekDays();
     }
+    this.syncMiniCalendarToDate(this.calendarAnchorDate);
     this.updateDateLabel();
     this.loadAppointments();
     this.checkSlotTemplates(); // Update slot template status
@@ -1555,6 +1568,12 @@ export class ScheduleGridComponent implements OnInit, OnDestroy {
     if (this.viewMode === 'DAY') {
       this.weekStart = this.addDays(this.weekStart, -1);
       this.weekEnd = this.weekStart;
+      this.calendarAnchorDate = this.normalizeDate(this.weekStart);
+      this.syncMiniCalendarToDate(this.calendarAnchorDate);
+      this.buildWeekDays();
+      this.updateDateLabel();
+      this.loadAppointments();
+      this.savePreferencesToStorage();
     } else {
       this.prevWeek();
     }
@@ -1564,6 +1583,12 @@ export class ScheduleGridComponent implements OnInit, OnDestroy {
     if (this.viewMode === 'DAY') {
       this.weekStart = this.addDays(this.weekStart, 1);
       this.weekEnd = this.weekStart;
+      this.calendarAnchorDate = this.normalizeDate(this.weekStart);
+      this.syncMiniCalendarToDate(this.calendarAnchorDate);
+      this.buildWeekDays();
+      this.updateDateLabel();
+      this.loadAppointments();
+      this.savePreferencesToStorage();
     } else {
       this.nextWeek();
     }
@@ -1575,12 +1600,14 @@ export class ScheduleGridComponent implements OnInit, OnDestroy {
       const date = new Date(dateStr);
       if (!isNaN(date.getTime())) {
         if (this.viewMode === 'DAY') {
-          this.weekStart = date;
-          this.weekEnd = date;
+          this.weekStart = this.normalizeDate(date);
+          this.weekEnd = this.normalizeDate(date);
         } else {
           this.weekStart = this.startOfWeek(date);
           this.weekEnd = this.addDays(this.weekStart, 6);
         }
+        this.calendarAnchorDate = this.normalizeDate(date);
+        this.syncMiniCalendarToDate(this.calendarAnchorDate);
         this.buildWeekDays();
         this.updateDateLabel();
         this.loadAppointments();
@@ -2059,38 +2086,55 @@ export class ScheduleGridComponent implements OnInit, OnDestroy {
     return ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
   }
 
-  getMiniCalendarDays(): Array<{ day: number; date: Date; otherMonth: boolean; isToday: boolean; isSelected: boolean }> {
-    const days: Array<{ day: number; date: Date; otherMonth: boolean; isToday: boolean; isSelected: boolean }> = [];
+  getMiniCalendarDays(): Array<{
+    day: number;
+    date: Date;
+    otherMonth: boolean;
+    isToday: boolean;
+    isAnchor: boolean;
+    inRange: boolean;
+    isRangeStart: boolean;
+    isRangeEnd: boolean;
+  }> {
+    const days: Array<{
+      day: number;
+      date: Date;
+      otherMonth: boolean;
+      isToday: boolean;
+      isAnchor: boolean;
+      inRange: boolean;
+      isRangeStart: boolean;
+      isRangeEnd: boolean;
+    }> = [];
     const firstDay = new Date(this.miniCalendarYear, this.miniCalendarMonth, 1);
-    const lastDay = new Date(this.miniCalendarYear, this.miniCalendarMonth + 1, 0);
     const startDate = new Date(firstDay);
     startDate.setDate(startDate.getDate() - startDate.getDay()); // Start from Sunday
-    
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    // Check if current week range includes any of the displayed days
-    const isDateInCurrentRange = (date: Date): boolean => {
-      const dateOnly = new Date(date);
-      dateOnly.setHours(0, 0, 0, 0);
-      return dateOnly >= this.weekStart && dateOnly <= this.weekEnd;
-    };
-    
-    for (let i = 0; i < 42; i++) { // 6 weeks × 7 days
+
+    const today = this.normalizeDate(new Date());
+    const rangeStart = this.normalizeDate(this.weekStart);
+    const rangeEnd = this.normalizeDate(this.weekEnd);
+    const anchor = this.normalizeDate(this.calendarAnchorDate);
+    const showRange = this.viewMode !== 'DAY';
+
+    for (let i = 0; i < 42; i++) {
       const currentDate = new Date(startDate);
       currentDate.setDate(startDate.getDate() + i);
-      const dateOnly = new Date(currentDate);
-      dateOnly.setHours(0, 0, 0, 0);
-      
+      const dateOnly = this.normalizeDate(currentDate);
+      const inRange = showRange && dateOnly >= rangeStart && dateOnly <= rangeEnd;
+      const isAnchor = this.isSameDay(dateOnly, anchor);
+
       days.push({
         day: currentDate.getDate(),
         date: new Date(currentDate),
         otherMonth: currentDate.getMonth() !== this.miniCalendarMonth,
         isToday: dateOnly.getTime() === today.getTime(),
-        isSelected: isDateInCurrentRange(currentDate)
+        isAnchor,
+        inRange: inRange && !isAnchor,
+        isRangeStart: inRange && dateOnly.getTime() === rangeStart.getTime(),
+        isRangeEnd: inRange && dateOnly.getTime() === rangeEnd.getTime()
       });
     }
-    
+
     return days;
   }
 
@@ -2113,12 +2157,15 @@ export class ScheduleGridComponent implements OnInit, OnDestroy {
   }
 
   selectDateFromMiniCalendar(date: Date): void {
-    // Navigate to the selected date
+    const normalized = this.normalizeDate(date);
+    this.calendarAnchorDate = normalized;
+    this.syncMiniCalendarToDate(normalized);
+
     if (this.viewMode === 'DAY') {
-      this.weekStart = new Date(date);
-      this.weekEnd = new Date(date);
+      this.weekStart = normalized;
+      this.weekEnd = normalized;
     } else {
-      this.weekStart = this.startOfWeek(date);
+      this.weekStart = this.startOfWeek(normalized);
       this.weekEnd = this.addDays(this.weekStart, 6);
     }
     this.buildWeekDays();
@@ -2134,9 +2181,26 @@ export class ScheduleGridComponent implements OnInit, OnDestroy {
   jumpWeeks(weeks: number): void {
     this.weekStart = this.addDays(this.weekStart, 7 * weeks);
     this.weekEnd = this.addDays(this.weekStart, 6);
+    this.calendarAnchorDate = this.normalizeDate(this.weekStart);
+    this.syncMiniCalendarToDate(this.calendarAnchorDate);
     this.buildWeekDays();
     this.updateDateLabel();
     this.loadAppointments();
     this.savePreferencesToStorage();
+  }
+
+  private normalizeDate(d: Date): Date {
+    const n = new Date(d);
+    n.setHours(0, 0, 0, 0);
+    return n;
+  }
+
+  private isSameDay(a: Date, b: Date): boolean {
+    return this.normalizeDate(a).getTime() === this.normalizeDate(b).getTime();
+  }
+
+  private syncMiniCalendarToDate(d: Date): void {
+    this.miniCalendarMonth = d.getMonth();
+    this.miniCalendarYear = d.getFullYear();
   }
 }

@@ -1,57 +1,76 @@
 <header class="header">
-  <div class="header-top">
-    <div class="header-left">
-      <button class="menu-toggle-btn" (click)="onToggleSidebar()" title="Toggle sidebar menu" aria-label="Toggle sidebar menu">
-        <i class="fas fa-bars"></i>
-      </button>
-      <div class="header-title-section">
-        <h1 class="header-title">Hospital Management System</h1>
-        <p class="header-subtitle">Manage all aspects of your hospital operations</p>
-      </div>
-      <div class="header-search">
-        <i class="fas fa-magnifying-glass search-icon"></i>
-        <input type="text" placeholder="Search">
-      </div>
-    </div>
+  <div class="header-inner">
+    <div class="header-top">
+      <div class="header-left">
+        <button class="menu-toggle-btn" (click)="onToggleSidebar()" title="Toggle sidebar menu" aria-label="Toggle sidebar menu">
+          <i class="fas fa-bars"></i>
+        </button>
 
-    <div class="header-right">
-      <div class="notification" (click)="openNotificationsDrawer()" [title]="(unreadCount$ | async)! > 0 ? (unreadCount$ | async)! + ' unread notifications' : 'Notifications'">
-        <i class="fas fa-bell"></i>
-        <ng-container *ngIf="unreadCount$ | async as count">
-          <span class="notification-badge" *ngIf="count > 0">{{ count > 99 ? '99+' : count }}</span>
-        </ng-container>
-      </div>
-
-      <div class="user-chip" (click)="openProfileDrawer()" [title]="(profile$ | async)?.fullName || 'Admin Profile'">
-        <ng-container *ngIf="profile$ | async as profile">
-          <img *ngIf="profile.avatarUrl" [src]="profile.avatarUrl" [alt]="profile.fullName" [title]="profile.fullName">
-          <div *ngIf="!profile.avatarUrl" class="avatar-placeholder">
-            {{ (profile.fullName || 'A').charAt(0).toUpperCase() }}
+        <a class="header-brand" routerLink="/admin/dashboard" title="Go to dashboard">
+          <div class="header-logo">
+            <img src="assets/logo.svg" alt="CareOS logo" />
           </div>
-        </ng-container>
+          <div class="header-brand-text">
+            <h1 class="header-title">CareOS</h1>
+            <p class="header-subtitle">Scheduling &amp; patient portal · AI-assisted operations</p>
+          </div>
+        </a>
       </div>
 
-      <!-- Logout button - visible when user is authenticated -->
-      <button 
-        *ngIf="isAuthenticated"
-        class="logout-btn" 
-        (click)="logout()" 
-        title="Logout"
-        aria-label="Logout">
-        <i class="fas fa-sign-out-alt"></i>
-      </button>
-      
-      <app-admin-profile-drawer 
-        *ngIf="showProfileDrawer"
-        [isOpen]="showProfileDrawer"
-        (close)="closeProfileDrawer()">
-      </app-admin-profile-drawer>
-      
-      <app-notifications-drawer 
-        *ngIf="showNotificationsDrawer"
-        [isOpen]="showNotificationsDrawer"
-        (close)="closeNotificationsDrawer()">
-      </app-notifications-drawer>
+      <div class="header-center">
+        <div class="header-search">
+          <i class="fas fa-magnifying-glass search-icon"></i>
+          <input type="search" placeholder="Search patients, appointments…" aria-label="Search">
+        </div>
+      </div>
+
+      <div class="header-right">
+        <a
+          class="ai-assistant-btn"
+          routerLink="/admin/ai-assistant"
+          routerLinkActive="active"
+          title="Open AI Assistant">
+          <img src="assets/assistant-hero.svg" alt="AI Assistant" class="ai-btn-icon" aria-hidden="true">
+          <span class="ai-btn-label">AI Assistant</span>
+        </a>
+
+        <div class="notification" (click)="openNotificationsDrawer()" [title]="(unreadCount$ | async)! > 0 ? (unreadCount$ | async)! + ' unread notifications' : 'Notifications'">
+          <i class="fas fa-bell"></i>
+          <ng-container *ngIf="unreadCount$ | async as count">
+            <span class="notification-badge" *ngIf="count > 0">{{ count > 99 ? '99+' : count }}</span>
+          </ng-container>
+        </div>
+
+        <div class="user-chip" (click)="openProfileDrawer()" [title]="(profile$ | async)?.fullName || 'Admin Profile'">
+          <ng-container *ngIf="profile$ | async as profile">
+            <img *ngIf="profile.avatarUrl" [src]="profile.avatarUrl" [alt]="profile.fullName" [title]="profile.fullName">
+            <div *ngIf="!profile.avatarUrl" class="avatar-placeholder">
+              {{ (profile.fullName || 'A').charAt(0).toUpperCase() }}
+            </div>
+          </ng-container>
+        </div>
+
+        <button
+          *ngIf="isAuthenticated"
+          class="logout-btn"
+          (click)="logout()"
+          title="Logout"
+          aria-label="Logout">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+
+        <app-admin-profile-drawer
+          *ngIf="showProfileDrawer"
+          [isOpen]="showProfileDrawer"
+          (close)="closeProfileDrawer()">
+        </app-admin-profile-drawer>
+
+        <app-notifications-drawer
+          *ngIf="showNotificationsDrawer"
+          [isOpen]="showNotificationsDrawer"
+          (close)="closeNotificationsDrawer()">
+        </app-notifications-drawer>
+      </div>
     </div>
   </div>
 </header>

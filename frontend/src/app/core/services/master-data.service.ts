@@ -24,7 +24,7 @@ interface CacheEntry<T> {
 export class MasterDataService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl || '';
-  private useMock = environment.useMock !== false; // Use environment configuration, default to true
+  private readonly useMock = false;
 
   private departmentsCache$ = new BehaviorSubject<MasterDepartment[] | null>(null);
   private specializationsCache$ = new BehaviorSubject<MasterSpecialization[] | null>(null);

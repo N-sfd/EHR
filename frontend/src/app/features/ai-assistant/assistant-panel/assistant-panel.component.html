@@ -1,22 +1,26 @@
 <div class="ai-page">
 
-  <!-- Header -->
-  <div class="ai-header">
-    <div class="ai-header-left">
-      <div class="ai-icon"><i class="fas fa-robot"></i></div>
-      <div>
-        <h2 class="ai-title">AI Medical Assistant</h2>
-        <p class="ai-subtitle">
-          <span class="patient-chip" *ngIf="patient()">
-            <i class="fas fa-user"></i> {{ patientLabel }}
-          </span>
-          <span class="patient-chip no-patient" *ngIf="!patient()">
-            <i class="fas fa-stethoscope"></i> General clinical query
-          </span>
-        </p>
+  <!-- Hero -->
+  <div class="ai-hero">
+    <div class="ai-hero-text">
+      <div class="ai-hero-title-row">
+        <img src="assets/assistant-hero.svg" alt="" class="ai-hero-img" aria-hidden="true">
+        <div>
+          <h2 class="ai-title">CareOS AI Assistant</h2>
+          <p class="ai-subtitle">
+            Scheduling insights, patient context, and staff workflows
+            <span class="patient-chip" *ngIf="patient()">
+              · <i class="fas fa-user"></i> {{ patientLabel }}
+            </span>
+          </p>
+        </div>
       </div>
     </div>
-    <div class="ai-header-right">
+    <div class="ai-hero-actions">
+      <span class="status-pill" [class.online]="aiEnabled" [class.offline]="!aiEnabled" [class.ollama]="aiOllama && aiEnabled">
+        <i class="fas" [ngClass]="aiEnabled ? (aiOllama ? 'fa-microchip' : 'fa-circle-check') : 'fa-plug-circle-xmark'"></i>
+        {{ aiStatusLabel }}
+      </span>
       <button type="button" class="btn-clear" (click)="clearChat()" *ngIf="messages().length > 0" title="Clear conversation">
         <i class="fas fa-trash-alt"></i> Clear
       </button>
@@ -37,44 +41,52 @@
       <i class="fas fa-calendar-check"></i>
       <span>Upcoming: <strong>{{ stats()!.upcomingAppointments }}</strong></span>
     </div>
-    <div class="stat-pill" *ngIf="patient()">
-      <i class="fas fa-user-injured"></i>
-      <span>Context: <strong>{{ patientLabel }}</strong></span>
-    </div>
   </div>
 
   <div class="ai-disclaimer">
     <i class="fas fa-shield-alt"></i>
-    Informational support only — do not use for emergency diagnosis or treatment decisions.
+    Informational support only — confirm scheduling and clinical decisions in the chart.
   </div>
 
-  <!-- AI Not Configured notice -->
-  <div class="not-configured-notice" *ngIf="!aiEnabled">
-    <div class="nc-icon"><i class="fas fa-robot"></i></div>
-    <h3>AI is not configured on this server.</h3>
-    <ul>
-      <li>To review lab results: open a patient profile and click <strong>"Lab Results"</strong> in the patient details.</li>
-      <li>To enable AI: set <code>EHR_AI_ENABLED=true</code> with a valid <code>OPENAI_API_KEY</code> and restart the backend.</li>
-    </ul>
+  <!-- Setup notice (compact — chat still available below) -->
+  <div class="not-configured-notice compact" *ngIf="!aiEnabled">
+    <div class="nc-icon"><i class="fas fa-microchip"></i></div>
+    <div class="nc-body">
+      <h3>Enable AI with local Ollama</h3>
+      <p class="nc-desc">
+        1. Install <a href="https://ollama.com" target="_blank" rel="noopener">Ollama</a> and run <code>ollama serve</code><br>
+        2. Ensure a chat model is pulled: <code>ollama pull llama3</code> (you already have <code>llama3</code>)<br>
+        3. Start the API: <code>.\start-backend.ps1 -Ollama</code> (or <code>.\start-backend-ollama.ps1</code>)
+      </p>
+      <p class="nc-alt">Cloud OpenAI: set <code>EHR_AI_ENABLED=true</code> and <code>OPENAI_API_KEY</code>, then restart.</p>
+      <button class="btn btn-secondary" type="button" (click)="copySetupCommand()">Copy Ollama setup</button>
+      <div class="nc-feedback" *ngIf="info()">{{ info() }}</div>
+    </div>
   </div>
 
-  <!-- Chat Area (only when AI is enabled) -->
-  <div class="chat-area" #chatArea *ngIf="aiEnabled">
+  <div class="ollama-ready-banner" *ngIf="aiEnabled && aiOllama">
+    <i class="fas fa-microchip"></i>
+    Connected to local Ollama{{ flags.aiChatModel() ? ' · ' + flags.aiChatModel() : '' }} at {{ flags.ollamaBaseUrl() }}.
+    Structured chart context is used; vector RAG is off unless you enable <code>EHR_AI_OLLAMA_EMBEDDING=true</code>.
+  </div>
+
+  <!-- Chat Area -->
+  <div class="chat-area" #chatArea>
 
     <!-- Empty state -->
     <div class="empty-state" *ngIf="messages().length === 0 && !loading()">
-      <div class="empty-icon"><i class="fas fa-comments"></i></div>
-      <h3>How can I help?</h3>
-      <p>Ask clinical questions, review lab findings, or get medication summaries.</p>
+      <div class="empty-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+      <h3>How can I help with scheduling?</h3>
+      <p>Ask about today's appointments, patient context, or utilization.</p>
       <div class="suggestion-chips">
-        <button type="button" class="chip" (click)="input = 'Summarize this patient\'s recent lab results'; submit()">
-          <i class="fas fa-flask"></i> Lab summary
+        <button type="button" class="chip" (click)="input = 'Summarize today\'s appointment schedule'; submit()">
+          <i class="fas fa-calendar-day"></i> Today's schedule
         </button>
-        <button type="button" class="chip" (click)="input = 'What medications is this patient on?'; submit()">
-          <i class="fas fa-pills"></i> Medications
+        <button type="button" class="chip" (click)="input = 'Which providers have the most open slots this week?'; submit()">
+          <i class="fas fa-user-doctor"></i> Open slots
         </button>
-        <button type="button" class="chip" (click)="input = 'What are the recent vitals trends?'; submit()">
-          <i class="fas fa-heartbeat"></i> Vitals trends
+        <button type="button" class="chip" (click)="input = 'Help me draft a patient appointment reminder message'; submit()">
+          <i class="fas fa-envelope"></i> Reminder draft
         </button>
       </div>
     </div>
@@ -87,40 +99,33 @@
         [class.user-row]="msg.role === 'user'"
         [class.assistant-row]="msg.role === 'assistant'">
 
-        <!-- User message -->
         <div *ngIf="msg.role === 'user'" class="message user-message">
           <div class="msg-text">{{ msg.text }}</div>
           <div class="msg-time">{{ msg.timestamp | date:'shortTime' }}</div>
         </div>
 
-        <!-- Assistant message -->
         <div *ngIf="msg.role === 'assistant'" class="message assistant-message">
           <div class="assistant-avatar"><i class="fas fa-robot"></i></div>
           <div class="assistant-content">
 
-            <!-- Emergency banner -->
             <div class="alert-banner emergency" *ngIf="msg.meta?.needsEscalation">
               <i class="fas fa-exclamation-triangle"></i>
               This may describe an emergency. Seek immediate in-person care or call emergency services.
             </div>
 
-            <!-- Clinical review banner -->
             <div class="alert-banner clinical" *ngIf="msg.meta?.needsClinicalReview">
               <i class="fas fa-user-md"></i>
-              This may warrant discussion with a clinician. Consider scheduling appropriate follow-up.
+              This may warrant discussion with a clinician.
             </div>
 
-            <!-- Grounding note -->
             <div class="alert-banner grounding" *ngIf="msg.streamNote">
               <i class="fas fa-info-circle"></i> {{ msg.streamNote }}
             </div>
 
-            <!-- Blocked message -->
             <div class="alert-banner blocked" *ngIf="msg.meta?.blocked">
               <i class="fas fa-ban"></i> {{ msg.meta?.blockedReason || 'Request was blocked.' }}
             </div>
 
-            <!-- Response text -->
             <div class="msg-text" [class.streaming]="msg.isStreaming">
               <span *ngIf="msg.text">{{ msg.text }}</span>
               <span class="typing-dots" *ngIf="msg.isStreaming && !msg.text">
@@ -129,7 +134,6 @@
               <span class="cursor" *ngIf="msg.isStreaming && msg.text">▍</span>
             </div>
 
-            <!-- Citations -->
             <div class="citations" *ngIf="msg.citations && msg.citations.length">
               <div class="citations-label"><i class="fas fa-book-open"></i> Sources</div>
               <ul>
@@ -137,7 +141,6 @@
               </ul>
             </div>
 
-            <!-- Disclaimer -->
             <div class="msg-disclaimer" *ngIf="msg.meta?.disclaimer">
               <i class="fas fa-info-circle"></i> {{ msg.meta?.disclaimer }}
             </div>
@@ -149,19 +152,17 @@
     </div>
   </div>
 
-  <!-- Error -->
-  <div class="error-bar" *ngIf="error() && aiEnabled">
+  <div class="error-bar" *ngIf="error()">
     <i class="fas fa-exclamation-circle"></i> {{ error() }}
     <button type="button" class="close-error" (click)="error.set(null)" title="Dismiss error" aria-label="Dismiss error"><i class="fas fa-times"></i></button>
   </div>
 
-  <!-- Input Area (only when AI is enabled) -->
-  <div class="input-area" *ngIf="aiEnabled">
+  <div class="input-area">
     <textarea
       [(ngModel)]="input"
       (keydown)="onKeyDown($event)"
       rows="2"
-      placeholder="Ask a clinical question... (Enter to send, Shift+Enter for new line)"
+      placeholder="Ask about scheduling, patients, or operations… (Enter to send)"
       [disabled]="loading()"
       class="chat-input">
     </textarea>

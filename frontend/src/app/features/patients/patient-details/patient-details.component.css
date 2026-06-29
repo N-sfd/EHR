@@ -226,7 +226,8 @@
 }
 
 .book-appointment-btn,
-.edit-patient-btn {
+.edit-patient-btn,
+.ask-ai-btn {
   padding: 10px 20px;
   color: #fff;
   border: none;
@@ -241,6 +242,7 @@
   transition: all 0.3s;
   white-space: nowrap;
   width: 100%;
+  text-decoration: none;
 }
 
 .book-appointment-btn {
@@ -261,6 +263,18 @@
   background: #4B5563;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+}
+
+.ask-ai-btn {
+  background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.ask-ai-btn:hover {
+  background: linear-gradient(135deg, #5b21b6 0%, #6d28d9 100%);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
 }
 
 /* Patient Details Grid */

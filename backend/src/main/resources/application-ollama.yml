@@ -1,0 +1,31 @@
+# Local Ollama profile — no OpenAI API key required.
+# Usage (PowerShell):
+#   .\start-backend.ps1 -Ollama
+# or:
+#   $env:EHR_AI_ENABLED="true"; $env:EHR_AI_OLLAMA="true"; mvn spring-boot:run -Dspring-boot.run.profiles=ollama
+#
+# Prerequisites:
+#   ollama serve
+#   ollama pull llama3.2   (or set OLLAMA_CHAT_MODEL to a model you have pulled)
+
+ehr:
+  ai:
+    enabled: true
+    ollama: true
+    ollama-embedding: false
+
+app:
+  ai:
+    enabled: true
+    audit-enabled: true
+    allow-streaming: true
+
+spring:
+  ai:
+    openai:
+      chat:
+        options:
+          model: ${OLLAMA_CHAT_MODEL:llama3}
+    vectorstore:
+      pgvector:
+        enabled: false

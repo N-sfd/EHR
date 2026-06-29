@@ -17,11 +17,86 @@
   padding: 0 16px 16px;
 }
 
+.ai-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0 12px;
+  flex-wrap: wrap;
+}
+
+.ai-hero-title-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ai-hero-img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.ai-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--ai-primary);
+  letter-spacing: -0.02em;
+}
+
+.ai-subtitle {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: var(--ai-muted);
+}
+
+.ai-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-pill.online {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-pill.ollama {
+  background: #e0f2fe;
+  color: #0c4a6e;
+  border: 1px solid #7dd3fc;
+}
+
+.status-pill.offline {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.patient-chip {
+  font-weight: 600;
+  color: var(--ai-primary);
+}
+
 /* Not configured notice */
 .not-configured-notice {
-  margin: 32px 0;
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
+  position: relative;
+  margin: 8px 0 12px;
+  background: linear-gradient(135deg, #f0fcff 0%, #e0f9f7 100%);
+  border: 1px solid #a7f3d0;
   border-radius: 14px;
   padding: 36px 32px;
   display: flex;
@@ -29,25 +104,114 @@
   align-items: center;
   gap: 16px;
   text-align: center;
+  overflow: hidden;
+  min-height: 200px;
+}
+
+.not-configured-notice.compact {
+  flex-direction: row;
+  text-align: left;
+  align-items: flex-start;
+  min-height: auto;
+  padding: 14px 18px;
+  gap: 12px;
+}
+
+.nc-alt {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  color: var(--ai-muted);
+}
+
+.ollama-ready-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: #ecfeff;
+  border: 1px solid #a5f3fc;
+  color: #0e7490;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.ollama-ready-banner i {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+.nc-bg {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 0;
+}
+.nc-bg-icon {
+  width: 80px;
+  height: 80px;
+  opacity: 0.6;
+}
+.nc-body {
+  position: relative;
+  z-index: 2;
 }
 .nc-icon {
   width: 60px; height: 60px; border-radius: 50%;
-  background: #ffedd5; color: #ea580c;
+  background: #cffafe; color: #0b7a6b;
   display: flex; align-items: center; justify-content: center;
   font-size: 1.8rem;
+  margin: 0 auto 12px;
+  flex-shrink: 0;
 }
-.not-configured-notice h3 { margin: 0; font-size: 1.1rem; font-weight: 700; color: #9a3412; }
-.not-configured-notice ul {
-  margin: 0; padding: 0;
-  list-style: none;
-  display: flex; flex-direction: column; gap: 10px;
-  font-size: 0.9rem; color: #7c2d12;
-  text-align: left;
+
+.not-configured-notice.compact .nc-icon {
+  width: 44px;
+  height: 44px;
+  font-size: 1.2rem;
+  margin: 0;
 }
-.not-configured-notice ul li::before { content: '→ '; font-weight: 700; }
+.not-configured-notice h3 { margin: 0 0 8px 0; font-size: 1.1rem; font-weight: 700; color: #0b7a6b; }
+.nc-desc { margin: 0 0 12px 0; font-size: 0.9rem; color: #0f766e; }
 .not-configured-notice code {
-  background: #ffedd5; padding: 2px 7px; border-radius: 4px;
-  font-size: 0.83rem; font-family: monospace; color: #92400e;
+  background: #a7f3d0; padding: 2px 7px; border-radius: 4px;
+  font-size: 0.83rem; font-family: monospace; color: #047857;
+}
+.nc-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 12px;
+}
+.nc-actions button, .nc-actions a {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.btn-secondary {
+  background: #0b7a6b;
+  color: #fff;
+}
+.btn-secondary:hover {
+  background: #09615f;
+  transform: translateY(-2px);
+}
+.btn-outline {
+  border: 1.5px solid #0b7a6b;
+  color: #0b7a6b;
+  background: transparent;
+}
+.btn-outline:hover {
+  background: #f0fcff;
 }
 
 /* Header */

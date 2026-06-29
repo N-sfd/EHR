@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { ProviderTemplatesService } from '../services/provider-templates.service';
 import { ProviderService } from '../../../core/services/provider.service';
-import { ProviderMockService } from '../../../core/services/provider-mock.service';
 import { MasterDataService } from '../../../core/services/master-data.service';
 import { DepartmentService } from '../../../core/services/department.service';
 import { ProviderTemplate, VisitType, NoteTemplate, OrderSet, OrderSetItem } from '../models/admin.model';
@@ -24,7 +23,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 export class ProviderTemplatesComponent implements OnInit {
   private providerTemplatesService = inject(ProviderTemplatesService);
   private providerService = inject(ProviderService);
-  private providerMockService = inject(ProviderMockService);
   private masterDataService = inject(MasterDataService);
   private departmentService = inject(DepartmentService);
   private fb = inject(FormBuilder);

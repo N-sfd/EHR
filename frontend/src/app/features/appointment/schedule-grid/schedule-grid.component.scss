@@ -42,6 +42,96 @@ $shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 
   line-height: 1.5;
 }
 
+.schedule-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 16px;
+  margin: 12px 16px 0;
+  padding: 18px 24px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #115e59 100%);
+  color: #fff;
+  overflow: hidden;
+  box-shadow: $shadow-md;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.schedule-hero-decor {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.schedule-hero-icon {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  opacity: 0.14;
+}
+
+.schedule-hero-icon.icon-a { top: 8px; left: 12px; transform: rotate(-6deg); }
+.schedule-hero-icon.icon-b { bottom: 6px; right: 180px; transform: rotate(8deg); }
+
+.schedule-hero-text {
+  position: relative;
+  z-index: 1;
+
+  h2 {
+    margin: 0 0 4px;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    margin: 0 0 10px;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.85);
+  }
+}
+
+.schedule-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.schedule-hero-art {
+  position: relative;
+  z-index: 1;
+  width: 140px;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: auto;
+    display: block;
+    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.15));
+  }
+}
+
+.calendar-hint {
+  margin: -4px 0 10px;
+  font-size: 0.72rem;
+  color: $text-muted;
+  line-height: 1.35;
+}
+
+@media (max-width: 720px) {
+  .schedule-hero {
+    grid-template-columns: 1fr;
+  }
+  .schedule-hero-art { display: none; }
+}
+
 // ============================================================================
 // 3-PANE LAYOUT (Epic-style)
 // ============================================================================
@@ -528,19 +618,37 @@ $shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 
     font-weight: 800;
     box-shadow: 0 2px 6px rgba(13, 148, 136, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.3);
-    
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: 3px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 5px;
-      height: 5px;
-      background: white;
-      border-radius: 50%;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    }
+  }
+
+  &.in-range {
+    background: rgba(13, 148, 136, 0.1);
+    border-radius: 0;
+    color: $primary-teal-dark;
+    font-weight: 600;
+  }
+
+  &.range-start.in-range {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+  }
+
+  &.range-end.in-range {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+  }
+
+  &.anchor {
+    background: linear-gradient(135deg, $primary-teal 0%, $primary-teal-dark 100%);
+    color: white;
+    font-weight: 800;
+    border: 2px solid $primary-teal-dark;
+    box-shadow: 0 2px 8px rgba(13, 148, 136, 0.45);
+    z-index: 1;
+  }
+
+  &.anchor.today,
+  &.today.anchor {
+    background: linear-gradient(135deg, $primary-teal-dark 0%, $primary-teal-hover 100%);
   }
   
   &.selected {

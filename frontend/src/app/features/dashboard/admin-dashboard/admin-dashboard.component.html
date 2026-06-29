@@ -1,5 +1,14 @@
 <div class="ehr-dashboard" *ngIf="!isLoading; else loadingTpl">
 
+  <!-- Decorative page background -->
+  <div class="dashboard-bg" aria-hidden="true">
+    <img src="assets/hospital-icon.svg" class="bg-watermark bg-wm-1" alt="">
+    <img src="assets/medicine-icon.svg" class="bg-watermark bg-wm-2" alt="">
+    <img src="assets/test-icon.svg" class="bg-watermark bg-wm-3" alt="">
+    <img src="assets/assistant-hero.svg" class="bg-watermark bg-wm-4" alt="">
+    <img src="assets/schedule-hero.svg" class="bg-watermark bg-wm-5" alt="">
+  </div>
+
   <!-- ── Top Bar ─────────────────────────────────────────────────── -->
   <div class="topbar">
     <div class="topbar-left">
@@ -12,7 +21,7 @@
       </div>
       <div class="topbar-divider"></div>
       <div class="topbar-greeting">
-        <span class="greeting-text">{{ greeting }}</span>
+        <span class="greeting-text">Staff Dashboard</span>
         <span class="today-date">{{ today | date:'EEEE, MMMM d, yyyy' }}</span>
       </div>
     </div>
@@ -31,6 +40,11 @@
 
   <!-- ── Hero Banner ──────────────────────────────────────────────── -->
   <div class="hero-banner">
+    <div class="hero-decorations" aria-hidden="true">
+      <img src="assets/hospital-icon.svg" class="hero-decor-icon icon-1" alt="">
+      <img src="assets/medicine-icon.svg" class="hero-decor-icon icon-2" alt="">
+      <img src="assets/test-icon.svg" class="hero-decor-icon icon-3" alt="">
+    </div>
     <div class="hero-content">
       <div class="hero-text">
         <h2>{{ greeting }}, {{ staffName }}</h2>
@@ -42,7 +56,7 @@
       </div>
     </div>
     <div class="hero-illustration">
-      <img src="assets/portal-banner.svg" alt="" aria-hidden="true">
+      <img src="assets/dashboard-hero.svg" alt="Hospital dashboard illustration" aria-hidden="true">
     </div>
   </div>
 

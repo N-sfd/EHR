@@ -1,14 +1,4 @@
-import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
-import { FeatureFlagsService } from '../services/feature-flags.service';
-import { environment } from '../../../environments/environment';
+import { CanActivateFn } from '@angular/router';
 
-/** Blocks AI routes when the backend reports {@code aiEnabled: false}. In development, always allows access. */
-export const aiFeatureGuard: CanActivateFn = () => {
-  const flags = inject(FeatureFlagsService);
-  const router = inject(Router);
-  if (!environment.production || flags.aiEnabled()) {
-    return true;
-  }
-  return router.createUrlTree(['/admin/dashboard']);
-};
+/** Allows access to AI routes; the panel handles disabled backend gracefully. */
+export const aiFeatureGuard: CanActivateFn = () => true;

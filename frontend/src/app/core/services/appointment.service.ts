@@ -1,19 +1,15 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
 import { Appointment, CalendarView, TimeSlot } from '../models/appointment.model';
-import { AppointmentMockService } from './appointment-mock.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AppointmentService {
   private http = inject(HttpClient);
-  private mockService = inject(AppointmentMockService);
   private baseUrl = '/api/appointments';
-  private useMock = environment.useMock !== false;
 
   private mapAppointmentResponse(data: any): Appointment {
     return {
@@ -68,20 +64,14 @@ export class AppointmentService {
   getAll(): Observable<Appointment[]> {
     return this.http.get<any[]>(this.baseUrl, { withCredentials: true }).pipe(
       map(appointments => appointments.map(apt => this.mapAppointmentResponse(apt))),
-      catchError(err => {
-        console.warn('[AppointmentService] API failed, using mock data:', err);
-        return this.mockService.getAll();
-      })
+      catchError(err => throwError(() => err))
     );
   }
 
   getById(id: number): Observable<Appointment> {
     return this.http.get<any>(`${this.baseUrl}/${id}`, { withCredentials: true }).pipe(
       map(apt => this.mapAppointmentResponse(apt)),
-      catchError(err => {
-        console.warn('[AppointmentService] getById API failed, using mock:', err);
-        return this.mockService.getById(id);
-      })
+      catchError(err => throwError(() => err))
     );
   }
 
@@ -110,12 +100,7 @@ export class AppointmentService {
   getByPatient(patientId: number): Observable<Appointment[]> {
     return this.http.get<any[]>(`${this.baseUrl}/patients/${patientId}`, { withCredentials: true }).pipe(
       map(appointments => appointments.map(apt => this.mapAppointmentResponse(apt))),
-      catchError(err => {
-        console.warn('[AppointmentService] getByPatient API failed, using mock:', err);
-        return this.mockService.getAll().pipe(
-          map(apts => apts.filter(a => a.patientId === patientId))
-        );
-      })
+      catchError(err => throwError(() => err))
     );
   }
 
@@ -127,19 +112,13 @@ export class AppointmentService {
 
   // Calendar view methods
   getWeekView(weekStart: string, doctorId?: number): Observable<CalendarView> {
-    if (this.useMock) {
-      return this.mockService.getWeekView(weekStart, doctorId);
-    }
     let params = new HttpParams().set('weekStart', weekStart);
     if (doctorId) {
       params = params.set('doctorId', doctorId.toString());
     }
     return this.http.get<any>(`${this.baseUrl}/calendar/week`, { params, withCredentials: true }).pipe(
       map(data => this.mapCalendarView(data)),
-      catchError(err => {
-        console.warn('API failed, using mock data:', err);
-        return this.mockService.getWeekView(weekStart, doctorId);
-      })
+      catchError(err => throwError(() => err))
     );
   }
 
@@ -164,9 +143,6 @@ export class AppointmentService {
   }
 
   getAvailableTimeSlots(date: string, doctorId?: number, slotDurationMinutes: number = 30): Observable<TimeSlot[]> {
-    if (this.useMock) {
-      return this.mockService.getAvailableTimeSlots(date, doctorId, slotDurationMinutes);
-    }
     let params = new HttpParams()
       .set('date', date)
       .set('slotDurationMinutes', slotDurationMinutes.toString());
@@ -174,10 +150,7 @@ export class AppointmentService {
       params = params.set('doctorId', doctorId.toString());
     }
     return this.http.get<TimeSlot[]>(`${this.baseUrl}/calendar/available-slots`, { params, withCredentials: true }).pipe(
-      catchError(err => {
-        console.warn('API failed, using mock data:', err);
-        return this.mockService.getAvailableTimeSlots(date, doctorId, slotDurationMinutes);
-      })
+      catchError(err => throwError(() => err))
     );
   }
 

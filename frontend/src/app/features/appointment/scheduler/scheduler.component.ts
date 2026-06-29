@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SchedulingService } from '../../scheduling/services/scheduling.service';
 import { PatientService } from '../../../core/services/patient.service';
-import { InsuranceService } from '../../../core/services/insurance.service';
 import { Appointment } from '../../../core/models/appointment.model';
 import { Patient } from '../../../core/models/patient.model';
 import { Doctor } from '../../../core/models/doctor.model';
@@ -25,7 +24,6 @@ export class SchedulerComponent implements OnInit {
   router = inject(Router);
   private schedulingService = inject(SchedulingService);
   private patientService = inject(PatientService);
-  private insuranceService = inject(InsuranceService);
 
   // Patient Header
   selectedPatient: Patient | null = null;
@@ -131,10 +129,13 @@ export class SchedulerComponent implements OnInit {
   }
 
   loadPatientInsurance(patientId: number) {
-    this.insuranceService.getByPatientId(patientId).subscribe({
-      next: (insurances) => {
-        if (insurances.length > 0) {
-          this.appointment.insuranceInfo = insurances[0];
+    this.schedulingService.getInsuranceSnapshot(patientId).subscribe({
+      next: (snapshot) => {
+        if (snapshot) {
+          this.appointment.insuranceInfo = {
+            insuranceName: snapshot.payerName,
+            policyNumber: snapshot.memberId
+          } as unknown as Insurance;
         }
       }
     });

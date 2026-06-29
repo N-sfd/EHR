@@ -67,6 +67,10 @@ It includes a Spring Boot backend, Angular-based admin and patient portals, and 
 
 - **Default**: AI is **disabled**. The app starts without `OPENAI_API_KEY` (Spring AI auto-config is excluded automatically).
 - **Enable**: set **`EHR_AI_ENABLED=true`** and provide **`OPENAI_API_KEY`** (and ensure PostgreSQL has the pgvector extension if you use embeddings / vector store).
+- **Local Ollama** (no cloud API key): set **`EHR_AI_ENABLED=true`** and **`EHR_AI_OLLAMA=true`**. The backend uses Ollama’s OpenAI-compatible API at **`http://localhost:11434/v1`** with a dummy api-key. Embeddings / pgvector stay off by default (`EHR_AI_OLLAMA_EMBEDDING=false`).
+  - **Windows quick start**: `ollama serve` → `ollama pull llama3.2` → **`.\start-backend.ps1 -Ollama`** (or **`.\start-backend-ollama.ps1`**).
+  - Optional env: **`OLLAMA_BASE_URL`**, **`OLLAMA_CHAT_MODEL`** (default `llama3.2`), **`EHR_AI_STREAMING=true`** for SSE chat.
+  - Spring profile **`ollama`**: **`backend/src/main/resources/application-ollama.yml`**.
 - **Legacy**: **`APP_AI_ENABLED=true`** is still honored if `EHR_AI_ENABLED` is unset (same behavior).
 
 Optional: **`EHR_AI_AUDIT_ENABLED`** — defaults to the same value as the AI switch when unset; set explicitly to turn AI audit logging on or off.
@@ -90,6 +94,10 @@ Stream **`data:`** lines are JSON objects (`AiStreamChunk`): `type` = `token` (f
   - `aiEnabled` — mirrors `app.ai.enabled` (same as env / profile switches above).
   - `aiAuditEnabled` — mirrors `app.ai.audit-enabled` (room for future audit indicators or admin-only diagnostics).
   - `aiStreamingEnabled` — mirrors `app.ai.allow-streaming` / **`EHR_AI_STREAMING`** (SSE chat endpoint).
+  - `aiOllama` — true when **`EHR_AI_OLLAMA=true`** (local Ollama).
+  - `aiProvider` — `ollama` | `openai` | `none`.
+  - `aiChatModel` — chat model name (e.g. `llama3.2` or `gpt-4.1-mini`).
+  - `ollamaBaseUrl` — Ollama host (default `http://localhost:11434`).
 - **`FeatureController` is always registered** (not behind `@ConditionalOnProperty`) so SPAs can decide pre-login.
 - The **admin** SPA loads flags during **`APP_INITIALIZER`** so the sidebar and route guard match the backend without probing `/api/ai/*`.
 - **MyChart** (`mychart/mychart-ui/`): production-style feature flags

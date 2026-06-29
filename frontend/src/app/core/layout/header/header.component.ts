@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Output, inject, OnInit } from '@angular/core';
 import { CommonModule, AsyncPipe } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService, CurrentUser } from '../../services/auth.service';
 import { AdminProfileService } from '../../services/admin-profile.service';
 import { NotificationService } from '../../services/notification.service';
@@ -11,7 +11,7 @@ import { Observable, of } from 'rxjs';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, AsyncPipe, AdminProfileDrawerComponent, NotificationsDrawerComponent],
+  imports: [CommonModule, AsyncPipe, RouterLink, RouterLinkActive, AdminProfileDrawerComponent, NotificationsDrawerComponent],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css']
 })

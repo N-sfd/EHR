@@ -64,7 +64,6 @@ public class SecurityConfig {
                 .requestMatchers("/api/patients/{id}/registration/completeness").hasAnyRole("PATIENT", "ADMIN", "PROVIDER") // Registration completeness
                 .requestMatchers("/api/patient-portal/**").hasRole("PATIENT") // Patient portal endpoints
                 .requestMatchers("/api/appointments/{id}/echeckin/**").hasRole("PATIENT") // eCheck-in endpoints
-                .requestMatchers("/fhir/**").hasRole("PATIENT") // FHIR resource endpoints
                 .requestMatchers("/api/messages/**").hasRole("PATIENT") // Messages inbox (legacy)
                 .requestMatchers("/api/patient/messages/**").hasRole("PATIENT") // Messages inbox
                 .requestMatchers("/api/patient/alerts/**").hasRole("PATIENT") // Alert dismissal
@@ -92,7 +91,6 @@ public class SecurityConfig {
                 .requestMatchers("/api/departments").hasAnyRole("ADMIN", "PROVIDER")
                 .requestMatchers("/api/reports/**").hasAnyRole("ADMIN", "PROVIDER")
                 .requestMatchers("/api/scheduling/**").hasAnyRole("ADMIN", "PROVIDER")
-                .requestMatchers("/api/encounters").hasAnyRole("ADMIN", "PROVIDER")
 
                 // AI knowledge ingest (vector index); ADMIN only
                 .requestMatchers("/api/admin/ai/**").hasRole("ADMIN")

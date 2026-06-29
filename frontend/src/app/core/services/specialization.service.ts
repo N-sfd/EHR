@@ -13,7 +13,7 @@ import { MasterSpecialization } from '../models/master-data.model';
 export class SpecializationService {
   private apiService = inject(ApiService);
   private masterDataService = inject(MasterDataService);
-  private useMock = environment.useMock !== false; // Use environment configuration, default to true
+  private readonly useMock = false;
 
   getAll(): Observable<SpecializationDto[]> {
     // Use MasterDataService for robust fallback

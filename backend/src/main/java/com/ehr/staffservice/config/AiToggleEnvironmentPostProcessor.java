@@ -97,8 +97,8 @@ public class AiToggleEnvironmentPostProcessor implements EnvironmentPostProcesso
         if (ollamaFlag && !Boolean.TRUE.equals(env.getProperty(PROPERTY_EHR_AI_OLLAMA_EMBEDDING, Boolean.class, false))) {
             map.put("spring.ai.openai.embedding.enabled", false);
         }
-        if (ollamaFlag && !hasNonEmptyResolvedKey(env.getProperty("spring.ai.openai.chat.options.model"))) {
-            map.put("spring.ai.openai.chat.options.model", env.getProperty("OLLAMA_CHAT_MODEL", "llama3.2"));
+        if (ollamaFlag) {
+            map.put("spring.ai.openai.chat.options.model", env.getProperty("OLLAMA_CHAT_MODEL", "llama3"));
         }
 
         if (!map.isEmpty()) {

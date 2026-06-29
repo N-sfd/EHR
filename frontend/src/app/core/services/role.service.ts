@@ -15,7 +15,7 @@ export class RoleService {
   public currentRole$: Observable<UserRole> = this.currentRoleSubject.asObservable();
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl || '';
-  private useMock = environment.useMock !== false; // Use environment configuration, default to true
+  private readonly useMock = false;
 
   constructor() {
     this.setRole((localStorage.getItem('userRole') as UserRole) || 'ADMIN');

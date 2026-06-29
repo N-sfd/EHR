@@ -60,13 +60,6 @@
           <i class="fas fa-user-md empty-icon"></i>
           <p *ngIf="providers.length === 0">No providers available</p>
           <p *ngIf="providers.length > 0">No providers match your search</p>
-          <button 
-            *ngIf="providers.length === 0"
-            class="btn-primary seed-btn" 
-            (click)="seedDemoProviders()"
-          >
-            <i class="fas fa-seedling"></i> Seed Demo Providers
-          </button>
         </div>
       </div>
     </div>

@@ -1,8 +1,14 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { catchError, of, timeout } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
+import { friendlyAuthError } from '../../../core/utils/http-error.util';
+import { environment } from '../../../../environments/environment';
+
+type ApiStatus = 'checking' | 'online' | 'offline';
 
 @Component({
   selector: 'app-login',
@@ -11,22 +17,27 @@ import { AuthService } from '../../../core/services/auth.service';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   isSubmitting = false;
   errorMessage: string | null = null;
   passwordVisible = false;
+  apiStatus: ApiStatus = 'checking';
+
   private fb = inject(FormBuilder);
+  private http = inject(HttpClient);
 
   loginForm = this.fb.group({
     username: ['admin', Validators.required],
-    password: ['password', Validators.required], // Default password matches backend test user
+    password: ['password', Validators.required],
     rememberMe: [true]
   });
 
-  highlights = [
-    { label: 'Clinics onboarded', value: '120+' },
-    { label: 'Providers', value: '2.4k' },
-    { label: 'Appointments / mo', value: '48k' }
+  readonly currentYear = new Date().getFullYear();
+
+  readonly capabilities = [
+    { icon: 'fa-calendar-days', title: 'Appointment scheduling', desc: 'Grid views, waitlists, and provider templates' },
+    { icon: 'fa-hospital-user', title: 'Patient portal', desc: 'MyChart-style access for patients and families' },
+    { icon: 'fa-wand-magic-sparkles', title: 'AI assistant', desc: 'Optional Ollama or cloud models for staff chat' }
   ];
 
   constructor(
@@ -34,12 +45,37 @@ export class LoginComponent {
     private router: Router
   ) {}
 
-  togglePasswordVisibility() {
+  ngOnInit(): void {
+    this.checkApiHealth();
+  }
+
+  get apiOffline(): boolean {
+    return this.apiStatus === 'offline';
+  }
+
+  checkApiHealth(): void {
+    this.apiStatus = 'checking';
+    const healthUrl = `${environment.apiUrl || ''}/api/health`;
+
+    this.http.get(healthUrl).pipe(
+      timeout(5000),
+      catchError(() => of(null))
+    ).subscribe(response => {
+      this.apiStatus = response ? 'online' : 'offline';
+    });
+  }
+
+  togglePasswordVisibility(): void {
     this.passwordVisible = !this.passwordVisible;
   }
 
-  submit() {
+  submit(): void {
     this.errorMessage = null;
+
+    if (this.apiOffline) {
+      this.errorMessage = friendlyAuthError(new HttpErrorResponse({ status: 504, statusText: 'Gateway Timeout' }));
+      return;
+    }
 
     if (this.loginForm.invalid || this.isSubmitting) {
       this.loginForm.markAllAsTouched();
@@ -57,30 +93,13 @@ export class LoginComponent {
         this.isSubmitting = false;
         this.router.navigate(['/admin/dashboard']);
       },
-      error: (err: any) => {
+      error: (err: unknown) => {
         this.isSubmitting = false;
-        console.error('Login error details:', {
-          status: err?.status,
-          statusText: err?.statusText,
-          message: err?.message,
-          url: err?.url,
-          error: err?.error
-        });
-        
-        // Provide more helpful error messages
-        if (err?.status === 0) {
-          this.errorMessage = 'Cannot connect to server. Please check if the backend is running on port 8087.';
-        } else if (err?.status === 401) {
-          this.errorMessage = err?.error?.error || 'Invalid username or password. Make sure you are using "admin" / "password".';
-        } else if (err?.status === 403) {
-          this.errorMessage = err?.error?.error || 'Account is inactive or access denied.';
-        } else if (err?.status === 500) {
-          this.errorMessage = err?.error?.error || 'Internal server error. Please check backend logs.';
-        } else {
-          this.errorMessage = err?.error?.error || err?.error?.message || err?.message || 'An error occurred during login.';
+        this.errorMessage = friendlyAuthError(err);
+        if (this.apiStatus === 'online' && this.errorMessage.includes('API is not running')) {
+          this.apiStatus = 'offline';
         }
       }
     });
   }
 }
-

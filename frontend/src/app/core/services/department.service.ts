@@ -13,7 +13,7 @@ import { MasterDepartment } from '../models/master-data.model';
 export class DepartmentService {
   private apiService = inject(ApiService);
   private masterDataService = inject(MasterDataService);
-  private useMock = environment.useMock !== false; // Use environment configuration, default to true
+  private readonly useMock = false;
 
   private convertToDepartment(masterDept: MasterDepartment): Department {
     return {

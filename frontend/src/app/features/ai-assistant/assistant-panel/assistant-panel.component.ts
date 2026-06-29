@@ -35,12 +35,32 @@ interface ChatMessage {
 })
 export class AssistantPanelComponent implements OnInit, OnDestroy {
   private readonly api = inject(AiAssistantApi);
-  private readonly flags = inject(FeatureFlagsService);
+  readonly flags = inject(FeatureFlagsService);
   private readonly route = inject(ActivatedRoute);
   private readonly patientService = inject(PatientService);
   private readonly appointmentService = inject(AppointmentService);
 
-  readonly aiEnabled = this.flags.aiEnabled();
+  get aiEnabled(): boolean {
+    return this.flags.aiEnabled();
+  }
+
+  get aiOllama(): boolean {
+    return this.flags.aiOllama();
+  }
+
+  get aiStatusLabel(): string {
+    if (!this.aiEnabled) return 'AI not configured';
+    if (this.aiOllama) {
+      const model = this.flags.aiChatModel();
+      return model ? `Ollama · ${model}` : 'Ollama (local)';
+    }
+    return 'AI online';
+  }
+
+  get aiStreamingEnabled(): boolean {
+    return this.flags.aiStreamingEnabled();
+  }
+  info = signal<string | null>(null);
 
   patientId = signal<number>(0);
   patient = signal<Patient | null>(null);
@@ -93,6 +113,27 @@ export class AssistantPanelComponent implements OnInit, OnDestroy {
     this.clearBatchTimer();
   }
 
+  copySetupCommand(): void {
+    const cmd = this.aiOllama || !this.aiEnabled
+      ? "# Local Ollama (PowerShell)\r\n# Ollama already installed — restart API with:\r\n.\\stop-backend.ps1\r\n.\\start-backend.ps1 -Ollama"
+      : "Set environment: EHR_AI_ENABLED=true && set OPENAI_API_KEY=your_key_here";
+    try {
+      if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(cmd).then(() => {
+          this.info.set('Setup command copied to clipboard');
+          setTimeout(() => this.info.set(null), 3500);
+        }).catch(() => {
+          alert(cmd);
+        });
+      } else {
+        // Fallback for older browsers
+        alert(cmd);
+      }
+    } catch (e) {
+      alert(cmd);
+    }
+  }
+
   get patientLabel(): string {
     const p = this.patient();
     if (p) return `${p.firstName} ${p.lastName}`;
@@ -131,7 +172,7 @@ export class AssistantPanelComponent implements OnInit, OnDestroy {
       portal: 'STAFF'
     };
 
-    if (!this.flags.aiStreamingEnabled()) {
+    if (!this.aiStreamingEnabled) {
       this.runChatOnly(req);
       return;
     }
@@ -259,22 +300,18 @@ export class AssistantPanelComponent implements OnInit, OnDestroy {
     const lower = message.toLowerCase();
     let reply = '';
 
-    if (/lab|result|test|cbc|lipid|panel|blood\s+work/.test(lower)) {
+    if (/schedule|appointment|slot|calendar|book|waitlist/.test(lower)) {
       reply = this.patientId()
-        ? `AI is not configured on this server. To view lab results for this patient, navigate to their profile and open the Lab Results section.\n\nTo enable AI: set EHR_AI_ENABLED=true and provide a valid OPENAI_API_KEY in your environment.`
-        : `AI is not configured on this server.\n\nTo review lab results: open a patient profile and click "Lab Results".\n\nTo enable AI: set EHR_AI_ENABLED=true with a valid OPENAI_API_KEY.`;
-    } else if (/med|medication|drug|prescri|pill|refill/.test(lower)) {
-      reply = this.patientId()
-        ? `AI is not configured on this server. To view medications for this patient, navigate to their profile and open the Medications section.\n\nTo enable AI: set EHR_AI_ENABLED=true and provide a valid OPENAI_API_KEY.`
-        : `AI is not configured on this server.\n\nTo review medications: open a patient profile and use the Medications section.\n\nTo enable AI: set EHR_AI_ENABLED=true with a valid OPENAI_API_KEY.`;
-    } else if (/vital|bp|pressure|heart|pulse|temp|weight|oxygen/.test(lower)) {
-      reply = `AI is not configured on this server. Vitals are recorded during patient encounters — open a patient's Encounter record to review them.\n\nTo enable AI: set EHR_AI_ENABLED=true with a valid OPENAI_API_KEY.`;
+        ? `AI is not fully configured on this server. For ${this.patientLabel}, open Appointments or use Schedule Grid to view and book slots.\n\nTo enable AI: set EHR_AI_ENABLED=true and provide OPENAI_API_KEY (or EHR_AI_OLLAMA=true for local Ollama), then restart the backend.`
+        : `AI is not fully configured on this server. Use Schedule Grid or New Appointment to manage the calendar.\n\nTo enable AI: set EHR_AI_ENABLED=true with OPENAI_API_KEY or local Ollama.`;
+    } else if (/patient|mrn|demographic|contact/.test(lower)) {
+      reply = `AI is not fully configured. Patient records are available under Patients in the sidebar.\n\nTo enable AI: set EHR_AI_ENABLED=true and restart the backend.`;
     } else {
-      reply = `AI backend is not configured (EHR_AI_ENABLED=false).\n\nTo enable the AI assistant:\n1. Set EHR_AI_ENABLED=true in your environment\n2. Provide a valid OPENAI_API_KEY\n3. Restart the backend server\n\nYou can still navigate the EHR normally — patient records, appointments, and lab results are all available.`;
+      reply = `AI backend is not configured (EHR_AI_ENABLED=false).\n\nTo enable the assistant:\n1. Set EHR_AI_ENABLED=true\n2. Set OPENAI_API_KEY (or EHR_AI_OLLAMA=true for Ollama)\n3. Restart the backend\n\nYou can still use scheduling, patients, and reports without AI.`;
     }
 
     this.updateLastMessage(m => ({ ...m, text: reply, isStreaming: false }));
-    this.error.set('AI backend not configured (EHR_AI_ENABLED=false). See response for details.');
+    this.error.set('AI backend not configured. See response for setup steps.');
     this.loading.set(false);
   }
 }

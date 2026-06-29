@@ -12,7 +12,11 @@ export function friendlyHttpError(err: unknown): string {
   }
 
   if (err.status === 0) {
-    return 'API unreachable. Is backend running on port 8087?';
+    return apiUnreachableMessage();
+  }
+
+  if (err.status === 502 || err.status === 503 || err.status === 504) {
+    return apiUnreachableMessage();
   }
 
   if (err.status === 401) {
@@ -32,5 +36,33 @@ export function friendlyHttpError(err: unknown): string {
   }
 
   return err.error?.message || `Request failed (${err.status}).`;
+}
+
+function apiUnreachableMessage(): string {
+  return 'API is not running. From the repo root, start it with: mvn spring-boot:run (port 8087) or .\\deploy.ps1 for Docker.';
+}
+
+/** Login form — clearer auth and connectivity messages. */
+export function friendlyAuthError(err: unknown): string {
+  if (!(err instanceof HttpErrorResponse)) {
+    if (err instanceof Error && err.message) {
+      return err.message;
+    }
+    return 'An unexpected error occurred during sign-in.';
+  }
+
+  if (err.status === 0 || err.status === 502 || err.status === 503 || err.status === 504) {
+    return apiUnreachableMessage();
+  }
+
+  if (err.status === 401) {
+    return err.error?.error || 'Invalid username or password. Dev default: admin / password';
+  }
+
+  if (err.status === 403) {
+    return err.error?.error || 'Account is inactive or access denied.';
+  }
+
+  return friendlyHttpError(err);
 }
 

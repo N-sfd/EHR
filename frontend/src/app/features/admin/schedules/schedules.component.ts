@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { AdminService } from '../services/admin.service';
 import { ProviderService } from '../../../core/services/provider.service';
-import { ProviderMockService } from '../../../core/services/provider-mock.service';
 import { ScheduleTemplate, BlockedTime, OverbookRule, DayHours, ClinicHours } from '../models/admin.model';
 import { Provider } from '../../../core/models/provider.model';
 import { friendlyHttpError } from '../../../core/utils/http-error.util';
@@ -20,7 +19,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 export class SchedulesComponent implements OnInit {
   private adminService = inject(AdminService);
   private providerService = inject(ProviderService);
-  private providerMockService = inject(ProviderMockService);
   private fb = inject(FormBuilder);
 
   providers: Provider[] = [];
@@ -129,22 +127,6 @@ export class SchedulesComponent implements OnInit {
         this.providers = [];
         this.filteredProviders = [];
         this.isLoadingProviders = false;
-      }
-    });
-  }
-
-  seedDemoProviders(): void {
-    this.isLoadingProviders = true;
-    this.providerMockService.seedDemoProviders().subscribe({
-      next: (providers) => {
-        this.providers = providers;
-        this.filteredProviders = [...this.providers];
-        this.isLoadingProviders = false;
-        this.errorMessage = null;
-      },
-      error: () => {
-        this.isLoadingProviders = false;
-        this.errorMessage = 'Failed to seed demo providers';
       }
     });
   }

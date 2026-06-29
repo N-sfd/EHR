@@ -1,94 +1,131 @@
-<div class=”login-shell”>
-  <div class=”login-panel accent”>
+<div class="login-page">
+  <!-- Brand panel -->
+  <aside class="brand-panel" aria-label="CareOS product overview">
+    <div class="brand-bg" aria-hidden="true">
+      <img src="assets/hospital-icon.svg" class="bg-mark bg-mark-1" alt="">
+      <img src="assets/medicine-icon.svg" class="bg-mark bg-mark-2" alt="">
+    </div>
 
-    <!-- Brand -->
-    <div class=”brand-row”>
-      <img src=”assets/logo.svg” alt=”HMS Logo” class=”brand-logo”>
-      <div>
-        <div class=”brand-name”>CareOS</div>
-        <div class=”brand-tag”>Hospital Management System</div>
+    <header class="brand-header">
+      <img src="assets/logo.svg" alt="CareOS" class="brand-logo">
+      <div class="brand-identity">
+        <span class="brand-name">CareOS</span>
+        <span class="brand-product">Staff &amp; Scheduling Platform</span>
+      </div>
+    </header>
+
+    <div class="brand-body">
+      <p class="eyebrow">Healthcare operations</p>
+      <h1>Modern scheduling for clinics and hospital staff.</h1>
+      <p class="lead">
+        Coordinate provider calendars, patient access, and AI-assisted workflows in one secure admin portal.
+      </p>
+
+      <ul class="capability-list">
+        <li *ngFor="let cap of capabilities">
+          <span class="cap-icon"><i class="fas" [ngClass]="cap.icon"></i></span>
+          <div>
+            <strong>{{ cap.title }}</strong>
+            <span>{{ cap.desc }}</span>
+          </div>
+        </li>
+      </ul>
+
+      <div class="brand-visual">
+        <img src="assets/login-illustration.svg" alt="Scheduling dashboard preview" class="visual-main">
       </div>
     </div>
 
-    <h1>Modern EHR for the care teams of tomorrow.</h1>
-    <p class=”lead”>
-      Unified scheduling, AI-assisted clinical workflows, real-time lab results and patient engagement — all in one platform.
-    </p>
+    <footer class="brand-footer">
+      <span><i class="fas fa-shield-halved"></i> HIPAA-aligned design</span>
+      <span><i class="fas fa-lock"></i> Encrypted sessions</span>
+      <span><i class="fas fa-wand-magic-sparkles"></i> Optional local AI (Ollama)</span>
+    </footer>
+  </aside>
 
-    <!-- Illustration -->
-    <div class=”illustration-wrap”>
-      <img src=”assets/login-illustration.svg” alt=”EHR Dashboard” class=”hero-illustration”>
-    </div>
-
-    <div class=”highlight-grid”>
-      <div class=”highlight-card” *ngFor=”let item of highlights”>
-        <span class=”value”>{{ item.value }}</span>
-        <span class=”label”>{{ item.label }}</span>
+  <!-- Sign-in panel -->
+  <main class="auth-panel">
+    <div class="auth-card">
+      <div class="auth-card-header">
+        <div class="auth-logo-row">
+          <img src="assets/logo.svg" alt="" aria-hidden="true">
+          <div>
+            <h2>Sign in</h2>
+            <p class="auth-subtitle">Staff admin portal</p>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <div class=”testimonial”>
-      <div class=”testimonial-avatar”>TC</div>
-      <div>
-        <p>”CareOS improved our slot utilization by 32% in just eight weeks.”</p>
-        <span>— Trustcare Clinic, Las Vegas</span>
+      <div class="system-status" [class.checking]="apiStatus === 'checking'" [class.online]="apiStatus === 'online'" [class.offline]="apiStatus === 'offline'">
+        <ng-container [ngSwitch]="apiStatus">
+          <span *ngSwitchCase="'checking'"><i class="fas fa-spinner fa-spin"></i> Verifying API connection…</span>
+          <span *ngSwitchCase="'online'"><i class="fas fa-circle-check"></i> System ready · API connected</span>
+          <ng-container *ngSwitchCase="'offline'">
+            <div class="offline-block">
+              <div class="offline-head">
+                <i class="fas fa-server"></i>
+                <div>
+                  <strong>Backend unavailable</strong>
+                  <p>Start the API on port <code>8087</code> before signing in.</p>
+                </div>
+              </div>
+              <div class="offline-cmds">
+                <code>mvn spring-boot:run</code>
+                <span class="cmd-or">or</span>
+                <code>.\start-backend.ps1 -Ollama</code>
+              </div>
+              <button type="button" class="btn-retry" (click)="checkApiHealth()">Retry connection</button>
+            </div>
+          </ng-container>
+        </ng-container>
       </div>
-    </div>
-  </div>
 
-  <div class="login-panel form">
-    <div class="form-card">
-      <div class="form-logo">
-        <img src="assets/logo.svg" alt="CareOS">
-        <span class="form-logo-name">CareOS</span>
-      </div>
-      <div class="pill"><i class="fas fa-shield-alt"></i> Secure Access</div>
-      <h2>Welcome back</h2>
-      <p class="subheading">Sign in to your clinic command center.</p>
-
-      <form [formGroup]="loginForm" (ngSubmit)="submit()">
-        <div class="form-group">
-          <label>Username</label>
-          <input class="form-control" type="text" formControlName="username" placeholder="e.g. admin@preclinic.io">
+      <form class="auth-form" [formGroup]="loginForm" (ngSubmit)="submit()">
+        <div class="field">
+          <label for="username">Username</label>
+          <div class="field-input">
+            <i class="fas fa-user field-icon"></i>
+            <input id="username" class="input" type="text" formControlName="username" placeholder="admin" autocomplete="username">
+          </div>
         </div>
 
-        <div class="form-group">
-          <label>Password</label>
-          <div class="password-field">
-            <input class="form-control" [type]="passwordVisible ? 'text' : 'password'" formControlName="password" placeholder="••••••••">
-            <button type="button" class="toggle-password" (click)="togglePasswordVisibility()" [attr.aria-label]="passwordVisible ? 'Hide password' : 'Show password'" [title]="passwordVisible ? 'Hide password' : 'Show password'">
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="field-input">
+            <i class="fas fa-lock field-icon"></i>
+            <input id="password" class="input" [type]="passwordVisible ? 'text' : 'password'" formControlName="password" placeholder="Enter password" autocomplete="current-password">
+            <button type="button" class="btn-icon" (click)="togglePasswordVisibility()" [attr.aria-label]="passwordVisible ? 'Hide password' : 'Show password'" [title]="passwordVisible ? 'Hide password' : 'Show password'">
               <i class="fas" [class]="passwordVisible ? 'fa-eye-slash' : 'fa-eye'"></i>
             </button>
           </div>
         </div>
 
-        <div class="form-meta">
-          <label class="remember">
+        <div class="form-row">
+          <label class="checkbox-label">
             <input type="checkbox" formControlName="rememberMe">
-            Keep me signed in
+            <span>Keep me signed in</span>
           </label>
-          <a href="#">Forgot password?</a>
+          <a class="link-muted" href="#" tabindex="-1" aria-disabled="true">Forgot password?</a>
         </div>
 
-        <div class="alert error" *ngIf="errorMessage">
+        <div class="alert-error" *ngIf="errorMessage" role="alert">
           <i class="fas fa-circle-exclamation"></i>
-          {{ errorMessage }}
+          <span>{{ errorMessage }}</span>
         </div>
 
-        <button class="btn btn-primary w-100" type="submit" [disabled]="isSubmitting">
-          <span *ngIf="!isSubmitting">Sign in</span>
-          <span *ngIf="isSubmitting">
-            <i class="fas fa-spinner fa-spin"></i> Signing in...
-          </span>
+        <button class="btn-signin" type="submit" [disabled]="isSubmitting || apiOffline || apiStatus === 'checking'">
+          <i class="fas fa-arrow-right-to-bracket" *ngIf="!isSubmitting"></i>
+          <i class="fas fa-spinner fa-spin" *ngIf="isSubmitting"></i>
+          {{ isSubmitting ? 'Signing in…' : 'Sign in to dashboard' }}
         </button>
       </form>
 
-      <p class="hint">Use any valid Spring Security credentials (default: admin / password).</p>
-
-      <div class="powered-by">
-        <i class="fas fa-heartbeat"></i> POWERED BY CAREOS EHR
-      </div>
+      <p class="auth-footnote">
+        Development: <kbd>admin</kbd> / <kbd>password</kbd>
+        · Patients: <a href="/mychart/" target="_blank" rel="noopener">MyChart portal</a>
+      </p>
     </div>
-  </div>
-</div>
 
+    <p class="page-copyright">© {{ currentYear }} CareOS · Scheduling &amp; patient engagement</p>
+  </main>
+</div>

@@ -33,6 +33,7 @@ export class AdminDashboardComponent implements OnInit {
 
   readonly quickActions = [
     { label: 'New Appointment', icon: 'fa-calendar-plus', route: '/admin/appointments/new', color: '#004F4F' },
+    { label: 'AI Assistant',    icon: 'fa-wand-magic-sparkles', route: '/admin/ai-assistant', color: '#7c3aed' },
     { label: 'Add Patient',     icon: 'fa-user-plus',     route: '/admin/patients/add',    color: '#0891b2' },
     { label: 'Doctor Schedules',icon: 'fa-calendar-alt',  route: '/admin/doctors/schedule',color: '#7c3aed' },
     { label: 'Patient Records',  icon: 'fa-folder-open',   route: '/admin/patients',        color: '#059669' },
@@ -45,10 +46,10 @@ export class AdminDashboardComponent implements OnInit {
     { title: 'Staff',         icon: 'fa-users',               route: '/admin/staff-management', color: '#0891b2', desc: 'Roles & assignments' },
     { title: 'Patients',      icon: 'fa-bed-pulse',           route: '/admin/patients',     color: '#7c3aed', desc: 'Records & care plans' },
     { title: 'Appointments',  icon: 'fa-calendar-check',      route: '/admin/appointments', color: '#059669', desc: 'Scheduling & booking' },
+    { title: 'AI Assistant',  icon: 'fa-wand-magic-sparkles', route: '/admin/ai-assistant', color: '#7c3aed', desc: 'Scheduling insights & chat' },
     { title: 'Departments',   icon: 'fa-sitemap',             route: '/admin/departments',  color: '#d97706', desc: 'Org structure' },
     { title: 'Specializations',icon: 'fa-stethoscope',        route: '/admin/specializations', color: '#dc2626', desc: 'Clinical specialties' },
     { title: 'Schedules',     icon: 'fa-table-columns',       route: '/admin/schedules',    color: '#0284c7', desc: 'Provider templates' },
-    { title: 'Analysis',      icon: 'fa-chart-line',          route: '/admin/analysis',     color: '#7c3aed', desc: 'Insights & trends' },
     { title: 'Reports',       icon: 'fa-file-chart-column',   route: '/admin/reports/scheduling-analytics', color: '#059669', desc: 'Analytics & exports' },
     { title: 'Roles & Access',icon: 'fa-shield-halved',       route: '/admin/roles',        color: '#db2777', desc: 'RBAC configuration' },
   ];

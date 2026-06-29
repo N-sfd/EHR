@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet">
+  <rect width="120" height="120" rx="12" fill="#f0fdf4"/>
+  <g transform="translate(25,15)">
+    <path d="M15 0 Q20 5 20 15 L20 50 Q20 55 15 55 Q10 55 10 50 L10 15 Q10 5 15 0 Z" fill="#059669" opacity="0.8"/>
+    <circle cx="15" cy="28" r="4" fill="#ffffff"/>
+    <path d="M35 10 L40 10 L40 50 L35 50 Z" fill="#059669" opacity="0.7"/>
+    <circle cx="37.5" cy="35" r="3" fill="#ffffff"/>
+  </g>
+</svg>

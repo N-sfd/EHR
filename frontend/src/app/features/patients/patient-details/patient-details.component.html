@@ -52,6 +52,9 @@
           <button class="btn btn-primary book-appointment-btn" (click)="bookAppointment()">
             <i class="fas fa-calendar-plus"></i> Book Appointment
           </button>
+          <a class="btn btn-ai ask-ai-btn" [routerLink]="['/admin/ai-assistant', patient.patientId]">
+            <i class="fas fa-wand-magic-sparkles"></i> Ask AI
+          </a>
           <button class="btn btn-secondary edit-patient-btn" (click)="editPatient()">
             <i class="fas fa-edit"></i> Edit Patient
           </button>
