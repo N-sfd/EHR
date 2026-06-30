@@ -23,10 +23,12 @@ import java.util.regex.Pattern;
 public class CorsConfig {
 
     /**
-     * {@code http://localhost:PORT}, {@code http://127.0.0.1:PORT}, {@code http://[::1]:PORT} (optional port).
+     * {@code http://localhost:PORT}, {@code http://127.0.0.1:PORT}, {@code http://[::1]:PORT} (optional port),
+     * or an {@code https://*.trycloudflare.com} quick tunnel exposing the local dev server.
      */
     private static final Pattern LOCAL_DEV_ORIGIN = Pattern.compile(
-            "^https?://(localhost|127\\.0\\.0\\.1|\\[::1\\])(:\\d+)?$");
+            "^https?://(localhost|127\\.0\\.0\\.1|\\[::1\\])(:\\d+)?$"
+            + "|^https://[a-z0-9-]+\\.trycloudflare\\.com$");
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
