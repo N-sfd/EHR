@@ -1,4 +1,44 @@
-## EHR Staff Service — Project Summary
+# CareOS — The Cloud-Native EHR Platform Built for What's Next
+
+<p align="center">
+  <img src="frontend/src/assets/dashboard-hero.svg" alt="CareOS unified clinical dashboard" width="640">
+</p>
+
+**CareOS** is a next-generation, cloud-native Electronic Health Record platform delivered as a secure, multi-tenant SaaS — engineered for health systems that refuse to choose between innovation and compliance. From the exam room to the boardroom, CareOS unifies clinical workflows, administrative operations, and patient engagement on a single, modern foundation so every stakeholder — clinician, administrator, and IT leader — gets a system built for them, not around them.
+
+Where legacy EHRs force trade-offs between usability and control, CareOS delivers both: an interface clinicians actually want to use, a backend administrators can fully govern, and an architecture IT teams can trust to scale, integrate, and stay secure.
+
+## Value Proposition
+
+- **For clinicians** — An intuitive, low-friction workflow that keeps eyes on the patient, not the screen. Structured chart context, AI-assisted documentation, and one-click scheduling actions cut administrative drag out of the care loop.
+- **For administrators** — Real-time operational visibility — scheduling utilization, provider workload, registration completeness — turned into decisions, not spreadsheets.
+- **For IT & security teams** — A platform built on role-based access control, immutable audit trails, and PHI-aware logging from day one, with FHIR-native interoperability that plugs into the systems you already run.
+- **For health systems at scale** — Cloud-native, API-first architecture designed to grow from a single clinic to a multi-facility enterprise without a re-platform.
+
+## Feature Set
+
+| Domain | Capabilities |
+|---|---|
+| **Clinical Workflow** | Drag-and-drop schedule grid with conflict detection, encounter and visit management, structured patient chart context, configurable visit types and provider availability |
+| **Interoperability** | FHIR-based APIs, SMART on FHIR OAuth login for patient access, designed for seamless integration with third-party clinical, billing, and analytics systems |
+| **AI & Automation** | Embedded AI assistant for scheduling insights, patient context summarization, and staff workflow support — powered by your choice of cloud (OpenAI) or private, on-premises (Ollama) language models, with full audit logging of every AI interaction |
+| **Analytics & Reporting** | Scheduling and provider-utilization analytics, operational work-queue reporting, and registration-completeness tracking for administrative oversight |
+| **Security & Compliance** | Role-based access control (Admin / Provider / Patient), HttpOnly session cookies, centralized authentication, PHI-masking in all application logs, and a full audit trail for every AI and clinical interaction |
+| **Patient Engagement** | Dedicated patient portal with SMART on FHIR login, appointment self-service, and a patient-facing AI assistant experience |
+| **Platform & Deployment** | Containerized, cloud-native deployment (Docker Compose, single reverse-proxy architecture), environment-driven feature flags, and zero-downtime-friendly database migrations |
+
+## Why Health Systems Choose CareOS
+
+CareOS is built on the principle that **compliance and innovation are not competing priorities**. Every feature — from the scheduling grid to the AI assistant — is designed with role-based access, audit-ability, and PHI protection built in, not bolted on. The result is a platform that's as comfortable in a security review as it is in a clinician's hands: measurably faster scheduling workflows, fewer administrative bottlenecks, and a foundation ready for whatever integration or scale comes next.
+
+<p align="center">
+  <img src="frontend/src/assets/schedule-hero.svg" alt="CareOS intelligent scheduling" width="300">
+  <img src="frontend/src/assets/assistant-hero.svg" alt="CareOS AI assistant" width="300">
+</p>
+
+---
+
+## EHR Staff Service — Technical Overview
 
 This repository implements a **full-stack Electronic Health Record (EHR) prototype** focused on staff, scheduling, and patient access workflows.
 It includes a Spring Boot backend, Angular-based admin and patient portals, and a PostgreSQL database managed via Flyway migrations.
