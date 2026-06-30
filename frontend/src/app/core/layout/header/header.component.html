@@ -15,6 +15,20 @@
             <p class="header-subtitle">Scheduling &amp; patient portal · AI-assisted operations</p>
           </div>
         </a>
+
+        <div class="org-switcher">
+          <button type="button" class="org-switcher-btn" (click)="toggleOrgSwitcher()" title="Switch organization">
+            <i class="fas fa-building"></i>
+            <span class="org-switcher-name">{{ activeOrg.name }}</span>
+            <i class="fas fa-chevron-down org-switcher-chevron"></i>
+          </button>
+          <div class="org-switcher-menu" *ngIf="showOrgSwitcher">
+            <div class="org-switcher-item active" *ngFor="let org of organizations">
+              <i class="fas fa-check"></i> {{ org.name }}
+            </div>
+            <div class="org-switcher-footer">Single-organization workspace</div>
+          </div>
+        </div>
       </div>
 
       <div class="header-center">

@@ -28,7 +28,7 @@
             <ng-container *ngTemplateOutlet="column.template; context: { $implicit: row, column: column }"></ng-container>
           </ng-container>
           <ng-template #defaultCell>
-            {{ row[column.key] }}
+            {{ getCell(row, column) }}
           </ng-template>
         </td>
       </tr>

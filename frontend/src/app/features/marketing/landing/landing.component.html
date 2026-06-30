@@ -1,0 +1,209 @@
+<div class="landing">
+
+  <!-- ── Top nav ─────────────────────────────────────────────────────── -->
+  <header class="lnav">
+    <div class="lnav-inner">
+      <div class="lnav-brand">
+        <img src="assets/logo.svg" alt="CareOS" class="lnav-logo">
+        <span>CareOS</span>
+      </div>
+      <nav class="lnav-links">
+        <a (click)="scrollTo('features')">Features</a>
+        <a (click)="scrollTo('security')">Security</a>
+        <a (click)="scrollTo('pricing')">Pricing</a>
+        <a (click)="scrollTo('faq')">FAQ</a>
+      </nav>
+      <div class="lnav-actions">
+        <button type="button" class="btn-ghost" (click)="goToLogin()">Login</button>
+        <button type="button" class="btn-primary-pill" (click)="goToLogin()">Start Free Trial</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Hero ────────────────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <span class="eyebrow"><i class="fas fa-circle-check"></i> Trusted by modern health systems</span>
+        <h1>The cloud-native EHR platform built for what's next</h1>
+        <p class="hero-sub">
+          CareOS unifies scheduling, clinical workflows, and patient engagement on one secure,
+          FHIR-native SaaS platform — intuitive for clinicians, powerful for administrators, and
+          reliable for IT teams.
+        </p>
+        <div class="hero-cta">
+          <button type="button" class="btn-primary-pill lg" (click)="goToLogin()">
+            <i class="fas fa-rocket"></i> Start Free Trial
+          </button>
+          <button type="button" class="btn-outline-pill lg" (click)="scrollTo('pricing')">
+            <i class="fas fa-calendar"></i> Book Demo
+          </button>
+        </div>
+        <div class="hero-trust">
+          <span><i class="fas fa-shield-halved"></i> HIPAA-ready architecture</span>
+          <span><i class="fas fa-lock"></i> Role-based access control</span>
+          <span><i class="fas fa-share-nodes"></i> FHIR-native</span>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <img src="assets/dashboard-hero.svg" alt="CareOS dashboard preview">
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Value proposition strip ─────────────────────────────────────── -->
+  <section class="value-strip">
+    <div class="value-item">
+      <i class="fas fa-user-doctor"></i>
+      <div><strong>Built for clinicians</strong><span>Low-friction workflows that keep focus on the patient.</span></div>
+    </div>
+    <div class="value-item">
+      <i class="fas fa-chart-pie"></i>
+      <div><strong>Built for administrators</strong><span>Real operational visibility, not spreadsheets.</span></div>
+    </div>
+    <div class="value-item">
+      <i class="fas fa-server"></i>
+      <div><strong>Built for IT teams</strong><span>Auditable, FHIR-native, and built to scale.</span></div>
+    </div>
+  </section>
+
+  <!-- ── Features ─────────────────────────────────────────────────────── -->
+  <section class="section" id="features">
+    <div class="section-head">
+      <span class="section-eyebrow">Platform</span>
+      <h2>Everything a modern health system needs, in one place</h2>
+      <p>From the front desk to the boardroom, CareOS replaces fragmented point tools with one cohesive system of record.</p>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card" *ngFor="let f of features">
+        <div class="feature-icon"><i class="fas" [ngClass]="f.icon"></i></div>
+        <h3>{{ f.title }}</h3>
+        <p>{{ f.desc }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Security & compliance ───────────────────────────────────────── -->
+  <section class="section security-section" id="security">
+    <div class="security-grid">
+      <div class="security-copy">
+        <span class="section-eyebrow">Security &amp; Compliance</span>
+        <h2>Designed to be HIPAA-ready, not bolted on afterward</h2>
+        <p>
+          Every layer of CareOS — from session handling to AI logging — is built with healthcare
+          data protection in mind. Full regulatory compliance also depends on how your organization
+          deploys and hosts the platform; we're transparent about that distinction rather than
+          overstating it.
+        </p>
+        <ul class="security-list">
+          <li><i class="fas fa-key"></i> Secure, HttpOnly session-based authentication</li>
+          <li><i class="fas fa-user-shield"></i> Role-based access control across Admin, Provider, and Patient roles</li>
+          <li><i class="fas fa-list-check"></i> Audit trails on clinical and AI-assisted interactions</li>
+          <li><i class="fas fa-eye-slash"></i> PHI-aware logging that masks sensitive fields by default</li>
+          <li><i class="fas fa-lock"></i> Encrypted-in-transit data handling across every API call</li>
+        </ul>
+      </div>
+      <div class="security-visual">
+        <div class="security-badge-card">
+          <i class="fas fa-shield-halved"></i>
+          <strong>HIPAA-Ready Architecture</strong>
+          <span>Security-first design across the platform</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Pricing ──────────────────────────────────────────────────────── -->
+  <section class="section pricing-section" id="pricing">
+    <div class="section-head">
+      <span class="section-eyebrow">Pricing</span>
+      <h2>Plans that scale with your organization</h2>
+      <p>Every plan starts with a free trial. No long-term contract required to get started.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="pricing-card" *ngFor="let tier of pricing" [class.highlighted]="tier.highlighted">
+        <span class="pricing-tag" *ngIf="tier.highlighted">Most Popular</span>
+        <h3>{{ tier.name }}</h3>
+        <div class="pricing-price">{{ tier.price }}<span>{{ tier.period }}</span></div>
+        <p class="pricing-desc">{{ tier.desc }}</p>
+        <ul class="pricing-features">
+          <li *ngFor="let f of tier.features"><i class="fas fa-check"></i> {{ f }}</li>
+        </ul>
+        <button type="button"
+          [class.btn-primary-pill]="tier.highlighted"
+          [class.btn-outline-pill]="!tier.highlighted"
+          (click)="goToLogin()">
+          {{ tier.cta }}
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Testimonials ─────────────────────────────────────────────────── -->
+  <section class="section testimonial-section">
+    <div class="section-head">
+      <span class="section-eyebrow">What healthcare teams say</span>
+      <h2>Built for the people who use it every day</h2>
+    </div>
+    <div class="testimonial-grid">
+      <div class="testimonial-card" *ngFor="let t of testimonials">
+        <i class="fas fa-quote-left quote-icon"></i>
+        <p>{{ t.quote }}</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">{{ t.role.charAt(0) }}</div>
+          <div>
+            <strong>{{ t.role }}</strong>
+            <span>{{ t.org }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="testimonial-note">Illustrative customer quotes shown for demonstration purposes.</p>
+  </section>
+
+  <!-- ── FAQ ──────────────────────────────────────────────────────────── -->
+  <section class="section faq-section" id="faq">
+    <div class="section-head">
+      <span class="section-eyebrow">FAQ</span>
+      <h2>Questions, answered</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item" *ngFor="let item of faqs" [class.open]="item.open">
+        <button type="button" class="faq-question" (click)="toggleFaq(item)">
+          <span>{{ item.q }}</span>
+          <i class="fas" [ngClass]="item.open ? 'fa-minus' : 'fa-plus'"></i>
+        </button>
+        <div class="faq-answer" *ngIf="item.open">{{ item.a }}</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Final CTA ────────────────────────────────────────────────────── -->
+  <section class="cta-band">
+    <div class="cta-content">
+      <h2>Ready to see CareOS in your organization?</h2>
+      <p>Start a free trial today, or book a demo with our team to see CareOS configured for your specialty.</p>
+      <div class="cta-actions">
+        <button type="button" class="btn-primary-pill lg" (click)="goToLogin()">
+          <i class="fas fa-rocket"></i> Start Free Trial
+        </button>
+        <button type="button" class="btn-outline-pill lg light" (click)="scrollTo('pricing')">
+          <i class="fas fa-calendar"></i> Book Demo
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ───────────────────────────────────────────────────────── -->
+  <footer class="lfooter">
+    <div class="lfooter-inner">
+      <div class="lfooter-brand">
+        <img src="assets/logo.svg" alt="CareOS">
+        <span>CareOS</span>
+      </div>
+      <p>&copy; {{ currentYear }} CareOS. All rights reserved.</p>
+      <a (click)="goToLogin()">Staff &amp; Provider Login</a>
+    </div>
+  </footer>
+
+</div>

@@ -54,5 +54,9 @@ export class TableComponent<T = any> {
     if (this.sortColumn !== column.key) return 'fa-sort';
     return this.sortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down';
   }
+
+  getCell(row: T, column: TableColumn<T>): any {
+    return (row as any)[column.key];
+  }
 }
 

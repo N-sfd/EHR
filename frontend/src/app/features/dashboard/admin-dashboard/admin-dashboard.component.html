@@ -163,6 +163,81 @@
     </div>
   </div>
 
+  <!-- ── Operational Snapshot ────────────────────────────────────── -->
+  <div class="section-title"><i class="fas fa-gauge-high"></i> Operational Snapshot</div>
+  <div class="ops-grid">
+
+    <!-- Billing Summary -->
+    <div class="panel ops-panel">
+      <div class="panel-header">
+        <div class="panel-title"><i class="fas fa-file-invoice-dollar"></i> Billing Summary</div>
+        <span class="demo-tag" title="Illustrative data — admin billing aggregate API not yet available">Sample</span>
+      </div>
+      <div class="ops-list">
+        <div class="ops-row" *ngFor="let b of billingSummary">
+          <span class="ops-row-label">{{ b.label }}</span>
+          <span class="ops-row-value" [ngClass]="'tone-' + b.tone">{{ b.amount }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab Alerts -->
+    <div class="panel ops-panel">
+      <div class="panel-header">
+        <div class="panel-title"><i class="fas fa-vial-circle-check"></i> Lab Alerts</div>
+        <span class="demo-tag" title="Illustrative data — admin labs aggregate API not yet available">Sample</span>
+      </div>
+      <div class="ops-list">
+        <div class="ops-row" *ngFor="let l of labAlerts">
+          <div class="ops-row-main">
+            <span class="ops-row-label">{{ l.patientName }}</span>
+            <span class="ops-row-sub">{{ l.test }} · {{ l.date }}</span>
+          </div>
+          <span class="chip" [ngClass]="l.flag === 'CRITICAL' ? 'chip-red' : 'chip-yellow'">{{ l.flag }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prescription Requests -->
+    <div class="panel ops-panel">
+      <div class="panel-header">
+        <div class="panel-title"><i class="fas fa-prescription"></i> Prescription Requests</div>
+        <span class="demo-tag" title="Illustrative data — admin medications aggregate API not yet available">Sample</span>
+      </div>
+      <div class="ops-list">
+        <div class="ops-row" *ngFor="let p of prescriptionRequests">
+          <div class="ops-row-main">
+            <span class="ops-row-label">{{ p.patientName }}</span>
+            <span class="ops-row-sub">{{ p.medication }} · {{ p.requestedAt }}</span>
+          </div>
+          <span class="chip" [ngClass]="p.status === 'PENDING' ? 'chip-yellow' : 'chip-green'">{{ p.status }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Provider Activity -->
+    <div class="panel ops-panel">
+      <div class="panel-header">
+        <div class="panel-title"><i class="fas fa-user-doctor"></i> Provider Activity</div>
+        <button type="button" class="panel-link" (click)="go('/admin/reports/provider-utilization')">
+          View all <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+      <div class="ops-list" *ngIf="!providerActivityLoading; else opsLoading">
+        <div class="ops-row" *ngFor="let p of providerActivity">
+          <span class="ops-row-label">{{ p.doctorName }}</span>
+          <span class="ops-row-sub">{{ p.appointments }} appts · {{ p.minutesBooked }} min</span>
+        </div>
+        <div class="ops-empty" *ngIf="providerActivity.length === 0">
+          <i class="fas fa-chart-simple"></i> No provider activity in the last 30 days
+        </div>
+      </div>
+      <ng-template #opsLoading>
+        <div class="ops-empty"><i class="fas fa-circle-notch fa-spin"></i> Loading…</div>
+      </ng-template>
+    </div>
+  </div>
+
   <!-- ── Module Grid ─────────────────────────────────────────────── -->
   <div class="section-title"><i class="fas fa-th-large"></i> Management Modules</div>
   <div class="module-grid">

@@ -27,6 +27,19 @@
   margin-bottom: 30px;
 }
 
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 20, 20, 0.45);
+  z-index: 999;
+  animation: backdrop-fade 0.2s ease;
+}
+
+@keyframes backdrop-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @media (max-width: 991px) {
   .page-wrapper {
     margin-left: 0;

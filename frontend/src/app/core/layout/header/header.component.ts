@@ -28,6 +28,16 @@ export class HeaderComponent implements OnInit {
   currentUser$: Observable<CurrentUser | null> = this.authService.getCurrentUser();
   showProfileDrawer = false;
   showNotificationsDrawer = false;
+  showOrgSwitcher = false;
+
+  readonly organizations = [{ name: 'CareOS Demo Health System', id: 1 }];
+  activeOrg = this.organizations[0];
+
+  toggleOrgSwitcher(): void {
+    this.showNotificationsDrawer = false;
+    this.showProfileDrawer = false;
+    this.showOrgSwitcher = !this.showOrgSwitcher;
+  }
 
   ngOnInit(): void {
     // Load current user on init

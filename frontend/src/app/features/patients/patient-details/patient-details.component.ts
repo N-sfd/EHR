@@ -5,13 +5,18 @@ import { HttpClient } from '@angular/common/http';
 import { switchMap, of, catchError } from 'rxjs';
 import { PatientService } from '../../../core/services/patient.service';
 import { AppointmentService } from '../../../core/services/appointment.service';
+import { CoverageService } from '../../../core/services/coverage.service';
+import { Coverage } from '../../../core/models/coverage.model';
 import { Patient } from '../../../core/models/patient.model';
 import { Appointment } from '../../../core/models/appointment.model';
+import { TabsComponent, TabComponent } from '../../../shared/components';
+
+interface DemoMedication { name: string; dosage: string; status: 'ACTIVE' | 'DISCONTINUED'; prescriber: string; }
 
 @Component({
   selector: 'app-patient-details',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TabsComponent, TabComponent],
   templateUrl: './patient-details.component.html',
   styleUrls: ['./patient-details.component.css']
 })
@@ -24,12 +29,23 @@ export class PatientDetailsComponent implements OnInit {
   errorMessage: string | null = null;
   showImageModal = false;
 
+  coverage: Coverage | null = null;
+  coverageLoading = false;
+
+  // Illustrative sample data — medication list has no admin-facing aggregate API yet
+  // (the real /api/meds/* endpoints are scoped to the patient-self MyChart portal).
+  readonly medications: DemoMedication[] = [
+    { name: 'Lisinopril', dosage: '10mg once daily', status: 'ACTIVE', prescriber: 'Dr. Provider' },
+    { name: 'Metformin', dosage: '500mg twice daily', status: 'ACTIVE', prescriber: 'Dr. Provider' },
+  ];
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private http: HttpClient,
     private patientService: PatientService,
-    private appointmentService: AppointmentService
+    private appointmentService: AppointmentService,
+    private coverageService: CoverageService
   ) {}
 
   ngOnInit(): void {
@@ -57,6 +73,7 @@ export class PatientDetailsComponent implements OnInit {
         if (patient) {
           this.loadAppointments(patient.patientId || 0);
           this.loadLabResults(patient.patientId || 0);
+          this.loadCoverage(patient.patientId || 0);
         }
         this.isLoading = false;
       },
@@ -91,6 +108,26 @@ export class PatientDetailsComponent implements OnInit {
         );
         this.labsLoading = false;
       });
+  }
+
+  loadCoverage(patientId: number): void {
+    this.coverageLoading = true;
+    this.coverageService.getByPatientId(patientId).subscribe({
+      next: (coverage) => {
+        this.coverage = coverage;
+        this.coverageLoading = false;
+      },
+      error: () => {
+        this.coverage = null;
+        this.coverageLoading = false;
+      }
+    });
+  }
+
+  getAllergyList(): string[] {
+    const raw = this.patient?.allergies;
+    if (!raw) return [];
+    return raw.split(',').map(a => a.trim()).filter(a => a.length > 0);
   }
 
   labStatusClass(status: string): string {

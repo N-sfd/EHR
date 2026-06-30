@@ -7,6 +7,13 @@ import { aiFeatureGuard } from './core/guards/ai-feature.guard';
 
 export const routes: Routes = [
   {
+    path: 'welcome',
+    loadComponent: () =>
+      import('./features/marketing/landing/landing.component')
+        .then(m => m.LandingComponent)
+  },
+
+  {
     path: 'login',
     loadComponent: () =>
       import('./features/auth/login/login.component')
@@ -274,6 +281,59 @@ export const routes: Routes = [
           import('./features/reports/scheduling-workqueue/scheduling-workqueue.component')
             .then(m => m.SchedulingWorkqueueComponent),
         data: { title: 'Scheduling Workqueue' }
+      },
+
+      // Preview modules — full build-out planned for a future release.
+      {
+        path: 'encounters',
+        loadComponent: () =>
+          import('./shared/components/coming-soon/coming-soon.component')
+            .then(m => m.ComingSoonComponent),
+        data: { icon: 'fa-stethoscope', title: 'Clinical Encounters', description: 'Visit documentation, SOAP notes, and encounter history are coming to CareOS.' }
+      },
+      {
+        path: 'prescriptions',
+        loadComponent: () =>
+          import('./shared/components/coming-soon/coming-soon.component')
+            .then(m => m.ComingSoonComponent),
+        data: { icon: 'fa-prescription', title: 'Prescriptions', description: 'Medication management and e-prescribing are coming to CareOS.' }
+      },
+      {
+        path: 'labs',
+        loadComponent: () =>
+          import('./shared/components/coming-soon/coming-soon.component')
+            .then(m => m.ComingSoonComponent),
+        data: { icon: 'fa-vial', title: 'Lab Orders & Results', description: 'Lab ordering and results review are coming to CareOS.' }
+      },
+      {
+        path: 'billing',
+        loadComponent: () =>
+          import('./shared/components/coming-soon/coming-soon.component')
+            .then(m => m.ComingSoonComponent),
+        data: { icon: 'fa-file-invoice-dollar', title: 'Billing & Insurance', description: 'Billing summaries, claims, and insurance management are coming to CareOS.' }
+      },
+      {
+        path: 'users',
+        loadComponent: () =>
+          import('./shared/components/coming-soon/coming-soon.component')
+            .then(m => m.ComingSoonComponent),
+        data: { icon: 'fa-users-gear', title: 'Users', description: 'Organization-wide user management is coming to CareOS. In the meantime, manage access under Roles & Permissions.' },
+        canActivate: [roleGuard(['ADMIN'])]
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./shared/components/coming-soon/coming-soon.component')
+            .then(m => m.ComingSoonComponent),
+        data: { icon: 'fa-gear', title: 'Settings', description: 'Organization profile, subscription, and system preferences are coming to CareOS.' },
+        canActivate: [roleGuard(['ADMIN'])]
+      },
+      {
+        path: 'support',
+        loadComponent: () =>
+          import('./shared/components/coming-soon/coming-soon.component')
+            .then(m => m.ComingSoonComponent),
+        data: { icon: 'fa-life-ring', title: 'Support', description: 'In-app support and help center are coming to CareOS. Reach out to your administrator in the meantime.' }
       }
     ]
   },
@@ -288,6 +348,6 @@ export const routes: Routes = [
   { path: 'patient', redirectTo: '/mychart/', pathMatch: 'full' },
   { path: 'patient/**', redirectTo: '/mychart/', pathMatch: 'full' },
 
-  { path: '', redirectTo: 'admin/dashboard', pathMatch: 'full' },
+  { path: '', redirectTo: 'welcome', pathMatch: 'full' },
   { path: '**', redirectTo: 'admin/dashboard' }
 ];

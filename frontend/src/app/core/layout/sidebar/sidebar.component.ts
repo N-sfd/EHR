@@ -79,9 +79,9 @@ export class SidebarComponent implements OnInit {
     {
       title: 'Main Menu',
       items: [
-        { 
-          icon: 'fa-grip', 
-          label: 'Dashboard', 
+        {
+          icon: 'fa-grip',
+          label: 'Dashboard',
           route: '/admin/dashboard'
         },
         {
@@ -92,52 +92,16 @@ export class SidebarComponent implements OnInit {
       ]
     },
     {
-      title: 'Staff',
-      items: [
-        { 
-          icon: 'fa-people-group', 
-          label: 'Staff List',
-          route: '/admin/staff-management'
-        },
-        { 
-          icon: 'fa-user-plus', 
-          label: 'Add Staff',
-          route: '/admin/staffs/add'
-        }
-      ]
-    },
-    {
-      title: 'Providers',
-      items: [
-        { 
-          icon: 'fa-user-doctor', 
-          label: 'All Providers',
-          route: '/admin/providers'
-        },
-        { 
-          icon: 'fa-user-plus', 
-          label: 'Add Provider',
-          route: '/admin/doctors/add'
-        },
-        { 
-          icon: 'fa-calendar', 
-          label: 'Provider Schedule',
-          route: '/admin/doctors/schedule'
-        }
-      ]
-    },
-    {
       title: 'Patients',
       items: [
         {
           icon: 'fa-users',
-          label: 'Patient List',
-          route: '/admin/patients'
-        },
-        {
-          icon: 'fa-user-plus',
-          label: 'Add Patient',
-          route: '/admin/patients/add'
+          label: 'Patients',
+          route: '/admin/patients',
+          children: [
+            { label: 'Patient List', route: '/admin/patients' },
+            { label: 'Add Patient', route: '/admin/patients/add' }
+          ]
         }
       ]
     },
@@ -146,57 +110,58 @@ export class SidebarComponent implements OnInit {
       items: [
         {
           icon: 'fa-calendar-grid',
-          label: 'Schedule Grid',
-          route: '/admin/appointments/grid'
-        },
-        {
-          icon: 'fa-calendar-plus',
-          label: 'New Appointment',
-          route: '/admin/appointments/new'
-        }
-      ]
-    },
-    {
-      title: 'Admin Configuration',
-      items: [
-        { 
-          icon: 'fa-calendar-alt', 
-          label: 'Provider Schedules',
-          route: '/admin/schedules'
-        },
-        { 
-          icon: 'fa-clipboard-list', 
-          label: 'Registration Rules',
-          route: '/admin/registration-rules'
-        },
-        { 
-          icon: 'fa-exclamation-triangle', 
-          label: 'Alerts & Warnings',
-          route: '/admin/alerts-warnings'
-        }
-      ]
-    },
-    {
-      title: 'HR Settings',
-      items: [
-        { 
-          icon: 'fa-shield-alt', 
-          label: 'Roles',
-          route: '/admin/roles-permissions',
+          label: 'Appointments',
+          route: '/admin/appointments/grid',
           children: [
-            { label: 'Roles', route: '/admin/roles-permissions' }
+            { label: 'Schedule Grid', route: '/admin/appointments/grid' },
+            { label: 'New Appointment', route: '/admin/appointments/new' }
+          ]
+        }
+      ]
+    },
+    {
+      title: 'Clinical',
+      items: [
+        { icon: 'fa-stethoscope', label: 'Encounters', route: '/admin/encounters' },
+        { icon: 'fa-prescription', label: 'Prescriptions', route: '/admin/prescriptions' },
+        { icon: 'fa-vial', label: 'Labs', route: '/admin/labs' }
+      ]
+    },
+    {
+      title: 'Providers & Staff',
+      items: [
+        {
+          icon: 'fa-user-doctor',
+          label: 'Providers',
+          route: '/admin/providers',
+          children: [
+            { label: 'All Providers', route: '/admin/providers' },
+            { label: 'Add Provider', route: '/admin/doctors/add' },
+            { label: 'Provider Schedule', route: '/admin/doctors/schedule' }
           ]
         },
-        { icon: 'fa-briefcase', label: 'Designation', route: '/admin/designations' },
-        { icon: 'fa-building', label: 'Departments', route: '/admin/departments' },
-        { icon: 'fa-stethoscope', label: 'Specializations', route: '/admin/specializations' }
+        {
+          icon: 'fa-people-group',
+          label: 'Staff',
+          route: '/admin/staff-management',
+          children: [
+            { label: 'Staff List', route: '/admin/staff-management' },
+            { label: 'Add Staff', route: '/admin/staffs/add' }
+          ]
+        }
+      ]
+    },
+    {
+      title: 'Billing',
+      items: [
+        { icon: 'fa-file-invoice-dollar', label: 'Billing & Insurance', route: '/admin/billing' }
       ]
     },
     {
       title: 'Reports',
       items: [
-        { 
-          icon: 'fa-chart-bar', 
+        {
+          icon: 'fa-chart-bar',
           label: 'Reports',
           children: [
             { label: 'Scheduling Analytics', route: '/reports/scheduling-analytics' },
@@ -204,6 +169,37 @@ export class SidebarComponent implements OnInit {
             { label: 'Scheduling Workqueue', route: '/reports/scheduling-workqueue' }
           ]
         }
+      ]
+    },
+    {
+      title: 'Administration',
+      items: [
+        { icon: 'fa-users-gear', label: 'Users', route: '/admin/users' },
+        {
+          icon: 'fa-shield-alt',
+          label: 'Roles & Permissions',
+          route: '/admin/roles-permissions'
+        },
+        {
+          icon: 'fa-sliders',
+          label: 'Configuration',
+          children: [
+            { label: 'Departments', route: '/admin/departments' },
+            { label: 'Designations', route: '/admin/designations' },
+            { label: 'Specializations', route: '/admin/specializations' },
+            { label: 'Locations', route: '/admin/locations' },
+            { label: 'Provider Schedules', route: '/admin/schedules' },
+            { label: 'Registration Rules', route: '/admin/registration-rules' },
+            { label: 'Alerts & Warnings', route: '/admin/alerts-warnings' }
+          ]
+        },
+        { icon: 'fa-gear', label: 'Settings', route: '/admin/settings' }
+      ]
+    },
+    {
+      title: '',
+      items: [
+        { icon: 'fa-life-ring', label: 'Support', route: '/admin/support' }
       ]
     }
   ];

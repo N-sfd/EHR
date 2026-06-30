@@ -4,10 +4,15 @@ import { RouterModule, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin, catchError, of } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
+import { ReportsService, ProviderUtilization } from '../../../core/services/reports.service';
 
 interface KpiCard { label: string; value: number | string; icon: string; color: string; sub?: string; route?: string; }
 interface ScheduleItem { time: string; patientName: string; doctorName: string; reason: string; status: string; appointmentId?: number; }
 interface RecentPatient { name: string; reason: string; date: string; status: string; doctor: string; patientId?: number; }
+interface BillingLine { label: string; amount: string; tone: 'success' | 'warning' | 'danger' | 'muted'; }
+interface LabAlert { patientName: string; test: string; flag: 'CRITICAL' | 'ABNORMAL'; date: string; }
+interface PrescriptionRequest { patientName: string; medication: string; requestedAt: string; status: 'PENDING' | 'APPROVED'; }
+interface ProviderActivityRow { doctorName: string; appointments: number; minutesBooked: number; }
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -20,6 +25,7 @@ export class AdminDashboardComponent implements OnInit {
   private http = inject(HttpClient);
   private router = inject(Router);
   private auth = inject(AuthService);
+  private reportsService = inject(ReportsService);
 
   today = new Date();
   greeting = '';
@@ -30,6 +36,29 @@ export class AdminDashboardComponent implements OnInit {
   kpis: KpiCard[] = [];
   todaySchedule: ScheduleItem[] = [];
   recentPatients: RecentPatient[] = [];
+  providerActivity: ProviderActivityRow[] = [];
+  providerActivityLoading = true;
+
+  // Illustrative sample data — billing, lab, and prescription detail live in the
+  // patient-facing MyChart API (role-scoped to PATIENT) and have no admin-facing
+  // aggregate endpoint yet, so these widgets show representative data for now.
+  readonly billingSummary: BillingLine[] = [
+    { label: 'Collected this month', amount: '$84,210', tone: 'success' },
+    { label: 'Outstanding balance', amount: '$12,640', tone: 'warning' },
+    { label: 'Overdue (30+ days)', amount: '$3,180', tone: 'danger' },
+  ];
+
+  readonly labAlerts: LabAlert[] = [
+    { patientName: 'M. Alvarez', test: 'Potassium Panel', flag: 'CRITICAL', date: 'Today' },
+    { patientName: 'J. Okafor', test: 'CBC', flag: 'ABNORMAL', date: 'Today' },
+    { patientName: 'R. Singh', test: 'Lipid Panel', flag: 'ABNORMAL', date: 'Yesterday' },
+  ];
+
+  readonly prescriptionRequests: PrescriptionRequest[] = [
+    { patientName: 'L. Chen', medication: 'Lisinopril 10mg', requestedAt: '2h ago', status: 'PENDING' },
+    { patientName: 'D. Brooks', medication: 'Metformin 500mg', requestedAt: '5h ago', status: 'PENDING' },
+    { patientName: 'A. Patel', medication: 'Atorvastatin 20mg', requestedAt: 'Yesterday', status: 'APPROVED' },
+  ];
 
   readonly quickActions = [
     { label: 'New Appointment', icon: 'fa-calendar-plus', route: '/admin/appointments/new', color: '#004F4F' },
@@ -61,6 +90,25 @@ export class AdminDashboardComponent implements OnInit {
       if (user?.name) this.staffName = user.name;
     });
     this.loadData();
+    this.loadProviderActivity();
+  }
+
+  private loadProviderActivity(): void {
+    const end = this.today.toISOString().slice(0, 10);
+    const start = new Date(this.today.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    this.reportsService.getProviderUtilization(start, end)
+      .pipe(catchError(() => of([] as ProviderUtilization[])))
+      .subscribe(rows => {
+        this.providerActivity = (rows || [])
+          .sort((a, b) => b.totalAppointments - a.totalAppointments)
+          .slice(0, 5)
+          .map(r => ({
+            doctorName: r.doctorName,
+            appointments: r.totalAppointments,
+            minutesBooked: r.totalMinutesBooked
+          }));
+        this.providerActivityLoading = false;
+      });
   }
 
   private loadData(): void {

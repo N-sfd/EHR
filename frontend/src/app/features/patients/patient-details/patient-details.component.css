@@ -575,3 +575,154 @@
   }
 }
 
+/* ── Tabs card (Insurance / Allergies / Medications / Documents / Notes) ── */
+.patient-tabs-card {
+  padding: 8px 24px 24px;
+}
+
+.demo-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #92660a;
+  background: rgba(245, 208, 92, 0.22);
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+}
+
+.tab-loading {
+  color: #6b7280;
+  font-size: 0.9rem;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.insurance-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.insurance-empty,
+.allergy-empty,
+.doc-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px;
+  color: #9ca3af;
+  text-align: center;
+}
+
+.insurance-empty i,
+.allergy-empty i,
+.doc-empty i {
+  font-size: 1.8rem;
+}
+
+.insurance-empty p,
+.allergy-empty p,
+.doc-empty p {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.allergy-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.allergy-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(225, 100, 100, 0.12);
+  color: #b91c1c;
+  font-size: 0.84rem;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 999px;
+}
+
+.medication-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.medication-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 4px;
+  border-bottom: 1px solid var(--border, #e6ecec);
+}
+
+.medication-row:last-child {
+  border-bottom: none;
+}
+
+.medication-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--secondary-beige, #f3efe9);
+  color: var(--primary-teal, #004F4F);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.medication-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.medication-name {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-navy, #0D1F2D);
+}
+
+.medication-meta {
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.status-badge.status-active {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-badge.status-inactive,
+.status-badge.status-discontinued {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.status-badge.status-expired {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-badge.status-not_verified {
+  background: #fff3cd;
+  color: #856404;
+}
+
+@media (max-width: 768px) {
+  .insurance-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

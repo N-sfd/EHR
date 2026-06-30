@@ -366,6 +366,32 @@
 .chip-grey,   .sched-chip.chip-grey   { background: #f1f5f9; color: #475569; }
 .sched-dot.chip-grey   { background: #94a3b8; }
 
+/* Operational Snapshot */
+.ops-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 0 28px;
+}
+.ops-panel { display: flex; flex-direction: column; }
+.demo-tag {
+  font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+  color: #92660a; background: rgba(245, 208, 92, 0.22); padding: 2px 8px; border-radius: 999px;
+  cursor: help;
+}
+.ops-list { display: flex; flex-direction: column; flex: 1; }
+.ops-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 12px 20px; border-bottom: 1px solid #f1f5f9;
+}
+.ops-row:last-child { border-bottom: none; }
+.ops-row-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ops-row-label { font-size: 0.84rem; font-weight: 600; color: var(--text); }
+.ops-row-sub { font-size: 0.74rem; color: var(--muted); }
+.ops-row-value { font-size: 0.88rem; font-weight: 700; }
+.ops-row-value.tone-success { color: #15803d; }
+.ops-row-value.tone-warning { color: #b45309; }
+.ops-row-value.tone-danger { color: #b91c1c; }
+.ops-row-value.tone-muted { color: var(--muted); }
+.ops-empty { padding: 24px 20px; text-align: center; color: var(--muted); font-size: 0.82rem; }
+
 /* Module grid */
 .section-title {
   padding: 0 28px; font-size: 0.88rem; font-weight: 700; color: var(--muted);

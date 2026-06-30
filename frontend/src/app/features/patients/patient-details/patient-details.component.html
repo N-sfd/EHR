@@ -98,130 +98,198 @@
     </div>
   </section>
 
-  <!-- Patient Medical Information -->
-  <section class="patient-medical-card card">
-    <h3 class="card-title">Medical Information</h3>
-    <div class="medical-grid">
-      <div class="medical-item">
-        <span class="medical-label">Allergies</span>
-        <div class="medical-value">
-          <strong>{{ getAllergies() }}</strong>
-          <span class="medical-status" [ngClass]="patient.allergies ? 'has-data' : 'no-data'">
-            {{ patient.allergies ? 'Recorded' : 'Not recorded' }}
-          </span>
-        </div>
-      </div>
-      <div class="medical-item">
-        <span class="medical-label">Medical History</span>
-        <div class="medical-value">
-          <strong>{{ getMedicalHistory() }}</strong>
-          <span class="medical-status" [ngClass]="patient.medicalHistory ? 'has-data' : 'no-data'">
-            {{ patient.medicalHistory ? 'Recorded' : 'Not recorded' }}
-          </span>
-        </div>
-      </div>
-      <div class="medical-item">
-        <span class="medical-label">Primary Provider</span>
-        <div class="medical-value">
-          <strong>{{ getPrimaryProvider() }}</strong>
-          <span class="medical-status" [ngClass]="patient.primaryDoctorId ? 'has-data' : 'no-data'">
-            {{ patient.primaryDoctorId ? 'Assigned' : 'Not assigned' }}
-          </span>
-        </div>
-      </div>
-      <div class="medical-item">
-        <span class="medical-label">Insurance Provider</span>
-        <div class="medical-value">
-          <strong>{{ patient.insuranceProvider || 'Not specified' }}</strong>
-          <span class="medical-status" [ngClass]="patient.insuranceProvider ? 'has-data' : 'no-data'">
-            {{ patient.insuranceProvider ? 'Active' : 'Not set' }}
-          </span>
-        </div>
-      </div>
-    </div>
-  </section>
+  <!-- Clinical & Administrative Detail Tabs -->
+  <section class="patient-tabs-card card">
+    <app-tabs>
 
-  <!-- Patient Appointment History -->
-  <section class="patient-history-card card">
-    <div class="card-header-section">
-      <h3 class="card-title">Appointment History</h3>
-      <span class="total-count">Total {{ getAppointmentCount() }} Appointments</span>
-    </div>
-    <div class="history-table-container">
-      <table class="history-table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Provider</th>
-            <th>Department</th>
-            <th>Type</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let appointment of getAppointmentHistory()">
-            <td>{{ appointment.date }}</td>
-            <td>{{ appointment.provider }}</td>
-            <td>{{ appointment.department }}</td>
-            <td>{{ appointment.type }}</td>
-            <td>
-              <span class="status-badge" [ngClass]="appointment.statusClass">
-                {{ appointment.status }}
+      <app-tab label="Overview" icon="fa-circle-info" [active]="true">
+        <div class="medical-grid">
+          <div class="medical-item">
+            <span class="medical-label">Medical History</span>
+            <div class="medical-value">
+              <strong>{{ getMedicalHistory() }}</strong>
+              <span class="medical-status" [ngClass]="patient.medicalHistory ? 'has-data' : 'no-data'">
+                {{ patient.medicalHistory ? 'Recorded' : 'Not recorded' }}
               </span>
-            </td>
-          </tr>
-          <tr *ngIf="getAppointmentHistory().length === 0">
-            <td colspan="5" class="no-data">No appointment history available</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- Lab Results -->
-  <section class="patient-history-card card lab-results-card">
-    <div class="card-header-section">
-      <h3 class="card-title"><i class="fas fa-flask"></i> Lab Results</h3>
-      <span class="total-count">{{ labs.length }} result(s) on file</span>
-    </div>
-
-    <div class="lab-loading" *ngIf="labsLoading">
-      <i class="fas fa-spinner fa-spin"></i> Loading lab results…
-    </div>
-
-    <div class="lab-empty" *ngIf="!labsLoading && labs.length === 0">
-      <i class="fas fa-flask"></i>
-      <p>No lab results on file for this patient.</p>
-    </div>
-
-    <div class="lab-list" *ngIf="!labsLoading && labs.length > 0">
-      <div class="lab-row" *ngFor="let lab of labs">
-        <div class="lab-icon-wrap"><i class="fas fa-vial"></i></div>
-        <div class="lab-info">
-          <div class="lab-name">{{ lab.panelName || 'Lab Panel' }}</div>
-          <div class="lab-meta">
-            <span *ngIf="lab.labName"><i class="fas fa-building"></i> {{ lab.labName }}</span>
-            <span *ngIf="lab.orderingProvider"><i class="fas fa-user-doctor"></i> {{ lab.orderingProvider }}</span>
-            <span *ngIf="lab.resultDate"><i class="fas fa-calendar"></i> {{ lab.resultDate | date:'mediumDate' }}</span>
+            </div>
           </div>
-          <div class="lab-items" *ngIf="lab.items?.length">
-            <span class="lab-item-chip" *ngFor="let item of lab.items?.slice(0,5)"
-              [class.chip-abnormal]="item.flag === 'HIGH' || item.flag === 'LOW' || item.flag === 'CRITICAL'">
-              {{ item.testName }}{{ item.flag ? ' (' + item.flag + ')' : '' }}
-            </span>
-            <span class="lab-item-chip chip-more" *ngIf="lab.items?.length > 5">+{{ lab.items.length - 5 }} more</span>
+          <div class="medical-item">
+            <span class="medical-label">Primary Provider</span>
+            <div class="medical-value">
+              <strong>{{ getPrimaryProvider() }}</strong>
+              <span class="medical-status" [ngClass]="patient.primaryDoctorId ? 'has-data' : 'no-data'">
+                {{ patient.primaryDoctorId ? 'Assigned' : 'Not assigned' }}
+              </span>
+            </div>
+          </div>
+          <div class="medical-item">
+            <span class="medical-label">Insurance Provider</span>
+            <div class="medical-value">
+              <strong>{{ patient.insuranceProvider || 'Not specified' }}</strong>
+              <span class="medical-status" [ngClass]="patient.insuranceProvider ? 'has-data' : 'no-data'">
+                {{ patient.insuranceProvider ? 'Active' : 'Not set' }}
+              </span>
+            </div>
+          </div>
+          <div class="medical-item">
+            <span class="medical-label">Upcoming Appointments</span>
+            <div class="medical-value">
+              <strong>{{ getAppointmentCount() }} total on file</strong>
+            </div>
           </div>
         </div>
-        <div class="lab-status">
-          <span class="lab-badge" [ngClass]="labStatusClass(lab.overallStatus)">
-            {{ labStatusLabel(lab.overallStatus) }}
-          </span>
-          <span class="lab-abnormal-count" *ngIf="lab.abnormalCount > 0">
-            {{ lab.abnormalCount }} abnormal
+      </app-tab>
+
+      <app-tab label="Insurance" icon="fa-file-shield">
+        <div class="tab-loading" *ngIf="coverageLoading"><i class="fas fa-spinner fa-spin"></i> Loading insurance details…</div>
+        <div class="insurance-empty" *ngIf="!coverageLoading && !coverage">
+          <i class="fas fa-file-circle-question"></i>
+          <p>No insurance coverage on file for this patient.</p>
+        </div>
+        <div class="insurance-grid" *ngIf="!coverageLoading && coverage">
+          <div class="medical-item">
+            <span class="medical-label">Payer</span>
+            <strong class="medical-value">{{ coverage.payer }}</strong>
+          </div>
+          <div class="medical-item">
+            <span class="medical-label">Member ID</span>
+            <strong class="medical-value">{{ coverage.memberId }}</strong>
+          </div>
+          <div class="medical-item" *ngIf="coverage.groupNumber">
+            <span class="medical-label">Group Number</span>
+            <strong class="medical-value">{{ coverage.groupNumber }}</strong>
+          </div>
+          <div class="medical-item">
+            <span class="medical-label">Eligibility Status</span>
+            <span class="status-badge" [ngClass]="'status-' + coverage.eligibilityStatus.toLowerCase()">{{ coverage.eligibilityStatus }}</span>
+          </div>
+          <div class="medical-item" *ngIf="coverage.copay !== undefined">
+            <span class="medical-label">Copay</span>
+            <strong class="medical-value">${{ coverage.copay }}</strong>
+          </div>
+          <div class="medical-item" *ngIf="coverage.deductible !== undefined">
+            <span class="medical-label">Deductible</span>
+            <strong class="medical-value">${{ coverage.deductible }}</strong>
+          </div>
+        </div>
+      </app-tab>
+
+      <app-tab label="Allergies" icon="fa-triangle-exclamation">
+        <div class="allergy-empty" *ngIf="getAllergyList().length === 0">
+          <i class="fas fa-circle-check"></i>
+          <p>No known allergies recorded.</p>
+        </div>
+        <div class="allergy-chips" *ngIf="getAllergyList().length > 0">
+          <span class="allergy-chip" *ngFor="let allergy of getAllergyList()">
+            <i class="fas fa-triangle-exclamation"></i> {{ allergy }}
           </span>
         </div>
-      </div>
-    </div>
+      </app-tab>
+
+      <app-tab label="Medications" icon="fa-pills">
+        <span class="demo-tag" title="Illustrative data — admin medications aggregate API not yet available">Sample data</span>
+        <div class="medication-list">
+          <div class="medication-row" *ngFor="let med of medications">
+            <div class="medication-icon"><i class="fas fa-pills"></i></div>
+            <div class="medication-info">
+              <div class="medication-name">{{ med.name }}</div>
+              <div class="medication-meta">{{ med.dosage }} · Prescribed by {{ med.prescriber }}</div>
+            </div>
+            <span class="status-badge" [ngClass]="med.status === 'ACTIVE' ? 'status-active' : 'status-inactive'">{{ med.status }}</span>
+          </div>
+        </div>
+      </app-tab>
+
+      <app-tab label="Lab Results" icon="fa-flask">
+        <div class="lab-loading" *ngIf="labsLoading">
+          <i class="fas fa-spinner fa-spin"></i> Loading lab results…
+        </div>
+
+        <div class="lab-empty" *ngIf="!labsLoading && labs.length === 0">
+          <i class="fas fa-flask"></i>
+          <p>No lab results on file for this patient.</p>
+        </div>
+
+        <div class="lab-list" *ngIf="!labsLoading && labs.length > 0">
+          <div class="lab-row" *ngFor="let lab of labs">
+            <div class="lab-icon-wrap"><i class="fas fa-vial"></i></div>
+            <div class="lab-info">
+              <div class="lab-name">{{ lab.panelName || 'Lab Panel' }}</div>
+              <div class="lab-meta">
+                <span *ngIf="lab.labName"><i class="fas fa-building"></i> {{ lab.labName }}</span>
+                <span *ngIf="lab.orderingProvider"><i class="fas fa-user-doctor"></i> {{ lab.orderingProvider }}</span>
+                <span *ngIf="lab.resultDate"><i class="fas fa-calendar"></i> {{ lab.resultDate | date:'mediumDate' }}</span>
+              </div>
+              <div class="lab-items" *ngIf="lab.items?.length">
+                <span class="lab-item-chip" *ngFor="let item of lab.items?.slice(0,5)"
+                  [class.chip-abnormal]="item.flag === 'HIGH' || item.flag === 'LOW' || item.flag === 'CRITICAL'">
+                  {{ item.testName }}{{ item.flag ? ' (' + item.flag + ')' : '' }}
+                </span>
+                <span class="lab-item-chip chip-more" *ngIf="lab.items?.length > 5">+{{ lab.items.length - 5 }} more</span>
+              </div>
+            </div>
+            <div class="lab-status">
+              <span class="lab-badge" [ngClass]="labStatusClass(lab.overallStatus)">
+                {{ labStatusLabel(lab.overallStatus) }}
+              </span>
+              <span class="lab-abnormal-count" *ngIf="lab.abnormalCount > 0">
+                {{ lab.abnormalCount }} abnormal
+              </span>
+            </div>
+          </div>
+        </div>
+      </app-tab>
+
+      <app-tab label="Visit History" icon="fa-calendar-days">
+        <div class="card-header-section">
+          <span class="total-count">Total {{ getAppointmentCount() }} Appointments</span>
+        </div>
+        <div class="history-table-container">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Provider</th>
+                <th>Department</th>
+                <th>Type</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let appointment of getAppointmentHistory()">
+                <td>{{ appointment.date }}</td>
+                <td>{{ appointment.provider }}</td>
+                <td>{{ appointment.department }}</td>
+                <td>{{ appointment.type }}</td>
+                <td>
+                  <span class="status-badge" [ngClass]="appointment.statusClass">
+                    {{ appointment.status }}
+                  </span>
+                </td>
+              </tr>
+              <tr *ngIf="getAppointmentHistory().length === 0">
+                <td colspan="5" class="no-data">No appointment history available</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </app-tab>
+
+      <app-tab label="Documents" icon="fa-folder-open">
+        <div class="doc-empty">
+          <i class="fas fa-folder-open"></i>
+          <p>No documents available yet for this patient.</p>
+        </div>
+      </app-tab>
+
+      <app-tab label="Notes" icon="fa-note-sticky">
+        <div class="doc-empty">
+          <i class="fas fa-note-sticky"></i>
+          <p>No clinical notes recorded yet for this patient.</p>
+        </div>
+      </app-tab>
+
+    </app-tabs>
   </section>
 
 </div>
