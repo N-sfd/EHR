@@ -5,7 +5,7 @@
 databases:
   - name: ehr-postgres
     databaseName: staff_db
-    user: postgres
+    # Render reserves "postgres"; it auto-generates a user, which we read via DB_USER below.
     plan: free # NOTE: Render's free Postgres is deleted after ~30 days; upgrade for anything real.
 
 services:
