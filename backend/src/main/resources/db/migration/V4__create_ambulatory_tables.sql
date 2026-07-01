@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS encounter_diagnoses (
 
 CREATE TABLE IF NOT EXISTS encounter_orders (
     encounter_id BIGINT NOT NULL,
-    order VARCHAR(255),
+    "order" VARCHAR(255),
     FOREIGN KEY (encounter_id) REFERENCES encounters(encounter_id) ON DELETE CASCADE
 );
 
