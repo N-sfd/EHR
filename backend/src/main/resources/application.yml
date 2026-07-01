@@ -14,22 +14,19 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: none  # Temporarily set to none to allow Flyway migrations to run first, then change back to validate
-    show-sql: true  # Enable SQL logging for debugging
+      # Hibernate owns the schema. The historical Flyway scripts in db/migration were never a
+      # coherent ordered history (they UPDATE/seed tables created by Hibernate, e.g. "staff"),
+      # so Flyway is disabled and the admin user is seeded by DataSeeder instead.
+      ddl-auto: update
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
         use_sql_comments: true
   flyway:
-    enabled: true
+    enabled: false
     locations: classpath:db/migration
     baseline-on-migrate: true
-    properties:
-      hibernate:
-        format_sql: true
-        jdbc:
-          batch_size: 20
-    show-sql: true
 
   jackson:
     serialization:

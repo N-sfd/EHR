@@ -36,11 +36,12 @@ INSERT INTO visit_type_departments (visit_type_id, department_id) VALUES
 (6, 1), (6, 2), (6, 3), (6, 4) -- Urgent Care
 ON CONFLICT DO NOTHING;
 
--- Sample Patients (with all required fields for registration completeness)
-INSERT INTO patients (mrn, first_name, last_name, date_of_birth, sex, phone, email, address_line1, city, state, zip_code, patient_code, phone_number, address, gender, status) VALUES
-('MRN001', 'John', 'Doe', '1980-05-15', 'MALE', '555-0101', 'john.doe@example.com', '123 Main St', 'Springfield', 'IL', '62701', 'MRN001', '555-0101', '123 Main St', 'Male', 'ACTIVE'),
-('MRN002', 'Jane', 'Smith', '1990-08-22', 'FEMALE', '555-0102', 'jane.smith@example.com', '456 Oak Ave', 'Springfield', 'IL', '62702', 'MRN002', '555-0102', '456 Oak Ave', 'Female', 'ACTIVE'),
-('MRN003', 'Robert', 'Johnson', '1975-03-10', 'MALE', '555-0103', 'robert.j@example.com', '789 Pine Rd', 'Springfield', 'IL', '62703', 'MRN003', '555-0103', '789 Pine Rd', 'Male', 'ACTIVE')
+-- Sample Patients (only columns that exist at this migration; extra columns like
+-- patient_code/phone_number/address/gender/status are added by later migrations).
+INSERT INTO patients (mrn, first_name, last_name, date_of_birth, sex, phone, email, address_line1, city, state, zip_code) VALUES
+('MRN001', 'John', 'Doe', '1980-05-15', 'MALE', '555-0101', 'john.doe@example.com', '123 Main St', 'Springfield', 'IL', '62701'),
+('MRN002', 'Jane', 'Smith', '1990-08-22', 'FEMALE', '555-0102', 'jane.smith@example.com', '456 Oak Ave', 'Springfield', 'IL', '62702'),
+('MRN003', 'Robert', 'Johnson', '1975-03-10', 'MALE', '555-0103', 'robert.j@example.com', '789 Pine Rd', 'Springfield', 'IL', '62703')
 ON CONFLICT (mrn) DO NOTHING;
 
 -- Sample Coverages (using subqueries to get actual patient IDs)
