@@ -1,9 +1,10 @@
-# Used with SPRING_PROFILES_ACTIVE=docker (see docker-compose.yml)
+# Used with SPRING_PROFILES_ACTIVE=docker (docker-compose.yml and cloud hosts like Render).
+# Provide either SPRING_DATASOURCE_URL directly, or the DB_* parts (host/port/name/user/password).
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://db:5432/staff_db}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST:db}:${DB_PORT:5432}/${DB_NAME:staff_db}${DB_QUERY:}}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USER:postgres}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:postgres}}
 
 server:
   forward-headers-strategy: framework

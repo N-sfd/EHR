@@ -1,0 +1,50 @@
+# Render Blueprint for the EHR Spring Boot backend + PostgreSQL.
+# Deploy: push to GitHub, then in Render -> "New" -> "Blueprint" and point it at this repo.
+# Docs: https://render.com/docs/blueprint-spec
+
+databases:
+  - name: ehr-postgres
+    databaseName: staff_db
+    user: postgres
+    plan: free # NOTE: Render's free Postgres is deleted after ~30 days; upgrade for anything real.
+
+services:
+  - type: web
+    name: ehr-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile.api
+    dockerContext: .
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: docker
+      # Database connection is composed from these in application-docker.yml
+      - key: DB_HOST
+        fromDatabase:
+          name: ehr-postgres
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: ehr-postgres
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: ehr-postgres
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: ehr-postgres
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: ehr-postgres
+          property: password
+      # HTTPS in production -> Secure session cookies
+      - key: APP_COOKIE_SECURE
+        value: "true"
+      - key: EPIC_SMART_COOKIE_SECURE
+        value: "true"
+      # Set to your Cloudflare Pages URL once known (used for SMART on FHIR redirects). Optional.
+      - key: EPIC_SMART_FRONTEND_BASE_URL
+        sync: false

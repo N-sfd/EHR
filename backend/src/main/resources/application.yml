@@ -1,5 +1,6 @@
 server:
-  port: 8087
+  # Hosts like Render/Railway inject the port to bind via PORT; default to 8087 for local dev.
+  port: ${PORT:8087}
 
 # AI auto-config exclusions when AI is off are applied by AiToggleEnvironmentPostProcessor
 # (see EHR_AI_ENABLED). Do not list spring.autoconfigure.exclude here for Spring AI.
