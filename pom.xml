@@ -59,6 +59,17 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Flyway database migrations (required for schema creation + seed data).
+             flyway-database-postgresql is mandatory for Flyway 10+ on PostgreSQL. -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
+
         <!-- H2 Database (for development/testing) -->
         <dependency>
             <groupId>com.h2database</groupId>
