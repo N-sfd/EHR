@@ -89,13 +89,25 @@ public class AiToggleEnvironmentPostProcessor implements EnvironmentPostProcesso
 
         Map<String, Object> map = new LinkedHashMap<>();
         if (ollamaFlag) {
-            map.put("spring.ai.openai.base-url", normalizeOllamaOpenAiV1Base(env.getProperty("OLLAMA_BASE_URL", "http://localhost:11434")));
+            // Spring AI's OpenAI client appends "/v1/chat/completions" and "/v1/embeddings" to the base URL
+            // itself, so the base URL must be the server ROOT (no trailing /v1) — otherwise requests go to
+            // ".../v1/v1/chat/completions" and Ollama returns 404.
+            map.put("spring.ai.openai.base-url", normalizeOllamaBaseUrl(env.getProperty("OLLAMA_BASE_URL", "http://localhost:11434")));
         }
         if (!hasNonEmptyResolvedKey(env.getProperty("spring.ai.openai.api-key"))) {
             map.put("spring.ai.openai.api-key", env.getProperty("OLLAMA_OPENAI_API_KEY_PLACEHOLDER", "ollama"));
         }
         if (ollamaFlag && !Boolean.TRUE.equals(env.getProperty(PROPERTY_EHR_AI_OLLAMA_EMBEDDING, Boolean.class, false))) {
-            map.put("spring.ai.openai.embedding.enabled", false);
+            // Ollama does not serve OpenAI's "text-embedding-3-small", so embeddings are turned off by
+            // excluding the embedding auto-config. The pgvector store auto-config must be excluded too,
+            // because it requires an EmbeddingModel bean and would otherwise fail startup. RAG vector search
+            // then degrades gracefully (AiVectorChunkSearchService skips when no EmbeddingModel is present).
+            String existing = env.getProperty("spring.autoconfigure.exclude");
+            String excludes = String.join(",",
+                    "org.springframework.ai.model.openai.autoconfigure.OpenAiEmbeddingAutoConfiguration",
+                    "org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreAutoConfiguration");
+            map.put("spring.autoconfigure.exclude",
+                    StringUtils.hasText(existing) ? existing + "," + excludes : excludes);
         }
         if (ollamaFlag) {
             map.put("spring.ai.openai.chat.options.model", env.getProperty("OLLAMA_CHAT_MODEL", "llama3"));
@@ -111,15 +123,22 @@ public class AiToggleEnvironmentPostProcessor implements EnvironmentPostProcesso
         }
     }
 
-    private static String normalizeOllamaOpenAiV1Base(String hostOrUrl) {
+    /**
+     * Returns the Ollama server root (scheme://host:port) with any trailing slash or {@code /v1} removed,
+     * because Spring AI's OpenAI client appends the {@code /v1/...} path segment itself.
+     */
+    static String normalizeOllamaBaseUrl(String hostOrUrl) {
         String b = hostOrUrl.trim();
+        while (b.endsWith("/")) {
+            b = b.substring(0, b.length() - 1);
+        }
         if (b.endsWith("/v1")) {
-            return b;
+            b = b.substring(0, b.length() - "/v1".length());
         }
-        if (b.endsWith("/")) {
-            return b + "v1";
+        while (b.endsWith("/")) {
+            b = b.substring(0, b.length() - 1);
         }
-        return b + "/v1";
+        return b;
     }
 
     private static boolean looksLikeOllamaOpenAiEndpoint(ConfigurableEnvironment env) {

@@ -1,1 +1,4 @@
+# MyChart SPA deep-links must fall back to the MyChart index, not the admin app.
+/mychart/*    /mychart/index.html    200
+# Admin SPA fallback.
 /*    /index.html    200

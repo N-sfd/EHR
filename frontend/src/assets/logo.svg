@@ -1,19 +1,40 @@
-<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CareOS">
   <defs>
-    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#2EC8A7"/>
-      <stop offset="100%" stop-color="#004F4F"/>
+    <linearGradient id="careosBg" x1="28" y1="18" x2="172" y2="182" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3BD9B6"/>
+      <stop offset="0.5" stop-color="#0E9B92"/>
+      <stop offset="1" stop-color="#00464A"/>
     </linearGradient>
-    <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#004F4F"/>
-      <stop offset="100%" stop-color="#007070"/>
+    <radialGradient id="careosGlow" cx="0.32" cy="0.24" r="0.9">
+      <stop stop-color="#FFFFFF" stop-opacity="0.45"/>
+      <stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="careosCross" x1="70" y1="46" x2="130" y2="154" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E6FBF5"/>
     </linearGradient>
+    <filter id="careosDrop" x="-30%" y="-25%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#00363A" flood-opacity="0.32"/>
+    </filter>
+    <filter id="crossDrop" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#00363A" flood-opacity="0.22"/>
+    </filter>
   </defs>
-  <!-- Background circle -->
-  <circle cx="100" cy="100" r="90" fill="url(#g2)"/>
-  <!-- White cross -->
-  <rect x="84" y="52" width="32" height="96" rx="8" fill="white" opacity="0.95"/>
-  <rect x="52" y="84" width="96" height="32" rx="8" fill="white" opacity="0.95"/>
-  <!-- Teal accent dot top right -->
-  <circle cx="148" cy="52" r="14" fill="#2EC8A7"/>
+
+  <!-- App badge -->
+  <rect x="14" y="14" width="172" height="172" rx="46" fill="url(#careosBg)" filter="url(#careosDrop)"/>
+  <rect x="14" y="14" width="172" height="172" rx="46" fill="url(#careosGlow)"/>
+  <rect x="14.75" y="14.75" width="170.5" height="170.5" rx="45.25" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="1.5"/>
+
+  <!-- Rounded medical cross -->
+  <g filter="url(#crossDrop)">
+    <rect x="85" y="44" width="30" height="112" rx="13" fill="url(#careosCross)"/>
+    <rect x="44" y="85" width="112" height="30" rx="13" fill="url(#careosCross)"/>
+  </g>
+
+  <!-- Clean ECG / heartbeat waveform across the horizontal arm -->
+  <path d="M50 100 H79 L87 100 L92 80 L100 122 L107 96 L112 100 H150"
+        stroke="#0E9B92" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="150" cy="100" r="4.5" fill="#0E9B92"/>
 </svg>

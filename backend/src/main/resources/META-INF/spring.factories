@@ -2,3 +2,7 @@
 # META-INF/spring/org.springframework.boot.env.EnvironmentPostProcessor is not consulted by default.
 org.springframework.boot.env.EnvironmentPostProcessor=\
 com.ehr.staffservice.config.AiToggleEnvironmentPostProcessor
+
+# Opt-in one-time schema reset (EHR_DB_RESET_SCHEMA=true). Runs before Hibernate builds the schema.
+org.springframework.context.ApplicationContextInitializer=\
+com.ehr.staffservice.config.SchemaResetApplicationContextInitializer

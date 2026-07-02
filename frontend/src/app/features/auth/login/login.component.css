@@ -26,9 +26,11 @@
   flex-direction: column;
   padding: 40px 56px 32px;
   color: #fff;
+  /* Layered like top EHR sites: readable teal wash over a clinical hero photo. */
   background:
-    radial-gradient(ellipse 80% 50% at 100% 0%, rgba(46, 200, 167, 0.18), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 0% 100%, rgba(0, 0, 0, 0.25), transparent 50%),
+    linear-gradient(115deg, rgba(0, 44, 44, 0.94) 0%, rgba(0, 63, 63, 0.82) 40%, rgba(0, 79, 79, 0.55) 72%, rgba(0, 107, 107, 0.35) 100%),
+    radial-gradient(ellipse 80% 50% at 100% 0%, rgba(46, 200, 167, 0.20), transparent 55%),
+    url('/assets/login-bg.png') center right / cover no-repeat,
     linear-gradient(160deg, var(--teal-900) 0%, var(--teal-800) 48%, var(--teal-700) 100%);
   overflow: hidden;
 }

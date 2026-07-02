@@ -48,3 +48,22 @@ services:
       # Set to your Cloudflare Pages URL once known (used for SMART on FHIR redirects). Optional.
       - key: EPIC_SMART_FRONTEND_BASE_URL
         sync: false
+
+      # --- One-time database reset -----------------------------------------------------
+      # The DB was left inconsistent by an earlier partially-applied migration (a legacy
+      # patients.mrn NOT NULL column that blocks inserts). Set this to "true" ONCE in the
+      # Render dashboard, redeploy so Hibernate rebuilds a clean schema, then set it back
+      # to "false". WARNING: enabling this deletes ALL data in the database.
+      - key: EHR_DB_RESET_SCHEMA
+        value: "false"
+
+      # --- AI (cloud OpenAI) -----------------------------------------------------------
+      # Render cannot reach a local Ollama, so the hosted site uses OpenAI. Paste your key
+      # (OPENAI_API_KEY) in the Render dashboard; until then AI stays off and the app runs
+      # normally. No key = assistant shows the "AI not configured" message.
+      - key: EHR_AI_ENABLED
+        value: "true"
+      - key: EHR_AI_STREAMING
+        value: "true"
+      - key: OPENAI_API_KEY
+        sync: false

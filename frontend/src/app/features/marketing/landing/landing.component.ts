@@ -31,6 +31,13 @@ interface FaqItem {
   open: boolean;
 }
 
+interface Showcase {
+  image: string;
+  eyebrow: string;
+  title: string;
+  desc: string;
+}
+
 @Component({
   selector: 'app-landing',
   standalone: true,
@@ -50,6 +57,14 @@ export class LandingComponent {
     { icon: 'fa-chart-line', title: 'Operational Analytics', desc: 'Provider utilization, scheduling throughput, and registration-completeness reporting your administrators can act on.' },
     { icon: 'fa-shield-halved', title: 'Role-Based Access Control', desc: 'Granular, auditable permissions across Admin, Provider, and Patient roles — built in, not bolted on.' },
     { icon: 'fa-hospital-user', title: 'Patient Engagement Portal', desc: 'A dedicated patient experience for appointments, secure messaging, and self-service — accessible wherever care happens.' },
+  ];
+
+  readonly showcase: Showcase[] = [
+    { image: 'assets/ehr-hospital.png', eyebrow: 'Health systems', title: 'One platform for the whole hospital', desc: 'From the front desk to the boardroom, unify every department on a single system of record.' },
+    { image: 'assets/ehr-doctor.png', eyebrow: 'Care teams', title: 'Built for the people who deliver care', desc: 'Low-friction workflows that keep providers focused on patients, not paperwork.' },
+    { image: 'assets/ehr-patient.png', eyebrow: 'Patient experience', title: 'A warmer, more connected patient journey', desc: 'Self-service appointments, secure messaging, and MyChart-style access for patients and families.' },
+    { image: 'assets/ehr-lab.png', eyebrow: 'Diagnostics', title: 'Labs and results, in context', desc: 'FHIR-native connectivity brings lab and diagnostic data right alongside the clinical picture.' },
+    { image: 'assets/ehr-records.png', eyebrow: 'Records & analytics', title: 'Every record at your fingertips', desc: 'Secure, auditable digital charts with real operational visibility for your administrators.' },
   ];
 
   readonly pricing: PricingTier[] = [

@@ -44,7 +44,8 @@ spring:
     openai:
       enabled: ${ehr.ai.enabled:false}
       api-key: ${OPENAI_API_KEY:}
-      # Overridden to http://localhost:11434/v1 when ehr.ai.ollama=true (or set manually for Ollama OpenAI compatibility).
+      # Overridden to the Ollama server root (e.g. http://localhost:11434) when ehr.ai.ollama=true.
+      # Spring AI appends "/v1/chat/completions" itself, so do NOT include /v1 in the base URL.
       base-url: ${SPRING_AI_OPENAI_BASE_URL:https://api.openai.com}
       chat:
         enabled: ${ehr.ai.enabled:false}

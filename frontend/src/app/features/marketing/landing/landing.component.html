@@ -83,6 +83,27 @@
     </div>
   </section>
 
+  <!-- ── Showcase gallery ─────────────────────────────────────────────── -->
+  <section class="section showcase-section" id="showcase">
+    <div class="section-head">
+      <span class="section-eyebrow">In the real world</span>
+      <h2>Care that connects hospitals, clinicians, patients, and data</h2>
+      <p>A single platform spanning every part of the health system — hospitals, care teams, patients, labs, and records.</p>
+    </div>
+    <div class="showcase-grid">
+      <article class="showcase-card" *ngFor="let s of showcase; let i = index" [class.wide]="i === 0">
+        <div class="showcase-media">
+          <img [src]="s.image" [alt]="s.title" loading="lazy" />
+        </div>
+        <div class="showcase-body">
+          <span class="showcase-eyebrow">{{ s.eyebrow }}</span>
+          <h3>{{ s.title }}</h3>
+          <p>{{ s.desc }}</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
   <!-- ── Security & compliance ───────────────────────────────────────── -->
   <section class="section security-section" id="security">
     <div class="security-grid">
